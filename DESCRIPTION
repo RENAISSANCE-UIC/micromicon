@@ -1,0 +1,43 @@
+Package: micromicon
+Title: Unified Genomics Toolkit for GenBank and GFF3/FASTA Workflows
+Version: 0.1.0
+Authors@R:
+    person(
+        given = "William",
+        family = "Ackerman",
+        email = "weackerm@uic.edu",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0001-7366-3903")
+    )
+Description: A unified genomics toolkit implementing clean architecture principles
+    for working with GenBank and GFF3/FASTA data. Provides a common genome_entity
+    object that bridges lightweight R data structures with optional Bioconductor
+    integration. Features include format conversion, sequence extraction, feature
+    queries, and graceful degradation when Bioconductor is unavailable. The Clean
+    architecture design ensures testability, maintainability, and framework
+    independence.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    cli,
+    tibble,
+    dplyr,
+    readr
+Suggests:
+    GenomicRanges,
+    Biostrings,
+    rtracklayer,
+    Rsamtools,
+    GenomeInfoDb,
+    S4Vectors,
+    IRanges,
+    rentrez,
+    httr2,
+    xml2,
+    processx,
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

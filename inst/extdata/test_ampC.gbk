@@ -1,0 +1,64 @@
+LOCUS       MICR_AMPC       1734 bp    DNA     circular  BCT  03-FEB-2026
+DEFINITION  Synthetic plasmid pMicRomiconDemo carrying E. coli ampC with padding.
+ACCESSION   TEST000002
+VERSION     TEST000002.1
+KEYWORDS    plasmid; beta-lactamase; ampC; tutorial; micRomicon.
+SOURCE      Escherichia coli
+  ORGANISM  Escherichia coli
+            Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales;
+            Enterobacteriaceae; Escherichia.
+REFERENCE   1  (bases 1 to 1734)
+  AUTHORS   Ackerman,W.E.
+  TITLE     micRomicon tutorial test record containing E. coli ampC (P00811)
+  JOURNAL   Unpublished
+FEATURES             Location/Qualifiers
+     source          1..1734
+                     /organism="Escherichia coli"
+                     /mol_type="other DNA"
+                     /plasmid="pMicRomiconDemo"
+     gene            301..1434
+                     /gene="ampC"
+     CDS             301..1434
+                     /gene="ampC"
+                     /locus_tag="MRICON_0001"
+                     /product="beta-lactamase AmpC"
+                     /note="E. coli K-12 AmpC; UniProt:P00811; RefSeq:NP_418574"
+                     /translation=MFKTTLCALLITASCSTFAAPQQINDIVHRTITPLIEQQKIPGMAVAVIYQGKPYYFT
+                     WGYADIAKKQPVTQQTLFELGSVSKTFTGVLGGDAIARGEIKLSDPTTKYWPELTAKQ
+                     WNGITLLHLATYTAGGLPLQVPDEVKSSSDLLRFYQNWQPAWAPGTQRLYANSSIGLF
+                     GALAVKPSGLSFEQAMQTRVFQPLKLNHTWINVPPAEEKNYAWGYREGKAVHVSPGAL
+                     DAEAYGVKSTIEDMARWVQSNLKPLDINEKTLQQGIQLAQSRYWQTGDMYQGLGWEML
+                     DWPVNPDSIINGSDNKIALAARPVKAITPPTPAVRASWVHKTGATGGFGSYVAFIPEK
+                     ELGIVMLANKNYPNPARVDAAWQILNALQ
+
+ORIGIN
+        1 gattacagtt cgacgctgac gattacagtt cgacgctgac gattacagtt cgacgctgac
+       61 gattacagtt cgacgctgac gattacagtt cgacgctgac gattacagtt cgacgctgac
+      121 gattacagtt cgacgctgac gattacagtt cgacgctgac gattacagtt cgacgctgac
+      181 gattacagtt cgacgctgac gattacagtt cgacgctgac gattacagtt cgacgctgac
+      241 gattacagtt cgacgctgac gattacagtt cgacgctgac gattacagtt cgacgctgac
+      301 atgttcaaaa cgacgctctg cgccttatta attaccgcct cttgctccac atttgctgcc
+      361 cctcaacaaa tcaacgatat tgtgcatcgc acaattaccc cgcttataga gcaacaaaag
+      421 atcccgggta tggcggtggc ggtaatttat cagggtaaac cttattactt tacctggggc
+      481 tatgcggaca tcgccaaaaa gcagcccgtc acacagcaaa cgttgtttga gttaggttcg
+      541 gtcagcaaaa catttactgg cgtgcttggt ggcgacgcta ttgctcgagg ggaaatcaag
+      601 ttaagcgatc ccacaacaaa atactggcct gaacttaccg ctaaacagtg gaatgggatc
+      661 acactattac atctcgcaac ctacactgct ggcggcctgc cattgcaggt gccggatgag
+      721 gtgaaatcct caagcgactt gctgcgcttc tatcaaaact ggcagcctgc atgggctcca
+      781 ggaacacaac gtctgtatgc caactccagt atcggtttgt tcggcgcact ggctgtgaag
+      841 ccgtctggtt tgagttttga gcaggcgatg caaactcgtg tcttccagcc actcaaactc
+      901 aaccatacgt ggattaatgt accgcccgca gaagaaaaga attacgcctg gggatatcgc
+      961 gaaggtaagg cagtgcatgt ttcgcctggg gcgttagatg ctgaagctta tggtgtgaag
+     1021 tcgaccattg aagatatggc ccgctgggtg caaagcaatt taaaacccct tgatatcaat
+     1081 gagaaaacgc ttcaacaagg gatacaactg gcacaatctc gctactggca aaccggcgat
+     1141 atgtatcagg gcctgggctg ggaaatgctg gactggccgg taaatcctga cagcatcatt
+     1201 aacggcagtg acaataaaat tgcactggca gcacgccccg taaaagcgat tacgccccca
+     1261 actcctgcag tacgcgcatc atgggtacat aaaacagggg cgaccggcgg atttggtagc
+     1321 tatgtcgcgt ttattccaga aaaagagctg ggtatcgtga tgctggcaaa caaaaactat
+     1381 cccaatccag cgagagtcga cgccgcctgg cagattctta acgctctaca gtaacagtcg
+     1441 cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg
+     1501 cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg
+     1561 cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg
+     1621 cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg
+     1681 cagcttgaca ttagcagtcg cagcttgaca ttagcagtcg cagcttgaca ttag
+//

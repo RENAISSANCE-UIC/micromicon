@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.gitignore$
+^\.git$
+^\.github$
+^README\.Rmd$
+^\.here$
+^\.lintr$
+^\.claude$
+^vignettes/.*\.html$

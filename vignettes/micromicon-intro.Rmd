@@ -1,0 +1,397 @@
+---
+title: "Getting Started with micromicon"
+author: "William E. Ackerman"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with micromicon}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+
+# Helper function to find example data (works in development and installed)
+get_example_file <- function(filename) {
+  # Try installed package location first
+  pkg_file <- system.file("extdata", filename, package = "micromicon")
+
+  # Fallback to development location
+  if (!file.exists(pkg_file) || pkg_file == "") {
+    pkg_file <- file.path("..", filename)
+  }
+
+  pkg_file
+}
+```
+
+# Introduction
+
+`micromicon` is an R package for working with microbial genomic data. It provides a clean, functional interface for reading GenBank files, exploring genome features, extracting sequences, and performing comparative analyses.
+
+This vignette demonstrates core functionality using a small test plasmid containing the *E. coli* `ampC` gene (beta-lactamase).
+
+## Package Architecture
+
+`micromicon` follows Clean Architecture principles with a functional programming approach:
+
+- **Entity layer**: `genome_entity` S3 class (core domain object)
+- **Use case layer**: Pure functions for genome operations
+- **Controller layer**: Public API functions
+
+This design keeps the package idiomatic to R while maintaining clean separation of concerns.
+
+# Reading GenBank Files
+
+The starting point is reading a GenBank file into a `genome_entity` object:
+
+```{r read-genome}
+# Load package (dev or installed)
+if (file.exists("../DESCRIPTION")) {
+  devtools::load_all("..")
+} else {
+  library(micromicon)
+}
+
+# Read example GenBank file
+gbk_file <- get_example_file("test_ampC.gbk")
+genome <- read_genome(path = gbk_file)
+
+# View genome object
+print(genome)
+```
+
+The `genome_entity` object contains:
+- **Sequences**: DNA sequences from the GenBank ORIGIN section
+- **Features**: Annotations (genes, CDS, tRNA, etc.) from the FEATURES table
+- **Records**: Metadata (LOCUS, DEFINITION, etc.)
+
+# Exploring Genome Features
+
+## Searching for Features
+
+Use `search_features()` to find specific genes or feature types:
+
+```{r search-ampc}
+# Search for ampC gene
+ampC_features <- search_features(genome, pattern = "ampC")
+print(ampC_features[, c("type", "start", "end", "gene", "locus_tag", "product")])
+```
+
+The `search_features()` function supports multiple filters:
+
+```{r search-with-type}
+# Get only CDS features for ampC
+ampC_cds <- search_features(genome, pattern = "ampC", type = "CDS")
+
+cat("CDS location:", ampC_cds$start, "-", ampC_cds$end, "\n")
+cat("Product:", ampC_cds$product, "\n")
+```
+
+## Available Filter Parameters
+
+- `pattern`: Text pattern to match (gene names, products, etc.)
+- `type`: Feature type (`"CDS"`, `"gene"`, `"tRNA"`, etc.)
+- `seqname`: Specific sequence/contig name
+- `start` / `end`: Coordinate range
+- `strand`: DNA strand (`"+"` or `"-"`)
+
+```{r all-features}
+# Get all features
+all_features <- search_features(genome)
+table(all_features$type)
+```
+
+# Exporting to Standard Formats
+
+## GFF3 Format
+
+Export genome annotations to GFF3:
+
+```{r export-gff3, eval=FALSE}
+write_gff3(genome, "output.gff3")
+```
+
+## FASTA Format
+
+Export genome sequences to FASTA:
+
+```{r export-fasta, eval=FALSE}
+write_fasta(genome, "output.fasta")
+```
+
+# Extracting Sequences
+
+## Amino Acid Sequences
+
+CDS features include translated protein sequences:
+
+```{r extract-protein}
+# Get protein sequence from annotation
+ampC_protein <- ampC_cds$translation
+
+cat("Protein:", ampC_cds$product, "\n")
+cat("Length:", nchar(ampC_protein), "amino acids\n")
+cat("Sequence:", substr(ampC_protein, 1, 60), "...\n")
+```
+
+Save to FASTA format:
+
+```{r save-protein, eval=FALSE}
+# Format as FASTA
+header <- paste0(">", ampC_cds$locus_tag, " ", ampC_cds$gene,
+                 " | ", ampC_cds$product)
+
+# Write with 60-character lines
+protein_lines <- character()
+for (i in seq(1, nchar(ampC_protein), 60)) {
+  protein_lines <- c(protein_lines, substr(ampC_protein, i, i + 59))
+}
+
+writeLines(c(header, protein_lines), "ampC_protein.fasta")
+```
+
+## Nucleotide Sequences
+
+Extract DNA sequences by coordinates:
+
+```{r extract-nucleotide}
+# Extract CDS nucleotide sequence
+ampC_dna <- extract_by_coords(
+  genome,
+  seqname = ampC_cds$seqname,
+  start = ampC_cds$start,
+  end = ampC_cds$end
+)
+
+cat("DNA length:", nchar(ampC_dna), "bp\n")
+
+# Verify start/stop codons
+start_codon <- substr(ampC_dna, 1, 3)
+stop_codon <- substr(ampC_dna, nchar(ampC_dna) - 2, nchar(ampC_dna))
+
+cat("Start codon:", start_codon, "\n")
+cat("Stop codon:", stop_codon, "\n")
+```
+
+## Genomic Regions
+
+Extract larger regions with flanking sequence:
+
+```{r extract-region}
+# Extract region with 200 bp padding on each side
+padding <- 200
+region_start <- max(1, ampC_cds$start - padding)
+region_end <- ampC_cds$end + padding
+
+region_seq <- extract_by_coords(
+  genome,
+  seqname = ampC_cds$seqname,
+  start = region_start,
+  end = region_end
+)
+
+cat("Region size:", nchar(region_seq), "bp\n")
+cat("  Original CDS:", ampC_cds$end - ampC_cds$start + 1, "bp\n")
+cat("  With padding:", nchar(region_seq), "bp\n")
+```
+
+Find features in the expanded region:
+
+```{r region-features}
+region_features <- search_features(
+  genome,
+  seqname = ampC_cds$seqname,
+  start = region_start,
+  end = region_end
+)
+
+cat("Features in region:", nrow(region_features), "\n")
+table(region_features$type)
+```
+
+# Basic Sequence Analysis
+
+Calculate simple statistics:
+
+```{r sequence-stats}
+# GC content
+calc_gc <- function(seq) {
+  seq_upper <- toupper(seq)
+  g <- lengths(regmatches(seq_upper, gregexpr("G", seq_upper)))
+  c <- lengths(regmatches(seq_upper, gregexpr("C", seq_upper)))
+  (g + c) / nchar(seq) * 100
+}
+
+ampC_gc <- calc_gc(ampC_dna)
+cat("GC content:", sprintf("%.1f%%", ampC_gc), "\n")
+
+# Codon count
+codon_count <- floor(nchar(ampC_dna) / 3)
+cat("Codons:", codon_count, "\n")
+cat("Amino acids:", nchar(ampC_protein), "\n")
+```
+
+# BLASTP Analysis
+
+`micromicon` includes support for local BLASTP searches against protein databases.
+
+> **Requirements**: This feature requires:
+>
+> 1. BLAST+ command-line tools installed
+> 2. Local BLAST database (e.g., SwissProt, nr)
+> 3. `BLASTDB` environment variable set
+>
+> See `BLAST_SETUP.md` for detailed installation instructions.
+
+## Running BLASTP
+
+If you have BLAST+ installed and a local database configured:
+
+```{r blastp-example, eval=FALSE}
+# Check BLASTDB environment
+Sys.getenv("BLASTDB")
+
+# Run BLASTP against local SwissProt
+blast_results <- blast_protein(
+  sequence = ampC_protein,
+  database = "swissprot",
+  evalue = 1e-5,
+  threads = 4,
+  max_hits = 20
+)
+
+# View top hits
+head(blast_results[, c("sacc", "pident", "qcovs", "evalue", "stitle")])
+```
+
+## Filtering BLAST Results
+
+Use `reduce_hits()` to filter high-quality matches:
+
+```{r blast-filter, eval=FALSE}
+# Get high-quality hits
+high_quality <- reduce_hits(
+  blast_results,
+  min_qcov = 80,      # minimum 80% query coverage
+  min_pident = 50,    # minimum 50% identity
+  besthit = FALSE,    # return multiple hits
+  max_per_query = 5   # top 5 per query
+)
+
+# Summary
+for (i in 1:nrow(high_quality)) {
+  cat(sprintf("  %s: %.1f%% identity, %.1f%% coverage\n",
+             high_quality$sacc[i],
+             high_quality$pident[i],
+             high_quality$qcovs[i]))
+}
+```
+
+## Expected Results for ampC
+
+When BLASTing the *E. coli* ampC protein against SwissProt, you should see:
+
+- **Perfect match**: P00811 (*E. coli* AmpC, 100% identity)
+- **Close homologs**: CMY-2, CMY-4 variants (75-77% identity)
+- **Distant homologs**: Other bacterial beta-lactamases (40-60% identity)
+
+## Setting Up BLAST
+
+If BLAST is not yet configured:
+
+```{r blast-setup-check, eval=FALSE}
+# Check if blastp is available
+Sys.which("blastp")
+
+# Check if BLASTDB is set
+Sys.getenv("BLASTDB")
+
+# If not set, configure it:
+Sys.setenv(BLASTDB = "/path/to/blast/databases")
+```
+
+For complete setup instructions, see the `BLAST_SETUP.md` guide included with the package.
+
+# Typical Workflow
+
+Here's a complete workflow from reading to analysis:
+
+```{r workflow, eval=FALSE}
+# 1. Read genome
+genome <- read_genome("my_genome.gbk")
+
+# 2. Find gene of interest
+gene_cds <- search_features(genome, pattern = "geneX", type = "CDS")
+
+# 3. Extract protein sequence
+protein_seq <- gene_cds$translation
+
+# 4. Extract nucleotide sequence
+dna_seq <- extract_by_coords(
+  genome,
+  seqname = gene_cds$seqname,
+  start = gene_cds$start,
+  end = gene_cds$end
+)
+
+# 5. Export for downstream analysis
+write_gff3(genome, "annotations.gff3")
+write_fasta(genome, "sequences.fasta")
+
+# 6. Optional: BLASTP analysis
+blast_results <- blast_protein(protein_seq, database = "swissprot")
+top_hits <- reduce_hits(blast_results, min_qcov = 80, min_pident = 50)
+```
+
+# Functional Programming Style
+
+`micromicon` is designed to work well with pipes:
+
+```{r pipe-style, eval=FALSE}
+library(magrittr)  # or use base R |> pipe
+
+# Pipe-friendly workflow
+genome |>
+  search_features(pattern = "ampC", type = "CDS") |>
+  extract_by_coords(
+    genome = genome,
+    seqname = .$seqname,
+    start = .$start,
+    end = .$end
+  )
+```
+
+All main functions take the `genome_entity` object as their first argument, making them naturally compatible with pipe operators.
+
+# Summary
+
+`micromicon` provides a clean, functional interface for microbial genomics in R:
+
+- ✓ Read GenBank files into structured objects
+- ✓ Search and filter genome features
+- ✓ Extract protein and nucleotide sequences
+- ✓ Export to GFF3 and FASTA formats
+- ✓ Analyze genomic regions
+- ✓ BLASTP integration (with local databases)
+
+The package follows R idioms and Clean Architecture principles, making it both easy to use and easy to extend.
+
+# Next Steps
+
+- Explore the `genome_entity` structure: `str(genome)`
+- Read the Clean Architecture vignette for implementation details
+- Set up local BLAST for comparative analyses
+- Check the package documentation: `?read_genome`, `?search_features`
+
+# Session Info
+
+```{r session-info}
+sessionInfo()
+```
