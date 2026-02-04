@@ -57,7 +57,7 @@ write_fasta(genome, "output.fasta")
 
 ### Format Conversion Rules
 
-**IMPORTANT**: Format conversion in micromicon is ONE-WAY ONLY.
+**IMPORTANT**: Format conversion in micromicon is inentionally one-way.
 
 #### ALLOWED: GenBank → GFF3+FASTA
 ```r
@@ -68,14 +68,14 @@ write_fasta(genome, "output.fasta")        # Export FASTA ✓
 
 **WARNING**: This conversion LOSES metadata (organism, taxonomy, references, comments).
 
-#### FORBIDDEN: GFF3+FASTA → GenBank
+#### FORBIDDEN: GFF3+FASTA → GenBank 
 ```r
 genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
 # write_genbank(genome, "output.gbk")  # DOES NOT EXIST - FORBIDDEN
 ```
 
 **Why forbidden?**
-- GenBank requires rich metadata (organism, taxonomy, references) that GFF3+FASTA lacks
+- GenBank provides rich metadata (organism, taxonomy, references) that GFF3+FASTA lacks
 - Converting GFF3+FASTA to GenBank would produce incomplete/invalid files
 - No `write_genbank()` function exists (this is intentional, not a missing feature)
 
