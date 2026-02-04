@@ -6,7 +6,7 @@
 
 ## Why micRomicon?
 
-We wanted a free, open-source toolkit that worked naturally for R users and lowered the friction of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains.
+We wanted a free, open-source toolkit that worked naturally for R users and lowered the friction of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After decades of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so we could reroute cognitive bandwidth to doing the actual science. 
 
 `micromicon` consolidates these inputs into a single, stable representation (`genome_entity`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genome analysis, with space reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
 
@@ -20,7 +20,7 @@ devtools::install_github("RENAISSANCE-UIC/micromicon")
 devtools::install_local("/path/to/micromicon")
 ```
 
-### Optional: Bioconductor Integration
+### Optional (But Recommended): Bioconductor Integration
 
 For advanced features (GRanges, DNAStringSet):
 
@@ -233,7 +233,7 @@ features(remote_genome)  # Dispatches to your method
 
 ### Future Directions
 
-`micromicon` is built to support:
+`micromicon` is built to enable support:
 - **Variant-aware workflows**: Track mutations across genomes
 - **Functional consequence prediction**: Assess mutation impacts
 - **breseq integration**: Import mutation calls
@@ -245,7 +245,7 @@ features(remote_genome)  # Dispatches to your method
 - R ≥ 4.0
 - cli, dplyr, readr, tibble
 
-**Optional** (graceful fallback):
+**Optional** (but recommended):
 - Bioconductor packages (GenomicRanges, Biostrings) for advanced features
 - BLAST+ for local BLASTP
 
