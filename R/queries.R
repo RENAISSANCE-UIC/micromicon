@@ -116,6 +116,11 @@ extract_sequences_by_name <- function(genome_obj,
   stopifnot(requireNamespace("S4Vectors", quietly = TRUE))
   stopifnot(requireNamespace("Rsamtools", quietly = TRUE))
 
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   # Check that genome_obj has required components
   if (is.null(genome_obj$gff)) {
     cli::cli_abort(c(
@@ -428,6 +433,11 @@ get_genomic_context <- function(genome_obj,
       "GenomicRanges package is required for get_genomic_context().",
       "i" = "Install with: BiocManager::install('GenomicRanges')"
     ))
+  }
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
   }
 
   # Check that genome_obj has required components
@@ -1339,6 +1349,12 @@ analyze_gene <- function(genome_obj,
       "Biostrings package is required for analyze_gene().",
       "i" = "Install with: BiocManager::install('Biostrings')"
     ))
+  }
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    cli::cli_inform("Converting genome_entity to legacy format for analyze_gene()...")
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
   }
 
   message("=== Gene Analysis Pipeline ===\n")
