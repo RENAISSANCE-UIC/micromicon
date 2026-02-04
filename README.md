@@ -58,7 +58,7 @@ write_fasta(genome, "output.fasta")
 
 **IMPORTANT**: Format conversion in micromicon is ONE-WAY ONLY.
 
-#### ✅ ALLOWED: GenBank → GFF3+FASTA
+#### ALLOWED: GenBank → GFF3+FASTA
 ```r
 genome <- read_genome("reference.gbk")     # Read GenBank
 write_gff3(genome, "output.gff3")          # Export GFF3 ✓
@@ -67,10 +67,10 @@ write_fasta(genome, "output.fasta")        # Export FASTA ✓
 
 **WARNING**: This conversion LOSES metadata (organism, taxonomy, references, comments).
 
-#### ❌ FORBIDDEN: GFF3+FASTA → GenBank
+#### FORBIDDEN: GFF3+FASTA → GenBank
 ```r
 genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
-# write_genbank(genome, "output.gbk")  # ❌ DOES NOT EXIST - FORBIDDEN
+# write_genbank(genome, "output.gbk")  # DOES NOT EXIST - FORBIDDEN
 ```
 
 **Why forbidden?**
@@ -165,13 +165,13 @@ write_gff3(genome, "output.gff3")
 write_fasta(genome, "output.fasta")
 ```
 
-**⚠️ METADATA LOSS**: Exporting from GenBank to GFF3+FASTA loses organism, taxonomy, references, and comments. Keep your original GenBank file.
+**METADATA LOSS**: Exporting from GenBank to GFF3+FASTA loses organism, taxonomy, references, and comments. Keep your original GenBank file.
 
-**❌ NO REVERSE CONVERSION**: There is no `write_genbank()` function. You cannot convert GFF3+FASTA back to GenBank format. This is FORBIDDEN (not just unimplemented) because GFF3+FASTA lacks required metadata.
+**NO REVERSE CONVERSION**: There is no `write_genbank()` function. You cannot convert GFF3+FASTA back to GenBank format. This is FORBIDDEN (not just unimplemented) because GFF3+FASTA lacks required metadata.
 
 ```r
 # FORBIDDEN - Will never be implemented:
-# write_genbank(genome, "output.gbk")  # ❌ Does not exist
+# write_genbank(genome, "output.gbk")  # Does not exist
 ```
 
 ### Local BLASTP Integration (PROVISIONAL)
