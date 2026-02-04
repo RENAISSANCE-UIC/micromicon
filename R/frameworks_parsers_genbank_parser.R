@@ -91,17 +91,21 @@ parse_locus_line <- function(line) {
   res <- list(locus = NA, length_bp = NA, mol_type = NA, topology = NA,
               division = NA, date = NA)
   if (length(toks) >= 1) res$locus <- toks[1]
-  # find a number followed by 'bp'
-  bp_idx <- which(grepl("^[0-9]+$", toks))
-  if (length(bp_idx)) {
-    # length is first pure number; next token may be 'bp'
-    len_idx <- bp_idx[1]
-    res$length_bp <- suppressWarnings(as.integer(toks[len_idx]))
-    # detect 'bp' token or attached 'bp'
-    if (len_idx + 1 <= length(toks) && grepl("^bp$", toks[len_idx + 1], ignore.case = TRUE)) {
-      # ok
-    } else if (grepl("bp$", toks[len_idx], ignore.case = TRUE)) {
-      res$length_bp <- suppressWarnings(as.integer(sub("bp$", "", toks[len_idx], ignore.case = TRUE)))
+
+  # Find length: look for 'bp' token and take the number immediately before it
+  bp_token_idx <- which(grepl("^bp$", toks, ignore.case = TRUE))
+  if (length(bp_token_idx) > 0) {
+    # Found standalone 'bp' token - length should be token before it
+    len_idx <- bp_token_idx[1] - 1
+    if (len_idx >= 1 && grepl("^[0-9]+$", toks[len_idx])) {
+      res$length_bp <- suppressWarnings(as.integer(toks[len_idx]))
+    }
+  } else {
+    # Check if any token ends with 'bp' (e.g., "5028bp")
+    bp_attached_idx <- which(grepl("[0-9]+bp$", toks, ignore.case = TRUE))
+    if (length(bp_attached_idx) > 0) {
+      bp_str <- toks[bp_attached_idx[1]]
+      res$length_bp <- suppressWarnings(as.integer(sub("bp$", "", bp_str, ignore.case = TRUE)))
     }
   }
   # Heuristics for mol_type/topology/division/date

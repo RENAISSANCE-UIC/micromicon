@@ -109,12 +109,25 @@ extract_sequences_by_name <- function(genome_obj,
                                       translate = FALSE,
                                       genetic_code = "11",
                                       auto_harmonize = TRUE) {
-  stopifnot(requireNamespace("cli", quietly = TRUE))
-  stopifnot(requireNamespace("Biostrings", quietly = TRUE))
-  stopifnot(requireNamespace("GenomeInfoDb", quietly = TRUE))
-  stopifnot(requireNamespace("GenomicRanges", quietly = TRUE))
-  stopifnot(requireNamespace("S4Vectors", quietly = TRUE))
-  stopifnot(requireNamespace("Rsamtools", quietly = TRUE))
+  # Check for required packages
+  missing_pkgs <- character()
+  required_pkgs <- c("Biostrings", "GenomeInfoDb", "GenomicRanges", "S4Vectors", "Rsamtools")
+
+  for (pkg in required_pkgs) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      missing_pkgs <- c(missing_pkgs, pkg)
+    }
+  }
+
+  if (length(missing_pkgs) > 0) {
+    cli::cli_abort(c(
+      "Missing required Bioconductor packages for extract_sequences_by_name().",
+      "x" = "Missing: {paste(missing_pkgs, collapse = ', ')}",
+      "i" = "Install all required packages with:",
+      " " = "if (!require('BiocManager')) install.packages('BiocManager')",
+      " " = "BiocManager::install(c('GenomicRanges', 'Biostrings', 'IRanges', 'S4Vectors', 'GenomeInfoDb', 'Rsamtools'))"
+    ))
+  }
 
   # Auto-convert genome_entity objects to legacy format
   if (inherits(genome_obj, "genome_entity")) {
@@ -459,10 +472,22 @@ get_genomic_context <- function(genome_obj,
                                 feature_filter = NULL) {
 
   # Check for required Bioconductor packages
-  if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
+  missing_pkgs <- character()
+  required_pkgs <- c("GenomicRanges", "IRanges", "BiocGenerics")
+
+  for (pkg in required_pkgs) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      missing_pkgs <- c(missing_pkgs, pkg)
+    }
+  }
+
+  if (length(missing_pkgs) > 0) {
     cli::cli_abort(c(
-      "GenomicRanges package is required for get_genomic_context().",
-      "i" = "Install with: BiocManager::install('GenomicRanges')"
+      "Missing required Bioconductor packages for get_genomic_context().",
+      "x" = "Missing: {paste(missing_pkgs, collapse = ', ')}",
+      "i" = "Install all required packages with:",
+      " " = "if (!require('BiocManager')) install.packages('BiocManager')",
+      " " = "BiocManager::install(c('GenomicRanges', 'Biostrings', 'IRanges', 'S4Vectors', 'BiocGenerics'))"
     ))
   }
 
@@ -1389,16 +1414,22 @@ analyze_gene <- function(genome_obj,
                          blast = FALSE) {
 
   # Check for required Bioconductor packages
-  if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
-    cli::cli_abort(c(
-      "GenomicRanges package is required for analyze_gene().",
-      "i" = "Install with: BiocManager::install('GenomicRanges')"
-    ))
+  missing_pkgs <- character()
+  required_pkgs <- c("GenomicRanges", "Biostrings", "IRanges", "S4Vectors", "BiocGenerics")
+
+  for (pkg in required_pkgs) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      missing_pkgs <- c(missing_pkgs, pkg)
+    }
   }
-  if (!requireNamespace("Biostrings", quietly = TRUE)) {
+
+  if (length(missing_pkgs) > 0) {
     cli::cli_abort(c(
-      "Biostrings package is required for analyze_gene().",
-      "i" = "Install with: BiocManager::install('Biostrings')"
+      "Missing required Bioconductor packages for analyze_gene().",
+      "x" = "Missing: {paste(missing_pkgs, collapse = ', ')}",
+      "i" = "Install all required packages with:",
+      " " = "if (!require('BiocManager')) install.packages('BiocManager')",
+      " " = "BiocManager::install(c('GenomicRanges', 'Biostrings', 'IRanges', 'S4Vectors', 'BiocGenerics'))"
     ))
   }
 

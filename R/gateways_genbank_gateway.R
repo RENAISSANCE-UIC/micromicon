@@ -60,28 +60,21 @@ create_genbank_gateway <- function() {
 #' @return Normalized record with metadata, features, sequence
 #' @keywords internal
 normalize_gbk_record <- function(record) {
-  # Extract metadata
+  # Extract metadata (parser returns flat metadata with lowercase field names)
   meta <- record$metadata
 
-  # Normalize LOCUS information
-  locus_info <- meta$LOCUS %||% list()
-
   metadata_normalized <- list(
-    locus = locus_info$locus_name %||% NA_character_,
-    accession = meta$ACCESSION %||% NA_character_,
-    version = meta$VERSION %||% NA_character_,
-    length_bp = locus_info$length %||% NA_integer_,
-    mol_type = locus_info$mol_type %||% NA_character_,
-    topology = locus_info$topology %||% NA_character_,
-    division = locus_info$division %||% NA_character_,
-    date = locus_info$date %||% NA_character_,
-    definition = meta$DEFINITION %||% NA_character_,
-    organism = meta$ORGANISM %||% NA_character_,
-    taxonomy = if (!is.null(meta$TAXONOMY)) {
-      paste(meta$TAXONOMY, collapse = "; ")
-    } else {
-      NA_character_
-    }
+    locus = meta$locus %||% NA_character_,
+    accession = meta$accession %||% NA_character_,
+    version = meta$version %||% NA_character_,
+    length_bp = meta$length_bp %||% NA_integer_,
+    mol_type = meta$mol_type %||% NA_character_,
+    topology = meta$topology %||% NA_character_,
+    division = meta$division %||% NA_character_,
+    date = meta$date %||% NA_character_,
+    definition = meta$definition %||% NA_character_,
+    organism = meta$organism %||% NA_character_,
+    taxonomy = meta$taxonomy %||% NA_character_
   )
 
   # Extract features (already a data.frame from parser)

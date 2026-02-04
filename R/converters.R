@@ -420,8 +420,24 @@ entity_to_gbk_list <- function(entity) {
 entity_to_legacy_genome_obj <- function(entity) {
   validate_genome_entity(entity)
 
+  # Check for required Bioconductor packages
   if (!has_bioconductor()) {
-    cli::cli_abort("Converting to legacy genome_obj requires Bioconductor packages")
+    missing_pkgs <- character()
+    required_pkgs <- c("GenomicRanges", "Biostrings", "rtracklayer", "Rsamtools", "IRanges", "S4Vectors")
+
+    for (pkg in required_pkgs) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        missing_pkgs <- c(missing_pkgs, pkg)
+      }
+    }
+
+    cli::cli_abort(c(
+      "Converting to legacy genome_obj requires Bioconductor packages.",
+      "x" = "Missing: {paste(missing_pkgs, collapse = ', ')}",
+      "i" = "Install all required packages with:",
+      " " = "if (!require('BiocManager')) install.packages('BiocManager')",
+      " " = "BiocManager::install(c('GenomicRanges', 'Biostrings', 'rtracklayer', 'Rsamtools', 'IRanges', 'S4Vectors'))"
+    ))
   }
 
   # Get GRanges (create if needed)
