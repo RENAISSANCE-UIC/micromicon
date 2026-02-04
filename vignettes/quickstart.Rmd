@@ -67,8 +67,6 @@ Extract the `ampC` gene by searching feature names:
 # Extract DNA sequence
 ampC_dna <- extract_by_name(genome, "ampC", type = "CDS")
 
-cat("Found ampC gene:\n")
-cat("Length:", nchar(ampC_dna), "bp\n")
 cat("First 60 bp:", substr(ampC_dna, 1, 60), "\n")
 ```
 
@@ -85,8 +83,6 @@ ampC_region <- extract_by_coords(
   end = 1434
 )
 
-cat("Extracted region:\n")
-cat("Length:", nchar(ampC_region), "bp\n")
 cat("Matches extract_by_name:", ampC_dna == ampC_region, "\n")
 ```
 
@@ -98,14 +94,7 @@ Get the protein sequence directly from the GenBank annotation:
 # Extract protein sequence (translated from CDS)
 ampC_protein <- extract_by_name(genome, "ampC", type = "CDS", translate = TRUE)
 
-cat("AmpC protein:\n")
-cat("Length:", nchar(ampC_protein), "amino acids\n")
 cat("First 60 aa:", substr(ampC_protein, 1, 60), "\n")
-cat("\n")
-
-# Verify start and stop
-cat("Start:", substr(ampC_protein, 1, 1), "(should be M for Methionine)\n")
-cat("Last 5 aa:", substr(ampC_protein, nchar(ampC_protein)-4, nchar(ampC_protein)), "\n")
 ```
 
 ## Search Features
@@ -142,7 +131,7 @@ cat("Gene length:", nchar(ampC_dna), "bp\n")
 cat("Flanking:", flank_size * 2, "bp\n")
 ```
 
-## BLASTP Analysis (Optional)
+## BLASTP Analysis (REQUIRES local databse)
 
 Search for similar proteins using local BLASTP:
 
@@ -167,14 +156,9 @@ high_quality <- reduce_hits(
   min_pident = 50     # minimum 50% identity
 )
 
-cat("\nHigh-quality hits:\n")
+print("High-quality hits:")
 print(high_quality[, c("sacc", "pident", "qcovs", "stitle")])
 ```
-
-**Expected results for ampC**: When BLASTing against SwissProt, you should find:
-- Perfect match: P00811 (*E. coli* AmpC, ~100% identity)
-- Close homologs: CMY-2, CMY-4 variants (75-77% identity)
-- Distant homologs: Other bacterial beta-lactamases (40-60% identity)
 
 ### Setting Up BLAST
 
@@ -202,7 +186,7 @@ write_gff3(genome, "output.gff3")
 write_fasta(genome, "output.fasta")
 ```
 
-**⚠️ Important**: Exporting from GenBank to GFF3+FASTA loses metadata (organism, taxonomy, references). This is a **one-way conversion** - you cannot convert GFF3+FASTA back to GenBank format. Always keep your original GenBank files!
+**Important**: Exporting from GenBank to GFF3+FASTA loses metadata (organism, taxonomy, references). This is a **one-way conversion** - you cannot convert GFF3+FASTA back to GenBank format. Always keep your original GenBank files!
 
 ## Complete Pipeline Example
 

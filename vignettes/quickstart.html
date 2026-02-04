@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="William E. Ackerman" />
+
+<meta name="date" content="2026-02-04" />
+
+<title>Quick Start Guide</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Quick Start Guide</h1>
+<h4 class="author">William E. Ackerman</h4>
+<h4 class="date">2026-02-04</h4>
+
+
+
+<div id="quick-start" class="section level1">
+<h1>Quick Start</h1>
+<p>This guide demonstrates the core workflow of <code>micromicon</code>
+using a simple example: extracting and analyzing the <em>E. coli</em>
+<code>ampC</code> gene (beta-lactamase).</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Install from GitHub</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RENAISSANCE-UIC/micromicon&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Or from local source</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_local</span>(<span class="st">&quot;/path/to/micromicon&quot;</span>)</span></code></pre></div>
+</div>
+<div id="load-package-and-example-data" class="section level2">
+<h2>Load Package and Example Data</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(micromicon)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Load example GenBank file (included with package)</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>genome <span class="ot">&lt;-</span> <span class="fu">read_genome</span>(<span class="fu">get_example_file</span>(<span class="st">&quot;test_ampC.gbk&quot;</span>))</span></code></pre></div>
+</div>
+<div id="explore-the-genome-object" class="section level2">
+<h2>Explore the Genome Object</h2>
+<p>The <code>genome_entity</code> object contains three main
+components:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Print summary</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">print</span>(genome)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; genome_entity</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; =============</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Sequences: 1 sequence, 1,734 bp total</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt;   - TEST000002 : 1,734 bp</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; Features: 3 features</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;   - CDS : 1 </span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;   - gene : 1 </span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;   - source : 1 </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; Records: 1 record</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co"># Access metadata using accessor</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">metadata</span>(genome))</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt;   record_id    seqname     locus length_bp mol_type topology division</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 1         1 TEST000002 MICR_AMPC      1734      DNA circular      BCT</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;          date</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; 1 03-FEB-2026</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt;                                                              definition</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; 1 Synthetic plasmid pMicRomiconDemo carrying E. coli ampC with padding.</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;    accession      version         organism</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; 1 TEST000002 TEST000002.1 Escherichia coli</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;                                                                                            taxonomy</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; 1 Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia.</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co"># Access features using accessor</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">features</span>(genome))</span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt;     type location_string strand location_type start  end       ranges</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt; 1 source         1..1734      +        single     1 1734 range, 1....</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt; 2   gene       301..1434      +        single   301 1434 range, 3....</span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; 3    CDS       301..1434      +        single   301 1434 range, 3....</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt;     qualifiers gene   locus_tag             product protein_id</span></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; 1 Escheric.... &lt;NA&gt;        &lt;NA&gt;                &lt;NA&gt;       &lt;NA&gt;</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="co">#&gt; 2         ampC ampC        &lt;NA&gt;                &lt;NA&gt;       &lt;NA&gt;</span></span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a><span class="co">#&gt; 3 ampC, MR.... ampC MRICON_0001 beta-lactamase AmpC       &lt;NA&gt;</span></span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                       translation</span></span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a><span class="co">#&gt; 1                                                                                                                                                                                                                                                                                                                                                                                            &lt;NA&gt;</span></span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a><span class="co">#&gt; 2                                                                                                                                                                                                                                                                                                                                                                                            &lt;NA&gt;</span></span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a><span class="co">#&gt; 3 MFKTTLCALLITASCSTFAAPQQINDIVHRTITPLIEQQKIPGMAVAVIYQGKPYYFT WGYADIAKKQPVTQQTLFELGSVSKTFTGVLGGDAIARGEIKLSDPTTKYWPELTAKQ WNGITLLHLATYTAGGLPLQVPDEVKSSSDLLRFYQNWQPAWAPGTQRLYANSSIGLF GALAVKPSGLSFEQAMQTRVFQPLKLNHTWINVPPAEEKNYAWGYREGKAVHVSPGAL DAEAYGVKSTIEDMARWVQSNLKPLDINEKTLQQGIQLAQSRYWQTGDMYQGLGWEML DWPVNPDSIINGSDNKIALAARPVKAITPPTPAVRASWVHKTGATGGFGSYVAFIPEK ELGIVMLANKNYPNPARVDAAWQILNALQ</span></span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a><span class="co">#&gt;   record_id    seqname</span></span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a><span class="co">#&gt; 1         1 TEST000002</span></span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a><span class="co">#&gt; 2         1 TEST000002</span></span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a><span class="co">#&gt; 3         1 TEST000002</span></span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a><span class="co"># Access sequences using accessor</span></span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">sequences</span>(genome))</span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a><span class="co">#&gt; [1] &quot;TEST000002&quot;</span></span></code></pre></div>
+</div>
+<div id="extract-gene-by-name" class="section level2">
+<h2>Extract Gene by Name</h2>
+<p>Extract the <code>ampC</code> gene by searching feature names:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Extract DNA sequence</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>ampC_dna <span class="ot">&lt;-</span> <span class="fu">extract_by_name</span>(genome, <span class="st">&quot;ampC&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;First 60 bp:&quot;</span>, <span class="fu">substr</span>(ampC_dna, <span class="dv">1</span>, <span class="dv">60</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; First 60 bp: ATGTTCAAAACGACGCTCTGCGCCTTATTAATTACCGCCTCTTGCTCCACATTTGCTGCC</span></span></code></pre></div>
+</div>
+<div id="extract-gene-by-coordinates" class="section level2">
+<h2>Extract Gene by Coordinates</h2>
+<p>You can also extract sequences using genomic coordinates:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># ampC is located at positions 301-1434</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>ampC_region <span class="ot">&lt;-</span> <span class="fu">extract_by_coords</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  genome,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">seqname =</span> <span class="st">&quot;TEST000002&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">start =</span> <span class="dv">301</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">end =</span> <span class="dv">1434</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Matches extract_by_name:&quot;</span>, ampC_dna <span class="sc">==</span> ampC_region, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; Matches extract_by_name: TRUE</span></span></code></pre></div>
+</div>
+<div id="access-gene-translation" class="section level2">
+<h2>Access Gene Translation</h2>
+<p>Get the protein sequence directly from the GenBank annotation:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Extract protein sequence (translated from CDS)</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>ampC_protein <span class="ot">&lt;-</span> <span class="fu">extract_by_name</span>(genome, <span class="st">&quot;ampC&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>, <span class="at">translate =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;First 60 aa:&quot;</span>, <span class="fu">substr</span>(ampC_protein, <span class="dv">1</span>, <span class="dv">60</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; First 60 aa: MFKTTLCALLITASCSTFAAPQQINDIVHRTITPLIEQQKIPGMAVAVIYQGKPYYFTWG</span></span></code></pre></div>
+</div>
+<div id="search-features" class="section level2">
+<h2>Search Features</h2>
+<p>Find features by pattern matching:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Search for all CDS features</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>cds_features <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Found&quot;</span>, <span class="fu">nrow</span>(cds_features), <span class="st">&quot;CDS feature(s)</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; Found 1 CDS feature(s)</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co"># Search by gene name</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>ampC_info <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">pattern =</span> <span class="st">&quot;ampC&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="fu">print</span>(ampC_info[, <span class="fu">c</span>(<span class="st">&quot;type&quot;</span>, <span class="st">&quot;start&quot;</span>, <span class="st">&quot;end&quot;</span>, <span class="st">&quot;gene&quot;</span>, <span class="st">&quot;product&quot;</span>)])</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;   type start  end gene             product</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; 3  CDS   301 1434 ampC beta-lactamase AmpC</span></span></code></pre></div>
+</div>
+<div id="extract-with-flanking-regions" class="section level2">
+<h2>Extract with Flanking Regions</h2>
+<p>Get a gene with surrounding context:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Extract ampC with 200bp flanking on each side</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>flank_size <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>ampC_with_flanks <span class="ot">&lt;-</span> <span class="fu">extract_by_coords</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  genome,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">seqname =</span> <span class="st">&quot;TEST000002&quot;</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">start =</span> <span class="dv">301</span> <span class="sc">-</span> flank_size,  <span class="co"># 200bp upstream</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">end =</span> <span class="dv">1434</span> <span class="sc">+</span> flank_size    <span class="co"># 200bp downstream</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>)</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Gene + flanking regions:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; Gene + flanking regions:</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Total length:&quot;</span>, <span class="fu">nchar</span>(ampC_with_flanks), <span class="st">&quot;bp</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; Total length: 1534 bp</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Gene length:&quot;</span>, <span class="fu">nchar</span>(ampC_dna), <span class="st">&quot;bp</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; Gene length: 1134 bp</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Flanking:&quot;</span>, flank_size <span class="sc">*</span> <span class="dv">2</span>, <span class="st">&quot;bp</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; Flanking: 400 bp</span></span></code></pre></div>
+</div>
+<div id="blastp-analysis-requires-local-databse" class="section level2">
+<h2>BLASTP Analysis (REQUIRES local databse)</h2>
+<p>Search for similar proteins using local BLASTP:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: Requires local BLAST+ installation and database</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># See BLAST_SETUP.md for installation instructions</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Run BLASTP against local SwissProt database</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>blast_results <span class="ot">&lt;-</span> <span class="fu">blast_protein</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  ampC_protein,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">database =</span> <span class="st">&quot;swissprot&quot;</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">evalue =</span> <span class="fl">1e-5</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>)</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co"># View top hits</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="fu">head</span>(blast_results[, <span class="fu">c</span>(<span class="st">&quot;sacc&quot;</span>, <span class="st">&quot;pident&quot;</span>, <span class="st">&quot;qcovs&quot;</span>, <span class="st">&quot;evalue&quot;</span>, <span class="st">&quot;stitle&quot;</span>)])</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co"># Filter for high-quality matches</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>high_quality <span class="ot">&lt;-</span> <span class="fu">reduce_hits</span>(</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>  blast_results,</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>  <span class="at">min_qcov =</span> <span class="dv">80</span>,      <span class="co"># minimum 80% query coverage</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="at">min_pident =</span> <span class="dv">50</span>     <span class="co"># minimum 50% identity</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>)</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;High-quality hits:&quot;</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="fu">print</span>(high_quality[, <span class="fu">c</span>(<span class="st">&quot;sacc&quot;</span>, <span class="st">&quot;pident&quot;</span>, <span class="st">&quot;qcovs&quot;</span>, <span class="st">&quot;stitle&quot;</span>)])</span></code></pre></div>
+<div id="setting-up-blast" class="section level3">
+<h3>Setting Up BLAST</h3>
+<p>If you don’t have BLAST+ installed:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Check if blastp is available</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">Sys.which</span>(<span class="st">&quot;blastp&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Check if BLASTDB environment variable is set</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">Sys.getenv</span>(<span class="st">&quot;BLASTDB&quot;</span>)</span></code></pre></div>
+<p>See the <code>BLAST_SETUP.md</code> file for detailed installation
+instructions.</p>
+</div>
+</div>
+<div id="export-to-standard-formats" class="section level2">
+<h2>Export to Standard Formats</h2>
+<p>Export your genome data for use with other tools:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Export to GFF3 (annotations)</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">write_gff3</span>(genome, <span class="st">&quot;output.gff3&quot;</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co"># Export to FASTA (sequences)</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="fu">write_fasta</span>(genome, <span class="st">&quot;output.fasta&quot;</span>)</span></code></pre></div>
+<p><strong>Important</strong>: Exporting from GenBank to GFF3+FASTA
+loses metadata (organism, taxonomy, references). This is a
+<strong>one-way conversion</strong> - you cannot convert GFF3+FASTA back
+to GenBank format. Always keep your original GenBank files!</p>
+</div>
+<div id="complete-pipeline-example" class="section level2">
+<h2>Complete Pipeline Example</h2>
+<p>Here’s the complete workflow in one script:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">library</span>(micromicon)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co"># 1. Read genome</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>genome <span class="ot">&lt;-</span> <span class="fu">read_genome</span>(<span class="fu">get_example_file</span>(<span class="st">&quot;test_ampC.gbk&quot;</span>))</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co"># 2. Search for gene of interest</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>ampC_info <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">pattern =</span> <span class="st">&quot;ampC&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="fu">print</span>(ampC_info[, <span class="fu">c</span>(<span class="st">&quot;gene&quot;</span>, <span class="st">&quot;product&quot;</span>, <span class="st">&quot;start&quot;</span>, <span class="st">&quot;end&quot;</span>)])</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co"># 3. Extract DNA sequence</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>ampC_dna <span class="ot">&lt;-</span> <span class="fu">extract_by_name</span>(genome, <span class="st">&quot;ampC&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;DNA length:&quot;</span>, <span class="fu">nchar</span>(ampC_dna), <span class="st">&quot;bp</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co"># 4. Get protein sequence</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>ampC_protein <span class="ot">&lt;-</span> <span class="fu">extract_by_name</span>(genome, <span class="st">&quot;ampC&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>, <span class="at">translate =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Protein length:&quot;</span>, <span class="fu">nchar</span>(ampC_protein), <span class="st">&quot;aa</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co"># 5. Optional: BLAST analysis (if BLAST+ is installed)</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nzchar</span>(<span class="fu">Sys.which</span>(<span class="st">&quot;blastp&quot;</span>)) <span class="sc">&amp;&amp;</span> <span class="fu">nzchar</span>(<span class="fu">Sys.getenv</span>(<span class="st">&quot;BLASTDB&quot;</span>))) {</span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>  blast_results <span class="ot">&lt;-</span> <span class="fu">blast_protein</span>(ampC_protein, <span class="at">database =</span> <span class="st">&quot;swissprot&quot;</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>  top_hits <span class="ot">&lt;-</span> <span class="fu">reduce_hits</span>(blast_results, <span class="at">min_qcov =</span> <span class="dv">80</span>, <span class="at">min_pident =</span> <span class="dv">50</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>  <span class="fu">print</span>(top_hits[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="fu">c</span>(<span class="st">&quot;sacc&quot;</span>, <span class="st">&quot;pident&quot;</span>, <span class="st">&quot;stitle&quot;</span>)])</span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>}</span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a></span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a><span class="co"># 6. Export for downstream analysis</span></span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a><span class="fu">write_gff3</span>(genome, <span class="st">&quot;ampC_annotation.gff3&quot;</span>)</span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a><span class="fu">write_fasta</span>(genome, <span class="st">&quot;ampC_sequence.fasta&quot;</span>)</span></code></pre></div>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next Steps</h2>
+<ul>
+<li><strong>Full tutorial</strong>: See
+<code>vignette(&quot;micromicon-intro&quot;)</code> for comprehensive
+examples</li>
+<li><strong>Function reference</strong>: Use <code>?function_name</code>
+to view detailed documentation</li>
+<li><strong>BLAST setup</strong>: Read <code>BLAST_SETUP.md</code> for
+local BLAST+ installation</li>
+</ul>
+</div>
+<div id="common-patterns" class="section level2">
+<h2>Common Patterns</h2>
+<div id="extract-multiple-genes" class="section level3">
+<h3>Extract Multiple Genes</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Extract all genes matching a pattern</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>genes <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">pattern =</span> <span class="st">&quot;^amp&quot;</span>, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Get all their sequences</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>sequences <span class="ot">&lt;-</span> <span class="fu">lapply</span>(genes<span class="sc">$</span>gene, <span class="cf">function</span>(g) {</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="fu">extract_by_name</span>(genome, g, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>})</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="fu">names</span>(sequences) <span class="ot">&lt;-</span> genes<span class="sc">$</span>gene</span></code></pre></div>
+</div>
+<div id="extract-genomic-region" class="section level3">
+<h3>Extract Genomic Region</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Find features in a specific region</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>region_features <span class="ot">&lt;-</span> <span class="fu">search_features</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  genome,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">seqname =</span> <span class="st">&quot;TEST000002&quot;</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">start =</span> <span class="dv">1</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="at">end =</span> <span class="dv">1000</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co"># Extract the region sequence</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>region_seq <span class="ot">&lt;-</span> <span class="fu">extract_by_coords</span>(genome, <span class="st">&quot;TEST000002&quot;</span>, <span class="dv">1</span>, <span class="dv">1000</span>)</span></code></pre></div>
+</div>
+<div id="batch-translation" class="section level3">
+<h3>Batch Translation</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Get all CDS features</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>all_cds <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co"># Translate all to proteins</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>proteins <span class="ot">&lt;-</span> <span class="fu">lapply</span>(all_cds<span class="sc">$</span>gene, <span class="cf">function</span>(g) {</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="fu">extract_by_name</span>(genome, g, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>, <span class="at">translate =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>})</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="fu">names</span>(proteins) <span class="ot">&lt;-</span> all_cds<span class="sc">$</span>gene</span></code></pre></div>
+</div>
+</div>
+<div id="key-functions-summary" class="section level2">
+<h2>Key Functions Summary</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>read_genome()</code></td>
+<td>Read GenBank or GFF3+FASTA files</td>
+</tr>
+<tr class="even">
+<td><code>search_features()</code></td>
+<td>Find features by name, type, or location</td>
+</tr>
+<tr class="odd">
+<td><code>extract_by_name()</code></td>
+<td>Extract sequences by gene name</td>
+</tr>
+<tr class="even">
+<td><code>extract_by_coords()</code></td>
+<td>Extract sequences by coordinates</td>
+</tr>
+<tr class="odd">
+<td><code>write_gff3()</code></td>
+<td>Export annotations to GFF3</td>
+</tr>
+<tr class="even">
+<td><code>write_fasta()</code></td>
+<td>Export sequences to FASTA</td>
+</tr>
+<tr class="odd">
+<td><code>blast_protein()</code></td>
+<td>Run local BLASTP search</td>
+</tr>
+<tr class="even">
+<td><code>get_example_file()</code></td>
+<td>Get path to example data</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="troubleshooting" class="section level2">
+<h2>Troubleshooting</h2>
+<div id="package-installation-issues" class="section level3">
+<h3>Package Installation Issues</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># If installation fails, try removing old version first</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">remove.packages</span>(<span class="st">&quot;micromicon&quot;</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;RENAISSANCE-UIC/micromicon&quot;</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="blast-not-working" class="section level3">
+<h3>BLAST Not Working</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Check if blastp is on PATH</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">Sys.which</span>(<span class="st">&quot;blastp&quot;</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="co"># Check database location</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="fu">Sys.getenv</span>(<span class="st">&quot;BLASTDB&quot;</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="co"># Set database location if needed</span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">BLASTDB =</span> <span class="st">&quot;/path/to/blast/databases&quot;</span>)</span></code></pre></div>
+</div>
+<div id="gene-not-found" class="section level3">
+<h3>Gene Not Found</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># List all genes in genome</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>all_genes <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">type =</span> <span class="st">&quot;CDS&quot;</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="fu">print</span>(all_genes<span class="sc">$</span>gene)</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co"># Search case-insensitive</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">search_features</span>(genome, <span class="at">pattern =</span> <span class="st">&quot;AMPC&quot;</span>)  <span class="co"># automatically case-insensitive</span></span></code></pre></div>
+</div>
+</div>
+<div id="session-info" class="section level2">
+<h2>Session Info</h2>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="co">#&gt; R version 4.5.0 (2025-04-11)</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt; Running under: Ubuntu 25.10</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="co">#&gt; BLAS:   /usr/local/lib/R/lib/libRblas.so </span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="co">#&gt; LAPACK: /usr/local/lib/R/lib/libRlapack.so;  LAPACK version 3.12.1</span></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="co">#&gt; locale:</span></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="co">#&gt;  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              </span></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a><span class="co">#&gt;  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    </span></span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a><span class="co">#&gt;  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   </span></span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="co">#&gt;  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 </span></span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a><span class="co">#&gt;  [9] LC_ADDRESS=C               LC_TELEPHONE=C            </span></span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a><span class="co">#&gt; [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       </span></span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a><span class="co">#&gt; time zone: America/Chicago</span></span>
+<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span id="cb19-20"><a href="#cb19-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-21"><a href="#cb19-21" tabindex="-1"></a><span class="co">#&gt; attached base packages:</span></span>
+<span id="cb19-22"><a href="#cb19-22" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span id="cb19-23"><a href="#cb19-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-24"><a href="#cb19-24" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
+<span id="cb19-25"><a href="#cb19-25" tabindex="-1"></a><span class="co">#&gt; [1] micromicon_0.2.0</span></span>
+<span id="cb19-26"><a href="#cb19-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-27"><a href="#cb19-27" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span id="cb19-28"><a href="#cb19-28" tabindex="-1"></a><span class="co">#&gt;  [1] digest_0.6.39     R6_2.6.1          fastmap_1.2.0     tidyselect_1.2.1 </span></span>
+<span id="cb19-29"><a href="#cb19-29" tabindex="-1"></a><span class="co">#&gt;  [5] xfun_0.54         magrittr_2.0.4    glue_1.8.0        cachem_1.1.0     </span></span>
+<span id="cb19-30"><a href="#cb19-30" tabindex="-1"></a><span class="co">#&gt;  [9] tibble_3.3.1      knitr_1.50        pkgconfig_2.0.3   htmltools_0.5.8.1</span></span>
+<span id="cb19-31"><a href="#cb19-31" tabindex="-1"></a><span class="co">#&gt; [13] generics_0.1.4    dplyr_1.2.0       rmarkdown_2.30    lifecycle_1.0.5  </span></span>
+<span id="cb19-32"><a href="#cb19-32" tabindex="-1"></a><span class="co">#&gt; [17] cli_3.6.5         vctrs_0.7.1       sass_0.4.10       jquerylib_0.1.4  </span></span>
+<span id="cb19-33"><a href="#cb19-33" tabindex="-1"></a><span class="co">#&gt; [21] compiler_4.5.0    rstudioapi_0.17.1 tools_4.5.0       pillar_1.11.1    </span></span>
+<span id="cb19-34"><a href="#cb19-34" tabindex="-1"></a><span class="co">#&gt; [25] evaluate_1.0.5    bslib_0.9.0       yaml_2.3.12       rlang_1.1.7      </span></span>
+<span id="cb19-35"><a href="#cb19-35" tabindex="-1"></a><span class="co">#&gt; [29] jsonlite_2.0.0</span></span></code></pre></div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -112,7 +112,7 @@ table(all_features$type)
 
 **IMPORTANT**: micromicon enforces ONE-WAY format conversion.
 
-## ✅ ALLOWED: GenBank → GFF3+FASTA
+## ALLOWED: GenBank → GFF3+FASTA
 
 ```{r export-genbank, eval=FALSE}
 genome <- read_genome("reference.gbk")
@@ -122,11 +122,11 @@ write_fasta(genome, "output.fasta")  # Allowed ✓
 
 **WARNING**: This loses organism, taxonomy, references, and comments.
 
-## ❌ FORBIDDEN: GFF3+FASTA → GenBank
+## FORBIDDEN: GFF3+FASTA → GenBank
 
 ```{r no-genbank-export, eval=FALSE}
 genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
-# write_genbank(genome, "output.gbk")  # ❌ DOES NOT EXIST - FORBIDDEN
+# write_genbank(genome, "output.gbk")  #  DOES NOT EXIST - FORBIDDEN
 ```
 
 No `write_genbank()` function exists. This is intentional, not a bug. GFF3+FASTA lacks the metadata required for valid GenBank files.
@@ -263,7 +263,7 @@ cat("Codons:", codon_count, "\n")
 cat("Amino acids:", nchar(ampC_protein), "\n")
 ```
 
-# BLASTP Analysis
+# BLASTP Analysis (REQUIRES local database)
 
 `micromicon` includes support for local BLASTP searches against protein databases.
 
@@ -318,14 +318,6 @@ for (i in 1:nrow(high_quality)) {
              high_quality$qcovs[i]))
 }
 ```
-
-## Expected Results for ampC
-
-When BLASTing the *E. coli* ampC protein against SwissProt, you should see:
-
-- **Perfect match**: P00811 (*E. coli* AmpC, 100% identity)
-- **Close homologs**: CMY-2, CMY-4 variants (75-77% identity)
-- **Distant homologs**: Other bacterial beta-lactamases (40-60% identity)
 
 ## Setting Up BLAST
 
@@ -395,28 +387,3 @@ genome |>
 
 All main functions take the `genome_entity` object as their first argument, making them naturally compatible with pipe operators.
 
-# Summary
-
-`micromicon` provides a clean, functional interface for microbial genomics in R:
-
-- ✓ Read GenBank files into structured objects
-- ✓ Search and filter genome features
-- ✓ Extract protein and nucleotide sequences
-- ✓ Export to GFF3 and FASTA formats
-- ✓ Analyze genomic regions
-- ✓ BLASTP integration (with local databases)
-
-The package follows R idioms and Clean Architecture principles, making it both easy to use and easy to extend.
-
-# Next Steps
-
-- Explore the `genome_entity` structure: `str(genome)`
-- Read the Clean Architecture vignette for implementation details
-- Set up local BLAST for comparative analyses
-- Check the package documentation: `?read_genome`, `?search_features`
-
-# Session Info
-
-```{r session-info}
-sessionInfo()
-```
