@@ -49,14 +49,14 @@ The `genome_entity` object contains three main components:
 # Print summary
 print(genome)
 
-# Access metadata
-head(genome$metadata)
+# Access metadata using accessor
+head(metadata(genome))
 
-# Access features
-head(genome$features)
+# Access features using accessor
+head(features(genome))
 
-# Access sequences
-names(genome$sequences$dna_raw)
+# Access sequences using accessor
+names(sequences(genome))
 ```
 
 ## Extract Gene by Name
