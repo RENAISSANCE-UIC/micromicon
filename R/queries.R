@@ -1,3 +1,6 @@
+#' @importFrom dplyr %>%
+NULL
+
 init_genome <- function(
     gff_path,
     fasta_path,
