@@ -2,7 +2,7 @@
 % Please edit documentation in R/use_cases_query_extract_sequences_by_coords.R
 \name{execute_extract_sequences_by_coords}
 \alias{execute_extract_sequences_by_coords}
-\title{Extract Sequences by Coordinates}
+\title{Extract Sequences by Coordinates (Internal Use Case)}
 \usage{
 execute_extract_sequences_by_coords(
   entity,
@@ -32,28 +32,11 @@ execute_extract_sequences_by_coords(
 Character vector of sequences (named if names provided)
 }
 \description{
-Use case for extracting DNA sequences from specified genomic coordinates.
+Internal use case for extracting DNA sequences from specified genomic coordinates.
 Supports extracting regions from one or more sequences with optional
 reverse complement for minus strand.
-}
-\examples{
-\dontrun{
-# Extract single region
-seq <- execute_extract_sequences_by_coords(genome, "chr1", 1, 100)
 
-# Extract multiple regions
-seqs <- execute_extract_sequences_by_coords(
-  genome,
-  seqname = c("chr1", "chr1", "plasmid"),
-  start = c(1, 500, 1),
-  end = c(100, 600, 200)
-)
-
-# Extract with reverse complement
-seq <- execute_extract_sequences_by_coords(
-  genome,
-  "chr1", 1, 100,
-  options = list(strand = "-")
-)
+This is an internal function called by the controller extract_sequences_by_coords().
+Users should use the controller function instead.
 }
-}
+\keyword{internal}

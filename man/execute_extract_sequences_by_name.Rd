@@ -2,7 +2,7 @@
 % Please edit documentation in R/use_cases_query_extract_sequences_by_name.R
 \name{execute_extract_sequences_by_name}
 \alias{execute_extract_sequences_by_name}
-\title{Extract Sequences by Feature Name}
+\title{Extract Sequences by Feature Name (Internal Use Case)}
 \usage{
 execute_extract_sequences_by_name(
   entity,
@@ -29,21 +29,11 @@ execute_extract_sequences_by_name(
 Named character vector of sequences
 }
 \description{
-Use case for extracting DNA sequences for features matching a pattern.
+Internal use case for extracting DNA sequences for features matching a pattern.
 Searches features by gene name, locus_tag, or product and extracts
 their sequences from the genome.
-}
-\examples{
-\dontrun{
-# Extract sequences for genes matching "dnaA"
-seqs <- execute_extract_sequences_by_name(genome, "dnaA")
 
-# Extract CDS sequences for locus tags starting with "EC"
-seqs <- execute_extract_sequences_by_name(
-  genome,
-  "^EC",
-  fields = "locus_tag",
-  options = list(type_filter = "CDS")
-)
+This is an internal function called by the controller extract_sequences_by_name().
+Users should use the controller function instead.
 }
-}
+\keyword{internal}

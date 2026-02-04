@@ -1,9 +1,12 @@
-#' Extract Sequences by Feature Name
+#' Extract Sequences by Feature Name (Internal Use Case)
 #'
 #' @description
-#' Use case for extracting DNA sequences for features matching a pattern.
+#' Internal use case for extracting DNA sequences for features matching a pattern.
 #' Searches features by gene name, locus_tag, or product and extracts
 #' their sequences from the genome.
+#'
+#' This is an internal function called by the controller extract_sequences_by_name().
+#' Users should use the controller function instead.
 #'
 #' @param entity A genome_entity object
 #' @param pattern Character string or regex pattern to match feature names
@@ -14,20 +17,7 @@
 #'   - translate: Logical, translate CDS to protein (default FALSE)
 #'
 #' @return Named character vector of sequences
-#' @export
-#' @examples
-#' \dontrun{
-#' # Extract sequences for genes matching "dnaA"
-#' seqs <- execute_extract_sequences_by_name(genome, "dnaA")
-#'
-#' # Extract CDS sequences for locus tags starting with "EC"
-#' seqs <- execute_extract_sequences_by_name(
-#'   genome,
-#'   "^EC",
-#'   fields = "locus_tag",
-#'   options = list(type_filter = "CDS")
-#' )
-#' }
+#' @keywords internal
 execute_extract_sequences_by_name <- function(entity, pattern,
                                                fields = c("gene", "locus_tag", "product"),
                                                options = list()) {

@@ -1,9 +1,12 @@
-#' Extract Sequences by Coordinates
+#' Extract Sequences by Coordinates (Internal Use Case)
 #'
 #' @description
-#' Use case for extracting DNA sequences from specified genomic coordinates.
+#' Internal use case for extracting DNA sequences from specified genomic coordinates.
 #' Supports extracting regions from one or more sequences with optional
 #' reverse complement for minus strand.
+#'
+#' This is an internal function called by the controller extract_sequences_by_coords().
+#' Users should use the controller function instead.
 #'
 #' @param entity A genome_entity object
 #' @param seqname Character, sequence name(s)
@@ -15,27 +18,7 @@
 #'   - names: Character vector of names for output sequences (optional)
 #'
 #' @return Character vector of sequences (named if names provided)
-#' @export
-#' @examples
-#' \dontrun{
-#' # Extract single region
-#' seq <- execute_extract_sequences_by_coords(genome, "chr1", 1, 100)
-#'
-#' # Extract multiple regions
-#' seqs <- execute_extract_sequences_by_coords(
-#'   genome,
-#'   seqname = c("chr1", "chr1", "plasmid"),
-#'   start = c(1, 500, 1),
-#'   end = c(100, 600, 200)
-#' )
-#'
-#' # Extract with reverse complement
-#' seq <- execute_extract_sequences_by_coords(
-#'   genome,
-#'   "chr1", 1, 100,
-#'   options = list(strand = "-")
-#' )
-#' }
+#' @keywords internal
 execute_extract_sequences_by_coords <- function(entity, seqname, start, end,
                                                  options = list()) {
   # Validate entity
