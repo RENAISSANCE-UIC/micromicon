@@ -148,6 +148,9 @@ execute_import_genbank <- function(gateway, file_path, options = list()) {
     indices_list = indices_list
   )
 
+  # Step 5.5: Add source tracking for format conversion warnings
+  attr(entity, "import_source") <- "genbank"
+
   # Step 6: Validate
   validate_genome_entity(entity)
 

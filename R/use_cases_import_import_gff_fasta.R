@@ -141,6 +141,9 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
     indices_list = indices_list
   )
 
+  # Step 7.5: Add source tracking for format conversion warnings
+  attr(entity, "import_source") <- "gff3_fasta"
+
   # Step 8: Validate
   validate_genome_entity(entity)
 

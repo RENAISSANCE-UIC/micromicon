@@ -6,6 +6,17 @@
 #'
 #' This is a controller function that coordinates gateways and use cases.
 #'
+#' @details
+#' ## Format Differences
+#' - **GenBank**: Rich metadata (organism, taxonomy, references, comments)
+#' - **GFF3+FASTA**: Minimal metadata (sequences and features only)
+#'
+#' ## Conversion Rules
+#' - ✅ ALLOWED: GenBank → GFF3+FASTA (use `write_gff3()`, `write_fasta()`)
+#' - ❌ FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
+#'
+#' Always keep original GenBank files. See package documentation for details.
+#'
 #' @param path Character string or named vector specifying input file(s):
 #'   - Single file path with .gb/.gbk extension → GenBank format
 #'   - Named vector c(gff = "path.gff3", fasta = "path.fasta") → GFF3+FASTA

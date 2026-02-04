@@ -37,6 +37,23 @@ Automatically detects format and returns a genome_entity object.
 
 This is a controller function that coordinates gateways and use cases.
 }
+\details{
+\subsection{Format Differences}{
+\itemize{
+\item \strong{GenBank}: Rich metadata (organism, taxonomy, references, comments)
+\item \strong{GFF3+FASTA}: Minimal metadata (sequences and features only)
+}
+}
+
+\subsection{Conversion Rules}{
+\itemize{
+\item ✅ ALLOWED: GenBank → GFF3+FASTA (use \code{write_gff3()}, \code{write_fasta()})
+\item ❌ FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
+}
+
+Always keep original GenBank files. See package documentation for details.
+}
+}
 \examples{
 \dontrun{
 # GenBank format

@@ -3,6 +3,32 @@
 #' @description
 #' Export sequences from a genome_entity or character vector to FASTA format.
 #'
+#' **⚠️ METADATA LOSS**: If the genome was imported from GenBank, this export
+#' will LOSE organism information, taxonomic lineage, references, comments,
+#' and accession numbers. FASTA format only stores sequence IDs and sequences.
+#'
+#' **❌ NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
+#' No `write_genbank()` function exists - this is FORBIDDEN, not a missing feature.
+#'
+#' @details
+#' ## What Gets Preserved
+#' - Sequence IDs (from seqnames)
+#' - DNA sequences
+#'
+#' ## What Gets LOST (from GenBank sources)
+#' - Organism name and taxonomic lineage
+#' - References and publication citations
+#' - Comments and curator notes
+#' - Accession numbers and version history
+#' - Sequence topology (circular vs. linear)
+#' - All feature annotations (genes, CDS, etc.)
+#'
+#' ## Why GenBank Export is FORBIDDEN
+#' There is no reverse conversion (GFF3+FASTA → GenBank) because:
+#' - GFF3+FASTA lacks the metadata required for valid GenBank files
+#' - GenBank format requires organism, taxonomy, and reference information
+#' - Creating incomplete GenBank files would violate NCBI format specifications
+#'
 #' @param x A genome_entity object or named character vector
 #' @param file Output file path
 #' @param wrap_width Integer; wrap sequences at this width (default 80)
@@ -25,6 +51,22 @@
 write_fasta <- function(x, file, wrap_width = 80, ...) {
   # Handle different input types
   if (inherits(x, "genome_entity")) {
+    # Check if source is GenBank and warn about metadata loss
+    import_source <- attr(x, "import_source")
+
+    if (!is.null(import_source) && grepl("genbank", import_source, ignore.case = TRUE)) {
+      # Check if warnings are enabled (default TRUE)
+      if (!isFALSE(getOption("micromicon.warn_export", default = TRUE))) {
+        cli::cli_alert_warning("Exporting GenBank-sourced data to FASTA LOSES metadata")
+        cli::cli_inform(c(
+          "i" = "Lost: organism, taxonomy, references, comments, accession, features",
+          "i" = "This conversion is ONE-WAY - no reverse conversion exists",
+          "i" = "Keep your original GenBank file as source of truth",
+          "i" = "Suppress: options(micromicon.warn_export = FALSE)"
+        ))
+      }
+    }
+
     # Extract sequences from genome_entity
     sequences_to_write <- x$sequences$dna_raw
   } else if (is.character(x)) {
@@ -48,6 +90,32 @@ write_fasta <- function(x, file, wrap_width = 80, ...) {
 #' @description
 #' Export features from a genome_entity to GFF3 format.
 #'
+#' **⚠️ METADATA LOSS**: If the genome was imported from GenBank, this export
+#' will LOSE organism information, taxonomic lineage, references, comments,
+#' and accession numbers. GFF3 format cannot represent GenBank metadata.
+#'
+#' **❌ NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
+#' No `write_genbank()` function exists - this is FORBIDDEN, not a missing feature.
+#'
+#' @details
+#' ## What Gets Preserved
+#' - Feature coordinates (start, end, strand)
+#' - Feature types (gene, CDS, tRNA, etc.)
+#' - Gene names, products, locus tags
+#'
+#' ## What Gets LOST (from GenBank sources)
+#' - Organism name and taxonomic lineage
+#' - References and publication citations
+#' - Comments and curator notes
+#' - Accession numbers and version history
+#' - Sequence topology (circular vs. linear)
+#'
+#' ## Why GenBank Export is FORBIDDEN
+#' There is no reverse conversion (GFF3+FASTA → GenBank) because:
+#' - GFF3+FASTA lacks the metadata required for valid GenBank files
+#' - GenBank format requires organism, taxonomy, and reference information
+#' - Creating incomplete GenBank files would violate NCBI format specifications
+#'
 #' @param x A genome_entity object
 #' @param file Output file path
 #' @param source Character; source field for GFF3 (default "micromicon")
@@ -68,6 +136,22 @@ write_gff3 <- function(x, file, source = "micromicon", ...) {
   }
 
   validate_genome_entity(x)
+
+  # Check if source is GenBank and warn about metadata loss
+  import_source <- attr(x, "import_source")
+
+  if (!is.null(import_source) && grepl("genbank", import_source, ignore.case = TRUE)) {
+    # Check if warnings are enabled (default TRUE)
+    if (!isFALSE(getOption("micromicon.warn_export", default = TRUE))) {
+      cli::cli_alert_warning("Exporting GenBank-sourced data to GFF3 LOSES metadata")
+      cli::cli_inform(c(
+        "i" = "Lost: organism, taxonomy, references, comments, accession",
+        "i" = "This conversion is ONE-WAY - no reverse conversion exists",
+        "i" = "Keep your original GenBank file as source of truth",
+        "i" = "Suppress: options(micromicon.warn_export = FALSE)"
+      ))
+    }
+  }
 
   # Get features
   feats <- x$features

@@ -4,11 +4,25 @@
 \alias{export}
 \title{Export Functions for Genome Data}
 \description{
-Functions for exporting genome data to various formats (FASTA, GFF3).
-In Clean Architecture terms, these handle output formatting and file writing.
+Functions for exporting genome data to FASTA and GFF3 formats.
 
-Note: In Phase 6, these functions remain in R/genbank_export.R and are used by
-R/controllers/export_controller.R. Some of this logic could be moved to use cases
-and presenters for full Clean Architecture compliance in future phases.
+\strong{IMPORTANT}: Despite the filename "genbank_export.R", this file does NOT
+contain GenBank export functionality. GenBank export is FORBIDDEN (not just
+unimplemented) because:
+\enumerate{
+\item GenBank requires rich metadata (organism, taxonomy, references) that
+GFF3+FASTA format does not contain
+\item Converting GFF3+FASTA to GenBank would produce incomplete/invalid files
+\item This violates the one-way conversion rule: GenBank → GFF3+FASTA only
+}
+
+\strong{NO \code{write_genbank()} FUNCTION WILL BE IMPLEMENTED.}
+
+This file contains FASTA and GFF3 export functions only.
+
+Note: In Clean Architecture terms, these functions handle output formatting
+and file writing. They remain in R/genbank_export.R and are used by
+R/controllers/export_controller.R. Some of this logic could be moved to use
+cases and presenters for full Clean Architecture compliance in future phases.
 }
 \keyword{internal}

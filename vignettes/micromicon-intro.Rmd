@@ -108,6 +108,31 @@ all_features <- search_features(genome)
 table(all_features$type)
 ```
 
+# Format Conversion Rules
+
+**IMPORTANT**: micromicon enforces ONE-WAY format conversion.
+
+## ✅ ALLOWED: GenBank → GFF3+FASTA
+
+```{r export-genbank, eval=FALSE}
+genome <- read_genome("reference.gbk")
+write_gff3(genome, "output.gff3")    # Allowed ✓
+write_fasta(genome, "output.fasta")  # Allowed ✓
+```
+
+**WARNING**: This loses organism, taxonomy, references, and comments.
+
+## ❌ FORBIDDEN: GFF3+FASTA → GenBank
+
+```{r no-genbank-export, eval=FALSE}
+genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
+# write_genbank(genome, "output.gbk")  # ❌ DOES NOT EXIST - FORBIDDEN
+```
+
+No `write_genbank()` function exists. This is intentional, not a bug. GFF3+FASTA lacks the metadata required for valid GenBank files.
+
+**Always keep original GenBank files.** Export to GFF3+FASTA only when required by downstream tools.
+
 # Exporting to Standard Formats
 
 ## GFF3 Format

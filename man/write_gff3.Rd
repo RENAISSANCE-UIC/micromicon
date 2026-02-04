@@ -20,6 +20,42 @@ Invisibly returns the file path
 }
 \description{
 Export features from a genome_entity to GFF3 format.
+
+\strong{⚠️ METADATA LOSS}: If the genome was imported from GenBank, this export
+will LOSE organism information, taxonomic lineage, references, comments,
+and accession numbers. GFF3 format cannot represent GenBank metadata.
+
+\strong{❌ NO REVERSE CONVERSION}: GFF3+FASTA cannot be converted back to GenBank.
+No \code{write_genbank()} function exists - this is FORBIDDEN, not a missing feature.
+}
+\details{
+\subsection{What Gets Preserved}{
+\itemize{
+\item Feature coordinates (start, end, strand)
+\item Feature types (gene, CDS, tRNA, etc.)
+\item Gene names, products, locus tags
+}
+}
+
+\subsection{What Gets LOST (from GenBank sources)}{
+\itemize{
+\item Organism name and taxonomic lineage
+\item References and publication citations
+\item Comments and curator notes
+\item Accession numbers and version history
+\item Sequence topology (circular vs. linear)
+}
+}
+
+\subsection{Why GenBank Export is FORBIDDEN}{
+
+There is no reverse conversion (GFF3+FASTA → GenBank) because:
+\itemize{
+\item GFF3+FASTA lacks the metadata required for valid GenBank files
+\item GenBank format requires organism, taxonomy, and reference information
+\item Creating incomplete GenBank files would violate NCBI format specifications
+}
+}
 }
 \examples{
 \dontrun{

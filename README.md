@@ -54,6 +54,40 @@ write_gff3(genome, "output.gff3")
 write_fasta(genome, "output.fasta")
 ```
 
+### Format Conversion Rules
+
+**IMPORTANT**: Format conversion in micromicon is ONE-WAY ONLY.
+
+#### ✅ ALLOWED: GenBank → GFF3+FASTA
+```r
+genome <- read_genome("reference.gbk")     # Read GenBank
+write_gff3(genome, "output.gff3")          # Export GFF3 ✓
+write_fasta(genome, "output.fasta")        # Export FASTA ✓
+```
+
+**WARNING**: This conversion LOSES metadata (organism, taxonomy, references, comments).
+
+#### ❌ FORBIDDEN: GFF3+FASTA → GenBank
+```r
+genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
+# write_genbank(genome, "output.gbk")  # ❌ DOES NOT EXIST - FORBIDDEN
+```
+
+**Why forbidden?**
+- GenBank requires rich metadata (organism, taxonomy, references) that GFF3+FASTA lacks
+- Converting GFF3+FASTA to GenBank would produce incomplete/invalid files
+- No `write_genbank()` function exists (this is intentional, not a missing feature)
+
+**GenBank metadata that GFF3+FASTA cannot represent**:
+- Organism name and taxonomic lineage
+- Publication references and citations
+- Curator comments and assembly information
+- Accession numbers and version history
+- Database cross-references (taxonomy IDs, etc.)
+- Sequence topology (circular vs. linear)
+
+**Best practice**: Always keep original GenBank files. Export to GFF3+FASTA only when required by downstream tools (genome browsers, annotation pipelines).
+
 ## Core Features
 
 ### Format-Agnostic Input
@@ -120,18 +154,24 @@ roi <- roi_coords("chr1", 1000, 2000, "+")
 
 ### Export to Standard Formats
 
-Round-trip between formats:
+Export genome data for downstream tools:
 
 ```r
-# Read GenBank
-genome <- read_genome("input.gbk")
+# Read GenBank (preserves all metadata)
+genome <- read_genome("reference.gbk")
 
-# Export to GFF3 + FASTA
+# Export to GFF3+FASTA (for genome browsers, pipelines)
 write_gff3(genome, "output.gff3")
 write_fasta(genome, "output.fasta")
+```
 
-# Re-import (lossless where specs allow)
-genome2 <- read_genome(gff = "output.gff3", fasta = "output.fasta")
+**⚠️ METADATA LOSS**: Exporting from GenBank to GFF3+FASTA loses organism, taxonomy, references, and comments. Keep your original GenBank file.
+
+**❌ NO REVERSE CONVERSION**: There is no `write_genbank()` function. You cannot convert GFF3+FASTA back to GenBank format. This is FORBIDDEN (not just unimplemented) because GFF3+FASTA lacks required metadata.
+
+```r
+# FORBIDDEN - Will never be implemented:
+# write_genbank(genome, "output.gbk")  # ❌ Does not exist
 ```
 
 ### Local BLASTP Integration (PROVISIONAL)
