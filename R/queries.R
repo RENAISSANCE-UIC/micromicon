@@ -104,8 +104,8 @@ init_genome <- function(
 # troubleshooting
 # genome_obj <- NIST_pgap_genome
 # gene_pattern <- "acrB"
-extract_sequences_by_name <- function(genome_obj, 
-                                      gene_pattern, 
+extract_sequences_by_name <- function(genome_obj,
+                                      gene_pattern,
                                       translate = FALSE,
                                       genetic_code = "11",
                                       auto_harmonize = TRUE) {
@@ -115,7 +115,17 @@ extract_sequences_by_name <- function(genome_obj,
   stopifnot(requireNamespace("GenomicRanges", quietly = TRUE))
   stopifnot(requireNamespace("S4Vectors", quietly = TRUE))
   stopifnot(requireNamespace("Rsamtools", quietly = TRUE))
-  
+
+  # Check that genome_obj has required components
+  if (is.null(genome_obj$gff)) {
+    cli::cli_abort(c(
+      "genome_obj$gff is NULL - this function requires GRanges annotation data.",
+      "i" = "Did you create the genome object with init_genome()?",
+      "i" = "Make sure Bioconductor packages (GenomicRanges, rtracklayer) were installed when you created the genome object.",
+      "i" = "Try reinstalling: BiocManager::install(c('GenomicRanges', 'rtracklayer', 'Biostrings'))"
+    ))
+  }
+
   gff <- genome_obj$gff
   fa_headers <- genome_obj$seqnames
   
