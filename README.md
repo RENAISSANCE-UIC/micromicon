@@ -1,14 +1,12 @@
-# micRomicon
+# micRomicon: A format-agnostic microbial genomics toolkit for R
 
-**A format-agnostic microbial genomics toolkit for R**
-
-`micromicon` is a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether a genome arrives through GenBank, GFF3+FASTA, or another representation—breseq outputs, variant calls, curated mutation tables, or other analyses that encode sequence change—`micromicon` resolves each into a unified `genome_entity` for downstream interrogation, including future support for assessing the functional consequences of observed mutations.
+This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether the genome arrives through GenBank, GFF3+FASTA, or another representation (such as breseq outputs, variant calls, curated mutation tables, or other analyses that encode sequence change), `micromicon` will resolve each into a unified `genome_entity` object for downstream interrogation, including future support for transcriptomics and assessing the functional consequences of observed mutations.
 
 ## Why micRomicon?
 
-We wanted a free, open-source toolkit that worked naturally for R users and lowered the friction of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After decades of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so we could reroute cognitive bandwidth to doing the actual science. 
+We wanted a free, open-source toolkit that worked naturally for R users and lowered the barrier of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After decades of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so that we could reroute cognitive bandwidth toward doing the actual science. 
 
-`micromicon` consolidates these inputs into a single, stable representation (`genome_entity`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genome analysis, with space reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
+`micromicon` ingests and consolidates common genomics file formats into a single, stable representation (`genome_entity`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genomics analysis, with space reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
 
 ## Installation
 
@@ -163,7 +161,7 @@ top_hits <- reduce_hits(hits,
 
 ### Clean Architecture
 
-`micromicon` follows Clean Architecture principles:
+`micromicon` follows some Clean Architecture principles:
 
 - **Entities**: `genome_entity` as the core domain object
 - **Use Cases**: Pure functions for genome operations
@@ -176,9 +174,18 @@ This separation ensures:
 - Extensibility for future formats
 - No framework lock-in
 
+
+### The Object System Roadmap (S3 → S4/S7)
+
+In this initial release, we employ S3 objects as the primary interface for `genome_entity` and the related operations. This was not (soley) from ideological allegiance, but from pragmatic concinnity: familiarity, low-friction extensibility, and excellent discoverability for most R users. At this stage of development, S3 provides a stalwart, easily inspectable substrate on which to stabilize the core idioms of `micromicon`.
+
+As the codebase matures, we plan a gradatim migration toward more constrained and less mutable object systems, likely S4 or S7. Both provide stricter contracts, clearer invariants, and richer introspection, which will become increasingly important as the toolkit grows to support variant-aware workflows, functional consequence inference, and multi-genome comparative operations.
+The precise destination remains open. S7, in particular, offers an appealing blend of rigor and simplicity (orthogonal to S4’s sometimes baroque formalism) while preserving the kind of explicitness that helps prevent accumulation of structural drift. Whatever the final form, the public interface will retain its present ethos: clean, predictable generics and minimal cognitive overhead for downstream analysis.
+
+
 ### Functional Style
 
-All operations return new data—never mutate inputs:
+All operations return new data without mutating inputs:
 
 ```r
 # Functional pipeline
@@ -201,6 +208,13 @@ genome_remote <- connect_to_db(...)
 features(genome_remote)  # Queries database, same interface
 ```
 
+## Pipes, Routing, and Early Thinness
+
+The public API of `micromicon` is intentionally pipe-friendly and thin. Most user-facing functions are S3 generics that act as routing stubs: they inspect the object’s class and dispatch to a backend implementation. We kept these wrappers deliberately minimal to compose cleanly with `|>` and to preserve architectural flexibility as backends proliferate (in-memory objects today; remote stores or on-disk indices later). This thin-surface approach is preemptive debt-control. `micromicon` emerged from an earlier, more spaghetti-shaped prototype. Rather than retrofit dispatch and purity later, we wanted to scaffold in routing arly, ensuring that method boundaries, side-effect hygiene, and extension points would be made explicit from the start.
+
+We have borrowed the excellent design idioms familiar in other ecosystems (clean architecture, dependency inversion, strict boundaries between entities and gateways). While R itself does not enforce these constraints, we hope that the idioms will make the public interface predictable, the backends swappable, and the migration to stricter object systems (S4 or S7) straightforward as our invariants become more fully specified. 
+
+
 ## Documentation
 
 - **Getting Started**: See the [vignette](vignettes/micromicon-intro.Rmd)
@@ -209,7 +223,7 @@ features(genome_remote)  # Queries database, same interface
 
 ## Extensibility
 
-`micromicon` is designed to be extended:
+`micromicon` is designed to be extended. 
 
 ### Custom Genome Sources
 
