@@ -29,7 +29,7 @@ NULL
 #' }
 gbk_to_entity <- function(gbk_list) {
   if (!is.list(gbk_list) || length(gbk_list) == 0) {
-    stop("gbk_list must be a non-empty list", call. = FALSE)
+    cli::cli_abort("gbk_list must be a non-empty list")
   }
 
   # Initialize containers
@@ -206,41 +206,39 @@ gbk_to_entity <- function(gbk_list) {
 #' }
 gff_fasta_to_entity <- function(gff_path, fasta_path, auto_harmonize = TRUE, verbose = TRUE) {
 
-  inform <- function(...) if (verbose) cli::cli_inform(...)
-
   if (!file.exists(gff_path)) {
-    stop("GFF path not found: ", gff_path, call. = FALSE)
+    cli::cli_abort("GFF path not found: {gff_path}")
   }
   if (!file.exists(fasta_path)) {
-    stop("FASTA path not found: ", fasta_path, call. = FALSE)
+    cli::cli_abort("FASTA path not found: {fasta_path}")
   }
 
   import_errors <- list()
 
   # Load FASTA
-  inform("Loading FASTA sequence...")
+  if (verbose) cli::cli_inform("Loading FASTA sequence...")
   if (has_bioconductor()) {
     dna_bio <- Biostrings::readDNAStringSet(fasta_path)
     dna_raw <- as.character(dna_bio)
   } else {
     # Fallback: simple FASTA parser
-    inform("Bioconductor not available; using simple FASTA parser")
+    if (verbose) cli::cli_inform("Bioconductor not available; using simple FASTA parser")
     fasta_result <- .parse_fasta_simple(fasta_path)
     dna_raw <- fasta_result$sequences
     dna_bio <- NULL
   }
 
   # Load GFF3
-  inform("Loading GFF3 annotation...")
+  if (verbose) cli::cli_inform("Loading GFF3 annotation...")
   if (has_bioconductor()) {
     gff <- try(rtracklayer::import(gff_path, format = "gff3"), silent = TRUE)
     if (inherits(gff, "try-error")) {
       import_errors$gff_direct <- attr(gff, "condition")
-      stop("Failed to import GFF3: ", conditionMessage(import_errors$gff_direct), call. = FALSE)
+      cli::cli_abort("Failed to import GFF3: {conditionMessage(import_errors$gff_direct)}")
     }
   } else {
     # Fallback: simple GFF3 parser
-    inform("Bioconductor not available; using simple GFF3 parser")
+    if (verbose) cli::cli_inform("Bioconductor not available; using simple GFF3 parser")
     gff_result <- .parse_gff3_simple(gff_path)
     gff <- gff_result$features
   }
@@ -423,7 +421,7 @@ entity_to_legacy_genome_obj <- function(entity) {
   validate_genome_entity(entity)
 
   if (!has_bioconductor()) {
-    stop("Converting to legacy genome_obj requires Bioconductor packages", call. = FALSE)
+    cli::cli_abort("Converting to legacy genome_obj requires Bioconductor packages")
   }
 
   # Get GRanges (create if needed)
@@ -461,7 +459,7 @@ entity_to_legacy_genome_obj <- function(entity) {
   headers <- grep("^>", lines)
 
   if (length(headers) == 0) {
-    stop("No FASTA headers found in file", call. = FALSE)
+    cli::cli_abort("No FASTA headers found in file")
   }
 
   sequences <- character(length(headers))

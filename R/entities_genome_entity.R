@@ -68,43 +68,43 @@ new_genome_entity <- function(sequences_list = list(
 #' @export
 validate_genome_entity <- function(x) {
   if (!inherits(x, "genome_entity")) {
-    stop("Object is not a genome_entity", call. = FALSE)
+    cli::cli_abort("Object is not a genome_entity")
   }
 
   # Check required top-level components
   required_components <- c("sequences", "features", "metadata", "indices")
   missing <- setdiff(required_components, names(x))
   if (length(missing) > 0) {
-    stop("Missing required components: ", paste(missing, collapse = ", "), call. = FALSE)
+    cli::cli_abort("Missing required components: {paste(missing, collapse = ', ')}")
   }
 
   # Validate sequences
   if (!is.list(x$sequences)) {
-    stop("sequences must be a list", call. = FALSE)
+    cli::cli_abort("sequences must be a list")
   }
   if (!"dna_raw" %in% names(x$sequences)) {
-    stop("sequences must have 'dna_raw' component", call. = FALSE)
+    cli::cli_abort("sequences must have 'dna_raw' component")
   }
   if (!is.character(x$sequences$dna_raw) && !is.null(x$sequences$dna_raw)) {
-    stop("sequences$dna_raw must be a character vector or NULL", call. = FALSE)
+    cli::cli_abort("sequences$dna_raw must be a character vector or NULL")
   }
 
   # Validate features
   if (!is.data.frame(x$features)) {
-    stop("features must be a data.frame", call. = FALSE)
+    cli::cli_abort("features must be a data.frame")
   }
 
   # Validate metadata
   if (!is.data.frame(x$metadata)) {
-    stop("metadata must be a data.frame", call. = FALSE)
+    cli::cli_abort("metadata must be a data.frame")
   }
 
   # Validate indices
   if (!is.list(x$indices)) {
-    stop("indices must be a list", call. = FALSE)
+    cli::cli_abort("indices must be a list")
   }
   if (!"seqnames" %in% names(x$indices)) {
-    stop("indices must have 'seqnames' component", call. = FALSE)
+    cli::cli_abort("indices must have 'seqnames' component")
   }
 
   # Domain validation: Check feature coordinates if we have features and sequences
@@ -117,7 +117,7 @@ validate_genome_entity <- function(x) {
     required_feat_cols <- c("seqname", "start", "end")
     missing_cols <- setdiff(required_feat_cols, names(x$features))
     if (length(missing_cols) > 0) {
-      stop("features missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
+      cli::cli_abort("features missing required columns: {paste(missing_cols, collapse = ', ')}")
     }
 
     # Validate each feature
@@ -126,7 +126,7 @@ validate_genome_entity <- function(x) {
 
       # Check seqname exists
       if (!feat$seqname %in% names(seq_lengths)) {
-        stop("Feature ", i, " references unknown sequence: ", feat$seqname, call. = FALSE)
+        cli::cli_abort("Feature {i} references unknown sequence: {feat$seqname}")
       }
 
       # Validate coordinates using domain validator
@@ -138,7 +138,7 @@ validate_genome_entity <- function(x) {
           max_length = seq_lengths[[feat$seqname]]
         ),
         error = function(e) {
-          stop("Feature ", i, " (", feat$seqname, ":", feat$start, "-", feat$end, "): ", e$message, call. = FALSE)
+          cli::cli_abort("Feature {i} ({feat$seqname}:{feat$start}-{feat$end}): {e$message}")
         }
       )
 
@@ -147,7 +147,7 @@ validate_genome_entity <- function(x) {
         tryCatch(
           validate_strand(feat$strand),
           error = function(e) {
-            stop("Feature ", i, " has invalid strand: ", e$message, call. = FALSE)
+            cli::cli_abort("Feature {i} has invalid strand: {e$message}")
           }
         )
       }
@@ -158,7 +158,7 @@ validate_genome_entity <- function(x) {
   if (length(x$sequences$dna_raw) > 0) {
     seq_names_from_seqs <- names(x$sequences$dna_raw)
     if (!all(x$indices$seqnames %in% seq_names_from_seqs)) {
-      stop("indices$seqnames contains names not in sequences$dna_raw", call. = FALSE)
+      cli::cli_abort("indices$seqnames contains names not in sequences$dna_raw")
     }
   }
 

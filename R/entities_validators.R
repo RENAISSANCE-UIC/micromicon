@@ -44,7 +44,7 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
     if (!is.null(seqname)) {
       msg <- paste0(msg, " for sequence '", seqname, "'")
     }
-    stop(msg, call. = FALSE)
+    cli::cli_abort(msg)
   }
 
   # Rule 2: Start must be <= end
@@ -53,7 +53,7 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
     if (!is.null(seqname)) {
       msg <- paste0(msg, " for sequence '", seqname, "'")
     }
-    stop(msg, call. = FALSE)
+    cli::cli_abort(msg)
   }
 
   # Rule 3: Coordinates must be within sequence bounds (if provided)
@@ -63,7 +63,7 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
       if (!is.null(seqname)) {
         msg <- paste0(msg, " for sequence '", seqname, "'")
       }
-      stop(msg, call. = FALSE)
+      cli::cli_abort(msg)
     }
   }
 
@@ -101,11 +101,10 @@ validate_strand <- function(strand) {
 
   if (any(invalid)) {
     invalid_values <- unique(strand[invalid])
-    stop(
-      "Invalid strand value(s): ", paste(invalid_values, collapse = ", "),
-      ". Allowed: +, -, ., *, NA",
-      call. = FALSE
-    )
+    cli::cli_abort(c(
+      "Invalid strand value(s): {paste(invalid_values, collapse = ', ')}",
+      "i" = "Allowed: +, -, ., *, NA"
+    ))
   }
 
   TRUE
@@ -160,11 +159,10 @@ validate_dna_sequence <- function(seq_char, allow_gaps = TRUE) {
   invalid <- !seq_upper %in% valid_codes
   if (any(invalid)) {
     invalid_codes <- unique(seq_upper[invalid])
-    stop(
-      "Invalid nucleotide code(s): ", paste(invalid_codes, collapse = ", "),
-      ". Allowed: ", paste(valid_codes, collapse = ", "),
-      call. = FALSE
-    )
+    cli::cli_abort(c(
+      "Invalid nucleotide code(s): {paste(invalid_codes, collapse = ', ')}",
+      "i" = "Allowed: {paste(valid_codes, collapse = ', ')}"
+    ))
   }
 
   TRUE
@@ -202,18 +200,16 @@ validate_feature_type <- function(type, allow_custom = TRUE) {
 
   if (!type %in% recognized_types) {
     if (allow_custom) {
-      warning(
-        "Unrecognized feature type: '", type, "'. ",
-        "Using anyway (allow_custom=TRUE). ",
-        "Common types: ", paste(head(recognized_types, 10), collapse = ", "),
-        call. = FALSE
-      )
+      cli::cli_warn(c(
+        "Unrecognized feature type: '{type}'",
+        "i" = "Using anyway (allow_custom=TRUE)",
+        "i" = "Common types: {paste(head(recognized_types, 10), collapse = ', ')}"
+      ))
     } else {
-      stop(
-        "Unrecognized feature type: '", type, "'. ",
-        "Allowed types: ", paste(recognized_types, collapse = ", "),
-        call. = FALSE
-      )
+      cli::cli_abort(c(
+        "Unrecognized feature type: '{type}'",
+        "i" = "Allowed types: {paste(recognized_types, collapse = ', ')}"
+      ))
     }
   }
 
@@ -245,20 +241,18 @@ validate_feature_type <- function(type, allow_custom = TRUE) {
 validate_locus_tag <- function(locus_tag, max_length = 50) {
   # Check length
   if (nchar(locus_tag) > max_length) {
-    stop(
-      "Locus tag too long (", nchar(locus_tag), " characters). ",
-      "Maximum: ", max_length,
-      call. = FALSE
-    )
+    cli::cli_abort(c(
+      "Locus tag too long ({nchar(locus_tag)} characters)",
+      "i" = "Maximum: {max_length}"
+    ))
   }
 
   # Check format: alphanumeric with underscores only
   if (!grepl("^[A-Za-z0-9_]+$", locus_tag)) {
-    stop(
-      "Invalid locus tag format: '", locus_tag, "'. ",
-      "Must contain only letters, numbers, and underscores.",
-      call. = FALSE
-    )
+    cli::cli_abort(c(
+      "Invalid locus tag format: '{locus_tag}'",
+      "i" = "Must contain only letters, numbers, and underscores"
+    ))
   }
 
   TRUE
@@ -286,11 +280,10 @@ validate_sequence_topology <- function(topology) {
   valid_topologies <- c("linear", "circular", NA_character_)
 
   if (!topology %in% valid_topologies & !is.na(topology)) {
-    stop(
-      "Invalid topology: '", topology, "'. ",
-      "Allowed: linear, circular, NA",
-      call. = FALSE
-    )
+    cli::cli_abort(c(
+      "Invalid topology: '{topology}'",
+      "i" = "Allowed: linear, circular, NA"
+    ))
   }
 
   TRUE

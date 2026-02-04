@@ -29,7 +29,7 @@
 
   if (inherits(fa_obj, "FaFile")) {
     if (!requireNamespace("Rsamtools", quietly = TRUE)) {
-      stop("Rsamtools is required to inspect FaFile indices.")
+      cli::cli_abort("Rsamtools is required to inspect FaFile indices")
     }
     idx <- Rsamtools::scanFaIndex(fa_obj)
     nm <- names(idx)

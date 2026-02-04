@@ -11,45 +11,41 @@ init_genome <- function(
   stopifnot(requireNamespace("Rsamtools", quietly = TRUE))
   stopifnot(requireNamespace("GenomeInfoDb", quietly = TRUE))
   stopifnot(requireNamespace("GenomicRanges", quietly = TRUE))
-  
-  inform <- function(...) if (isTRUE(verbose)) cli::cli_inform(...)
-  warn   <- function(...) cli::cli_warn(...)
-  abort  <- function(...) cli::cli_abort(...)
-  
-  if (!file.exists(gff_path))   abort("GFF path not found: {gff_path}")
-  if (!file.exists(fasta_path)) abort("FASTA path not found: {fasta_path}")
-  
+
+  if (!file.exists(gff_path))   cli::cli_abort("GFF path not found: {gff_path}")
+  if (!file.exists(fasta_path)) cli::cli_abort("FASTA path not found: {fasta_path}")
+
   # 1) Direct GFF import attempt
-  inform("Loading GFF3 annotation (direct import) ...")
+  if (isTRUE(verbose)) cli::cli_inform("Loading GFF3 annotation (direct import) ...")
   gff_used <- gff_path
   import_errs <- list(direct = NULL, cleaned = NULL)
   
   gff <- try(rtracklayer::import(gff_path, format = "gff3"), silent = TRUE)
   if (inherits(gff, "try-error")) {
     import_errs$direct <- attr(gff, "condition")
-    inform(c(
+    if (isTRUE(verbose)) cli::cli_inform(c(
       "x" = "Direct GFF import failed.",
       ">" = conditionMessage(import_errs$direct)
     ))
-    
+
     # 2) Clean and retry
-    inform("Attempting pre-filter of GFF and re-import ...")
+    if (isTRUE(verbose)) cli::cli_inform("Attempting pre-filter of GFF and re-import ...")
     tmp_gff <- try(clean_gff_for_import(gff_path, drop_invalid = TRUE, verbose = verbose),
                    silent = TRUE)
     if (inherits(tmp_gff, "try-error")) {
       import_errs$cleaned <- attr(tmp_gff, "condition")
-      abort(c(
+      cli::cli_abort(c(
         "Unable to import GFF and cleaning also failed.",
         "- Direct import error:"  = conditionMessage(import_errs$direct),
         "- Cleaning failure:"     = conditionMessage(import_errs$cleaned)
       ))
     }
-    
+
     gff_used <- tmp_gff
     gff2 <- try(rtracklayer::import(tmp_gff, format = "gff3"), silent = TRUE)
     if (inherits(gff2, "try-error")) {
       import_errs$cleaned <- attr(gff2, "condition")
-      abort(c(
+      cli::cli_abort(c(
         "Unable to import GFF even after cleaning.",
         "- Direct import error:"  = conditionMessage(import_errs$direct),
         "- Cleaned import error:" = conditionMessage(import_errs$cleaned),
@@ -58,30 +54,30 @@ init_genome <- function(
     }
     gff <- gff2
   }
-  
+
   # 3) FASTA load and index
-  inform("Loading FASTA sequence ...")
+  if (isTRUE(verbose)) cli::cli_inform("Loading FASTA sequence ...")
   fasta <- Biostrings::readDNAStringSet(fasta_path)
-  
+
   if (isTRUE(auto_index) && !file.exists(paste0(fasta_path, ".fai"))) {
-    inform("Indexing FASTA (.fai not found) ...")
+    if (isTRUE(verbose)) cli::cli_inform("Indexing FASTA (.fai not found) ...")
     Rsamtools::indexFa(fasta_path)
   }
-  
+
   fa <- Rsamtools::FaFile(fasta_path)
   Rsamtools::open.FaFile(fa)
-  
+
   # 4) Seqnames via FaFile index if possible
   seqs <- try(
     GenomicRanges::seqnames(GenomeInfoDb::seqinfo(fa)),
     silent = TRUE
   )
   if (inherits(seqs, "try-error")) {
-    inform("Falling back to sequence names from FASTA object.")
+    if (isTRUE(verbose)) cli::cli_inform("Falling back to sequence names from FASTA object.")
     seqs <- names(fasta)
   }
-  
-  inform("Genome resources loaded successfully.")
+
+  if (isTRUE(verbose)) cli::cli_inform("Genome resources loaded successfully.")
   
   list(
     gff         = gff,
@@ -422,7 +418,7 @@ get_genomic_context <- function(genome_obj,
   }
   
   if (length(features) == 0) {
-    stop("No features provided or found")
+    cli::cli_abort("No features provided or found")
   }
   
   # Expand features to include flanks
@@ -697,15 +693,15 @@ get_roi_fasta <- function(genome_obj,
   
   # Input validation
   if (start > end) {
-    stop("Start coordinate must be <= end coordinate")
+    cli::cli_abort("Start coordinate must be <= end coordinate")
   }
-  
+
   if (flank < 0) {
-    stop("Flank size must be >= 0")
+    cli::cli_abort("Flank size must be >= 0")
   }
-  
+
   if (!strand %in% c("+", "-", "*")) {
-    stop("Strand must be '+', '-', or '*'")
+    cli::cli_abort("Strand must be '+', '-', or '*'")
   }
   
   # Calculate actual coordinates with flanking
@@ -717,15 +713,13 @@ get_roi_fasta <- function(genome_obj,
   seq_lengths <- seqlengths(si)
   
   if (!seqname %in% names(seq_lengths)) {
-    stop("Seqname '", seqname, "' not found in FASTA. Available: ", 
-         paste(names(seq_lengths), collapse = ", "))
+    cli::cli_abort("Seqname '{seqname}' not found in FASTA. Available: {paste(names(seq_lengths), collapse = ', ')}")
   }
   
   # Adjust end if it exceeds chromosome length
   max_length <- seq_lengths[seqname]
   if (actual_end > max_length) {
-    warning(sprintf("End coordinate (%d) exceeds sequence length (%d). Adjusting to %d",
-                    actual_end, max_length, max_length))
+    cli::cli_warn("End coordinate ({actual_end}) exceeds sequence length ({max_length}). Adjusting to {max_length}")
     actual_end <- max_length
   }
   
@@ -811,7 +805,7 @@ get_roi_fasta_batch <- function(genome_obj,
   # Validate input table
   required_cols <- c("seqname", "start", "end")
   if (!all(required_cols %in% names(roi_table))) {
-    stop("roi_table must contain columns: ", paste(required_cols, collapse = ", "))
+    cli::cli_abort("roi_table must contain columns: {paste(required_cols, collapse = ', ')}")
   }
   
   message(sprintf("Extracting %d ROI sequences...", nrow(roi_table)))
@@ -900,7 +894,7 @@ get_feature_fasta <- function(genome_obj,
     features <- genome_obj$gff[grepl(pattern, genome_obj$gff$Name)]
     
     if (length(features) == 0) {
-      stop("No features found matching pattern: ", pattern)
+      cli::cli_abort("No features found matching pattern: {pattern}")
     }
     
     message(sprintf("Found %d feature(s) matching '%s'", length(features), pattern))
@@ -1112,7 +1106,7 @@ blast_protein <- function(sequence,
                           validate_db = TRUE,
                           max_hits = 20) {
 
-  if (!requireNamespace("cli", quietly = TRUE)) stop("Package 'cli' is required.")
+  if (!requireNamespace("cli", quietly = TRUE)) cli::cli_abort("Package 'cli' is required")
 
   # Convert sequence to character if needed
   if (is(sequence, "AAString") || is(sequence, "DNAString")) {
@@ -1276,7 +1270,10 @@ tidy_features <- function(gr, sort_by = "start") {
 compare_sequences <- function(seq1, seq2, type = "global") {
   
   if (!requireNamespace("pwalign", quietly = TRUE)) {
-    stop("Package 'pwalign' is required. Install with: BiocManager::install('pwalign')")
+    cli::cli_abort(c(
+      "Package 'pwalign' is required",
+      "i" = "Install with: BiocManager::install('pwalign')"
+    ))
   }
   
   aln <- pwalign::pairwiseAlignment(seq1, seq2, type = type)
@@ -1375,9 +1372,9 @@ blastp_capture <- function(
     more_args = character()
 ) {
   # Dependencies: avoid attachment
-  if (!requireNamespace("cli", quietly = TRUE)) stop("Package 'cli' is required.")
-  if (!requireNamespace("readr", quietly = TRUE)) stop("Package 'readr' is required.")
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required.")
+  if (!requireNamespace("cli", quietly = TRUE)) cli::cli_abort("Package 'cli' is required")
+  if (!requireNamespace("readr", quietly = TRUE)) cli::cli_abort("Package 'readr' is required")
+  if (!requireNamespace("dplyr", quietly = TRUE)) cli::cli_abort("Package 'dplyr' is required")
   
   # --- Resolve blastp binary deterministically ---
   resolve_blastp <- function(bin, dir) {
@@ -1577,8 +1574,8 @@ blastp_roi <- function(
     validate_db = TRUE,
     more_args = character()
 ) {
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required.")
-  if (!requireNamespace("cli", quietly = TRUE)) stop("Package 'cli' is required.")
+  if (!requireNamespace("dplyr", quietly = TRUE)) cli::cli_abort("Package 'dplyr' is required")
+  if (!requireNamespace("cli", quietly = TRUE)) cli::cli_abort("Package 'cli' is required")
   
   # Allow vector input; run sequentially unless you later want parallelization
   faa_path <- unique(faa_path)
@@ -1607,7 +1604,7 @@ blastp_roi <- function(
   needed <- c("qseqid","sacc","stitle","pident","length","qcovs","bitscore","evalue")
   missing <- setdiff(needed, colnames(out))
   if (length(missing)) {
-    stop("Missing columns in BLAST output: ", paste(missing, collapse = ", "))
+    cli::cli_abort("Missing columns in BLAST output: {paste(missing, collapse = ', ')}")
   }
   
   out
@@ -1621,7 +1618,7 @@ reduce_hits <- function(
     besthit = TRUE,
     max_per_query = NULL
 ) {
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required.")
+  if (!requireNamespace("dplyr", quietly = TRUE)) cli::cli_abort("Package 'dplyr' is required")
   if (!is.data.frame(hits) || nrow(hits) == 0) return(hits)
   
   h <- hits

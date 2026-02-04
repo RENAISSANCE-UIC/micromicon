@@ -28,7 +28,7 @@ create_gff_gateway <- function(use_bioconductor = TRUE) {
     read = function(path) {
       # Validate file exists
       if (!file.exists(path)) {
-        stop("GFF3 file not found: ", path, call. = FALSE)
+        cli::cli_abort("GFF3 file not found: {path}")
       }
 
       if (has_rtracklayer) {
@@ -70,7 +70,7 @@ read_gff_with_rtracklayer <- function(path) {
   missing_cols <- setdiff(required_cols, names(df))
 
   if (length(missing_cols) > 0) {
-    stop("GFF3 file missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
+    cli::cli_abort("GFF3 file missing required columns: {paste(missing_cols, collapse = ', ')}")
   }
 
   # Convert strand to character
@@ -101,7 +101,7 @@ parse_gff_simple <- function(path) {
   lines <- lines[!(is_comment | is_blank)]
 
   if (length(lines) == 0) {
-    stop("No feature lines found in GFF3 file: ", path, call. = FALSE)
+    cli::cli_abort("No feature lines found in GFF3 file: {path}")
   }
 
   # Split by tabs
@@ -111,7 +111,7 @@ parse_gff_simple <- function(path) {
   # Keep only lines with at least 9 fields (GFF3 spec)
   valid <- lens >= 9
   if (sum(valid) == 0) {
-    stop("No valid GFF3 lines found (need 9 tab-separated fields)", call. = FALSE)
+    cli::cli_abort("No valid GFF3 lines found (need 9 tab-separated fields)")
   }
 
   parts <- parts[valid]

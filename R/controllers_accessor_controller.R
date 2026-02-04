@@ -27,7 +27,7 @@ sequences <- function(x, format = c("character", "DNAStringSet"), ...) {
 
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   validate_genome_entity(x)
@@ -40,11 +40,10 @@ sequences <- function(x, format = c("character", "DNAStringSet"), ...) {
     bio_gateway <- create_bioconductor_gateway()
 
     if (!bio_gateway$is_available()) {
-      stop(
-        "Biostrings package required for DNAStringSet format. ",
-        "Install with: BiocManager::install('Biostrings')",
-        call. = FALSE
-      )
+      cli::cli_abort(c(
+        "Biostrings package required for DNAStringSet format.",
+        "i" = "Install with: BiocManager::install('Biostrings')"
+      ))
     }
 
     # Convert to DNAStringSet
@@ -91,7 +90,7 @@ features <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
 
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   validate_genome_entity(x)
@@ -111,11 +110,10 @@ features <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
     bio_gateway <- create_bioconductor_gateway()
 
     if (!bio_gateway$is_available()) {
-      stop(
-        "GenomicRanges package required for GRanges format. ",
-        "Install with: BiocManager::install('GenomicRanges')",
-        call. = FALSE
-      )
+      cli::cli_abort(c(
+        "GenomicRanges package required for GRanges format.",
+        "i" = "Install with: BiocManager::install('GenomicRanges')"
+      ))
     }
 
     # Convert to GRanges
@@ -143,7 +141,7 @@ features <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
 metadata <- function(x, ...) {
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   validate_genome_entity(x)
@@ -170,7 +168,7 @@ metadata <- function(x, ...) {
 seqnames <- function(x, ...) {
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   validate_genome_entity(x)

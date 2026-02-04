@@ -31,7 +31,7 @@ write_fasta <- function(x, file, wrap_width = 80, ...) {
     # Already a character vector
     sequences_to_write <- x
   } else {
-    stop("x must be a genome_entity object or character vector", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object or character vector")
   }
 
   # Create FASTA gateway
@@ -64,7 +64,7 @@ write_fasta <- function(x, file, wrap_width = 80, ...) {
 write_gff3 <- function(x, file, source = "micromicon", ...) {
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   validate_genome_entity(x)
@@ -73,7 +73,7 @@ write_gff3 <- function(x, file, source = "micromicon", ...) {
   feats <- x$features
 
   if (nrow(feats) == 0) {
-    warning("No features to write", call. = FALSE)
+    cli::cli_warn("No features to write")
     return(invisible(file))
   }
 

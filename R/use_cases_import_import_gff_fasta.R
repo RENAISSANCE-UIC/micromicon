@@ -56,29 +56,27 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
   auto_harmonize <- options$auto_harmonize %||% TRUE
   verbose <- options$verbose %||% TRUE
 
-  inform <- function(...) if (verbose) message(...)
-
   # Step 1: Read GFF3 via gateway
-  inform("Reading GFF3 file...")
+  if (verbose) cli::cli_inform("Reading GFF3 file...")
   features_df <- gff_gateway$read(gff_path)
 
   if (!is.data.frame(features_df)) {
-    stop("GFF gateway did not return a data.frame", call. = FALSE)
+    cli::cli_abort("GFF gateway did not return a data.frame")
   }
 
   # Ensure required columns
   required_cols <- c("seqname", "start", "end", "strand", "type")
   missing_cols <- setdiff(required_cols, names(features_df))
   if (length(missing_cols) > 0) {
-    stop("GFF data missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
+    cli::cli_abort("GFF data missing required columns: {paste(missing_cols, collapse = ', ')}")
   }
 
   # Step 2: Read FASTA via gateway
-  inform("Reading FASTA file...")
+  if (verbose) cli::cli_inform("Reading FASTA file...")
   dna_raw <- fasta_gateway$read(fasta_path)
 
   if (!is.character(dna_raw) || is.null(names(dna_raw))) {
-    stop("FASTA gateway did not return a named character vector", call. = FALSE)
+    cli::cli_abort("FASTA gateway did not return a named character vector")
   }
 
   # Step 3: Harmonize seqnames if needed
@@ -87,7 +85,7 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
 
   if (!all(gff_seqnames %in% fasta_seqnames)) {
     if (auto_harmonize) {
-      inform("Seqname mismatch detected. Attempting to harmonize...")
+      if (verbose) cli::cli_inform("Seqname mismatch detected. Attempting to harmonize...")
 
       # Try simple prefix removal (e.g., "chr1" -> "1", "lcl|chr1" -> "chr1")
       harmonized <- harmonize_seqnames_simple(gff_seqnames, fasta_seqnames, verbose = verbose)
@@ -95,22 +93,20 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
       if (!is.null(harmonized)) {
         # Apply mapping
         features_df$seqname <- harmonized$mapping[features_df$seqname]
-        inform("Seqname harmonization successful")
+        if (verbose) cli::cli_inform("Seqname harmonization successful")
       } else {
-        warning(
-          "Could not harmonize seqnames. ",
-          "GFF seqnames: ", paste(head(gff_seqnames, 5), collapse = ", "),
-          ". FASTA seqnames: ", paste(head(fasta_seqnames, 5), collapse = ", "),
-          ". Some features may be orphaned.",
-          call. = FALSE
-        )
+        cli::cli_warn(c(
+          "Could not harmonize seqnames.",
+          "i" = "GFF seqnames: {paste(head(gff_seqnames, 5), collapse = ', ')}",
+          "i" = "FASTA seqnames: {paste(head(fasta_seqnames, 5), collapse = ', ')}",
+          "i" = "Some features may be orphaned."
+        ))
       }
     } else {
-      warning(
-        "Seqname mismatch detected but auto_harmonize=FALSE. ",
-        "Some features may not match sequences.",
-        call. = FALSE
-      )
+      cli::cli_warn(c(
+        "Seqname mismatch detected but auto_harmonize=FALSE.",
+        "i" = "Some features may not match sequences."
+      ))
     }
   }
 
@@ -118,7 +114,7 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
   features_df <- features_df[features_df$seqname %in% names(dna_raw), ]
 
   if (nrow(features_df) == 0) {
-    warning("No features matched FASTA sequences after harmonization", call. = FALSE)
+    cli::cli_warn("No features matched FASTA sequences after harmonization")
   }
 
   # Step 5: Build metadata from FASTA
@@ -165,8 +161,6 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
 #' @return List with mapping (named vector) or NULL if harmonization failed
 #' @keywords internal
 harmonize_seqnames_simple <- function(gff_seqnames, fasta_seqnames, verbose = TRUE) {
-  inform <- function(...) if (verbose) message(...)
-
   # Strategy 1: Remove common prefixes from GFF names
   prefixes_to_try <- c("chr", "lcl\\|", "CHR", "Chr")
 
@@ -175,7 +169,7 @@ harmonize_seqnames_simple <- function(gff_seqnames, fasta_seqnames, verbose = TR
 
     if (all(cleaned_gff %in% fasta_seqnames)) {
       mapping <- setNames(cleaned_gff, gff_seqnames)
-      inform("  Found mapping by removing prefix '", prefix, "'")
+      if (verbose) cli::cli_inform("  Found mapping by removing prefix '{prefix}'")
       return(list(mapping = mapping))
     }
   }
@@ -184,7 +178,7 @@ harmonize_seqnames_simple <- function(gff_seqnames, fasta_seqnames, verbose = TR
   prefixed_gff <- paste0("chr", gff_seqnames)
   if (all(prefixed_gff %in% fasta_seqnames)) {
     mapping <- setNames(prefixed_gff, gff_seqnames)
-    inform("  Found mapping by adding 'chr' prefix")
+    if (verbose) cli::cli_inform("  Found mapping by adding 'chr' prefix")
     return(list(mapping = mapping))
   }
 
@@ -195,7 +189,7 @@ harmonize_seqnames_simple <- function(gff_seqnames, fasta_seqnames, verbose = TR
   matches <- match(gff_lower, fasta_lower)
   if (all(!is.na(matches))) {
     mapping <- setNames(fasta_seqnames[matches], gff_seqnames)
-    inform("  Found mapping by case-insensitive matching")
+    if (verbose) cli::cli_inform("  Found mapping by case-insensitive matching")
     return(list(mapping = mapping))
   }
 

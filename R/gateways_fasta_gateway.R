@@ -29,7 +29,7 @@ create_fasta_gateway <- function(use_bioconductor = TRUE) {
     read = function(path) {
       # Validate file exists
       if (!file.exists(path)) {
-        stop("FASTA file not found: ", path, call. = FALSE)
+        cli::cli_abort("FASTA file not found: {path}")
       }
 
       if (has_biostrings) {
@@ -49,7 +49,7 @@ create_fasta_gateway <- function(use_bioconductor = TRUE) {
     write = function(sequences, path, wrap_width = 80) {
       # Validate sequences
       if (!is.character(sequences)) {
-        stop("Sequences must be a character vector", call. = FALSE)
+        cli::cli_abort("Sequences must be a character vector")
       }
 
       if (has_biostrings) {
@@ -82,7 +82,7 @@ parse_fasta_simple <- function(path) {
   header_idx <- which(grepl("^>", lines))
 
   if (length(header_idx) == 0) {
-    stop("No FASTA headers found in file: ", path, call. = FALSE)
+    cli::cli_abort("No FASTA headers found in file: {path}")
   }
 
   # Extract sequences

@@ -8,3 +8,4 @@
 ^\.lintr$
 ^\.claude$
 ^vignettes/.*\.html$
+^LICENSE\.md$

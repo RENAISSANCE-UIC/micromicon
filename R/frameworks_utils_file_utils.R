@@ -19,7 +19,7 @@ check_file_exists <- function(path, error_on_missing = TRUE) {
   exists <- file.exists(path)
 
   if (!exists && error_on_missing) {
-    stop("File not found: ", path, call. = FALSE)
+    cli::cli_abort("File not found: {path}")
   }
 
   exists
@@ -75,7 +75,10 @@ read_lines_safe <- function(path, warn = FALSE) {
   tryCatch(
     readLines(path, warn = warn),
     error = function(e) {
-      stop("Failed to read file: ", path, "\n  ", e$message, call. = FALSE)
+      cli::cli_abort(c(
+        "Failed to read file: {path}",
+        "x" = e$message
+      ))
     }
   )
 }
@@ -97,7 +100,10 @@ write_lines_safe <- function(text, path) {
       invisible(path)
     },
     error = function(e) {
-      stop("Failed to write file: ", path, "\n  ", e$message, call. = FALSE)
+      cli::cli_abort(c(
+        "Failed to write file: {path}",
+        "x" = e$message
+      ))
     }
   )
 }

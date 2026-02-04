@@ -16,6 +16,8 @@ Description: A unified genomics toolkit implementing clean architecture principl
     queries, and graceful degradation when Bioconductor is unavailable. The Clean
     architecture design ensures testability, maintainability, and framework
     independence.
+Depends:
+    R (>= 4.1.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -37,6 +39,7 @@ Suggests:
     httr2,
     xml2,
     processx,
+    devtools,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown

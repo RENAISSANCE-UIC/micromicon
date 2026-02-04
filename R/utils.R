@@ -35,7 +35,7 @@ NULL
   }
   if (inherits(fa_obj, "FaFile")) {
     if (!requireNamespace("Rsamtools", quietly = TRUE)) {
-      stop("Rsamtools is required to inspect FaFile indices.")
+      cli::cli_abort("Rsamtools is required to inspect FaFile indices")
     }
     idx <- Rsamtools::scanFaIndex(fa_obj)
     nm <- names(idx)
@@ -48,9 +48,9 @@ NULL
 
 # Pre-filter the GFF to drop rows with missing start/end
 clean_gff_for_import <- function(gff_path, 
-                                 drop_invalid = TRUE, 
+                                 drop_invalid = TRUE,
                                  verbose = TRUE) {
-  if (!file.exists(gff_path)) stop("File not found: ", gff_path)
+  if (!file.exists(gff_path)) cli::cli_abort("File not found: {gff_path}")
   
   msg <- function(...) if (verbose) message(...)
   
@@ -61,8 +61,8 @@ clean_gff_for_import <- function(gff_path,
   is_comment <- grepl("^\\s*#", lines)
   is_blank   <- !nzchar(trimws(lines))
   lines <- lines[!(is_comment | is_blank)]
-  
-  if (length(lines) == 0) stop("No feature lines found after removing comments: ", gff_path)
+
+  if (length(lines) == 0) cli::cli_abort("No feature lines found after removing comments: {gff_path}")
   
   # Split into fields by tab
   parts <- strsplit(lines, "\t", fixed = TRUE)
@@ -102,10 +102,10 @@ clean_gff_for_import <- function(gff_path,
     }
     df <- df[!(invalid_coord | inverted), , drop = FALSE]
   } else if (any(invalid_coord | inverted)) {
-    warning("There are rows with missing or inverted coordinates; rtracklayer::import() may fail.")
+    cli::cli_warn("There are rows with missing or inverted coordinates; rtracklayer::import() may fail")
   }
-  
-  if (nrow(df) == 0) stop("No valid rows remain after filtering.")
+
+  if (nrow(df) == 0) cli::cli_abort("No valid rows remain after filtering")
   
   # Write to a temporary GFF3 with the required directive
   tmp <- tempfile(fileext = ".gff3")

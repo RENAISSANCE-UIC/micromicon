@@ -55,32 +55,28 @@ read_genome <- function(path = NULL, gff = NULL, fasta = NULL,
       if (grepl("\\.(gb|gbk|genbank)$", path, ignore.case = TRUE)) {
         format <- "genbank"
       } else if (grepl("\\.gff3?$", path, ignore.case = TRUE)) {
-        stop(
-          "GFF3 file detected but FASTA file required. ",
-          "Provide both: read_genome(gff = '", path, "', fasta = 'genome.fasta')",
-          call. = FALSE
-        )
+        cli::cli_abort(c(
+          "GFF3 file detected but FASTA file required.",
+          "i" = "Provide both: read_genome(gff = '{path}', fasta = 'genome.fasta')"
+        ))
       } else {
-        stop(
-          "Cannot auto-detect format from path: ", path,
-          "\nUse format= argument or provide gff= and fasta= arguments",
-          call. = FALSE
-        )
+        cli::cli_abort(c(
+          "Cannot auto-detect format from path: {path}",
+          "i" = "Use format= argument or provide gff= and fasta= arguments"
+        ))
       }
     }
 
     if (format == "genbank") {
       gbk_path <- path
     } else {
-      stop("Single file path only works for GenBank format", call. = FALSE)
+      cli::cli_abort("Single file path only works for GenBank format")
     }
   } else {
-    stop(
-      "Invalid arguments to read_genome(). ",
-      "Provide either: path (GenBank file), or gff= and fasta= arguments, ",
-      "or c(gff = ..., fasta = ...)",
-      call. = FALSE
-    )
+    cli::cli_abort(c(
+      "Invalid arguments to read_genome().",
+      "i" = "Provide either: path (GenBank file), or gff= and fasta= arguments, or c(gff = ..., fasta = ...)"
+    ))
   }
 
   # Read based on detected format
@@ -201,7 +197,7 @@ init_genome <- function(gff_path, fasta_path,
     entity
   } else {
     # Legacy format conversion (not yet implemented)
-    warning("Legacy format (return_entity=FALSE) not yet implemented. Returning genome_entity.", call. = FALSE)
+    cli::cli_warn("Legacy format (return_entity=FALSE) not yet implemented. Returning genome_entity.")
     entity
   }
 }

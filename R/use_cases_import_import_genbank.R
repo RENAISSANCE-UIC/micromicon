@@ -44,7 +44,7 @@ execute_import_genbank <- function(gateway, file_path, options = list()) {
   gbk_list <- gateway$read(file_path)
 
   if (!is.list(gbk_list) || length(gbk_list) == 0) {
-    stop("Gateway returned empty or invalid data", call. = FALSE)
+    cli::cli_abort("Gateway returned empty or invalid data")
   }
 
   # Step 2: Transform to entity structure

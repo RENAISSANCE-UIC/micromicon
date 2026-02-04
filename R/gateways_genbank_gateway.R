@@ -23,7 +23,7 @@ create_genbank_gateway <- function() {
     read = function(path) {
       # Validate file exists
       if (!file.exists(path)) {
-        stop("GenBank file not found: ", path, call. = FALSE)
+        cli::cli_abort("GenBank file not found: {path}")
       }
 
       # Read file
@@ -36,7 +36,7 @@ create_genbank_gateway <- function() {
       record_chunks <- split_records_by_slashes(lines)
 
       if (length(record_chunks) == 0) {
-        stop("No valid GenBank records found in file: ", path, call. = FALSE)
+        cli::cli_abort("No valid GenBank records found in file: {path}")
       }
 
       # Parse each record

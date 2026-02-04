@@ -25,9 +25,9 @@ blastp_capture <- function(
     more_args = character()
 ) {
   # Dependencies: avoid attachment
-  if (!requireNamespace("cli", quietly = TRUE)) stop("Package 'cli' is required.")
-  if (!requireNamespace("readr", quietly = TRUE)) stop("Package 'readr' is required.")
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required.")
+  if (!requireNamespace("cli", quietly = TRUE)) cli::cli_abort("Package 'cli' is required")
+  if (!requireNamespace("readr", quietly = TRUE)) cli::cli_abort("Package 'readr' is required")
+  if (!requireNamespace("dplyr", quietly = TRUE)) cli::cli_abort("Package 'dplyr' is required")
 
   # --- Resolve blastp binary deterministically ---
   resolve_blastp <- function(bin, dir) {
@@ -234,8 +234,8 @@ blastp_roi <- function(
     validate_db = TRUE,
     more_args = character()
 ) {
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required.")
-  if (!requireNamespace("cli", quietly = TRUE)) stop("Package 'cli' is required.")
+  if (!requireNamespace("dplyr", quietly = TRUE)) cli::cli_abort("Package 'dplyr' is required")
+  if (!requireNamespace("cli", quietly = TRUE)) cli::cli_abort("Package 'cli' is required")
 
   # Allow vector input; run sequentially unless you later want parallelization
   faa_path <- unique(faa_path)
@@ -264,7 +264,7 @@ blastp_roi <- function(
   needed <- c("qseqid","sacc","stitle","pident","length","qcovs","bitscore","evalue")
   missing <- setdiff(needed, colnames(out))
   if (length(missing)) {
-    stop("Missing columns in BLAST output: ", paste(missing, collapse = ", "))
+    cli::cli_abort("Missing columns in BLAST output: {paste(missing, collapse = ', ')}")
   }
 
   out
@@ -287,7 +287,7 @@ reduce_hits <- function(
     besthit = TRUE,
     max_per_query = NULL
 ) {
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required.")
+  if (!requireNamespace("dplyr", quietly = TRUE)) cli::cli_abort("Package 'dplyr' is required")
   if (!is.data.frame(hits) || nrow(hits) == 0) return(hits)
 
   h <- hits

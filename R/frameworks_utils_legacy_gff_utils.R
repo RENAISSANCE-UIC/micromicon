@@ -22,11 +22,9 @@
 clean_gff_for_import <- function(gff_path,
                                  drop_invalid = TRUE,
                                  verbose = TRUE) {
-  if (!file.exists(gff_path)) stop("File not found: ", gff_path)
+  if (!file.exists(gff_path)) cli::cli_abort("File not found: {gff_path}")
 
-  msg <- function(...) if (verbose) message(...)
-
-  msg("Reading GFF lines...")
+  if (verbose) cli::cli_inform("Reading GFF lines...")
   lines <- readLines(gff_path, warn = FALSE)
 
   # Remove comment/directive lines and blank lines
@@ -34,7 +32,7 @@ clean_gff_for_import <- function(gff_path,
   is_blank <- !nzchar(trimws(lines))
   lines <- lines[!(is_comment | is_blank)]
 
-  if (length(lines) == 0) stop("No feature lines found after removing comments: ", gff_path)
+  if (length(lines) == 0) cli::cli_abort("No feature lines found after removing comments: {gff_path}")
 
   # Split into fields by tab
   parts <- strsplit(lines, "\t", fixed = TRUE)
@@ -45,7 +43,7 @@ clean_gff_for_import <- function(gff_path,
   dropped_len <- sum(!keep_len)
 
   if (dropped_len > 0 && verbose) {
-    msg("Dropping ", dropped_len, " lines with fewer than 9 tab-separated fields.")
+    cli::cli_inform("Dropping {dropped_len} lines with fewer than 9 tab-separated fields")
   }
 
   parts <- parts[keep_len]
@@ -70,14 +68,14 @@ clean_gff_for_import <- function(gff_path,
   if (drop_invalid) {
     dropped <- sum(invalid_coord | inverted)
     if (dropped > 0 && verbose) {
-      msg("Dropping ", dropped, " rows with missing or inverted coordinates.")
+      cli::cli_inform("Dropping {dropped} rows with missing or inverted coordinates")
     }
     df <- df[!(invalid_coord | inverted), , drop = FALSE]
   } else if (any(invalid_coord | inverted)) {
-    warning("There are rows with missing or inverted coordinates; rtracklayer::import() may fail.")
+    cli::cli_warn("There are rows with missing or inverted coordinates; rtracklayer::import() may fail")
   }
 
-  if (nrow(df) == 0) stop("No valid rows remain after filtering.")
+  if (nrow(df) == 0) cli::cli_abort("No valid rows remain after filtering")
 
   # Write to a temporary GFF3 with the required directive
   tmp <- tempfile(fileext = ".gff3")

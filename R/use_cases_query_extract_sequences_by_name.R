@@ -43,7 +43,7 @@ execute_extract_sequences_by_name <- function(entity, pattern,
   features_df <- entity$features
 
   if (nrow(features_df) == 0) {
-    warning("No features in genome_entity", call. = FALSE)
+    cli::cli_warn("No features in genome_entity")
     return(character())
   }
 
@@ -66,7 +66,7 @@ execute_extract_sequences_by_name <- function(entity, pattern,
   matching_features <- features_df[matches, ]
 
   if (nrow(matching_features) == 0) {
-    message("No features matched pattern: ", pattern)
+    cli::cli_inform("No features matched pattern: {pattern}")
     return(character())
   }
 
@@ -84,7 +84,7 @@ execute_extract_sequences_by_name <- function(entity, pattern,
 
     # Get sequence for this feature's seqname
     if (!feat$seqname %in% names(entity$sequences$dna_raw)) {
-      warning("Seqname '", feat$seqname, "' not found in sequences", call. = FALSE)
+      cli::cli_warn("Seqname '{feat$seqname}' not found in sequences")
       sequences[i] <- NA_character_
       next
     }
@@ -97,13 +97,13 @@ execute_extract_sequences_by_name <- function(entity, pattern,
 
     # Validate coordinates
     if (is.na(start_pos) || is.na(end_pos)) {
-      warning("Feature has missing coordinates", call. = FALSE)
+      cli::cli_warn("Feature has missing coordinates")
       sequences[i] <- NA_character_
       next
     }
 
     if (start_pos < 1 || end_pos > nchar(full_seq)) {
-      warning("Feature coordinates out of bounds", call. = FALSE)
+      cli::cli_warn("Feature coordinates out of bounds")
       sequences[i] <- NA_character_
       next
     }

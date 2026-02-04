@@ -43,7 +43,7 @@ extract_sequences_by_name <- function(x, pattern,
                                       ...) {
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   # Build options
@@ -106,7 +106,7 @@ extract_sequences_by_coords <- function(x, seqname, start, end,
                                         ...) {
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   # Build options
@@ -155,7 +155,7 @@ search_features <- function(x, type = NULL, pattern = NULL,
                            strand = NULL, ...) {
   # Validate input
   if (!inherits(x, "genome_entity")) {
-    stop("x must be a genome_entity object", call. = FALSE)
+    cli::cli_abort("x must be a genome_entity object")
   }
 
   validate_genome_entity(x)

@@ -60,7 +60,7 @@ collect_tag_block <- function(lines, start_idx, tag) {
   # ~col 13 but actual files vary
   lab <- paste0("^", tag, "\\b")
   i <- start_idx
-  if (!grepl(lab, lines[i])) stop("Expected tag '", tag, "' at line ", i)
+  if (!grepl(lab, lines[i])) cli::cli_abort("Expected tag '{tag}' at line {i}")
   # First line content after the tag label
   first <- sub(lab, "", lines[i])
   first <- sub("^\\s*", "", first)
@@ -126,7 +126,7 @@ parse_locus_line <- function(line) {
 # Parse ORGANISM block: organism line, then taxonomy lineage across wrapped lines
 parse_source_block <- function(lines, start_idx) {
   # SOURCE line:
-  if (!grepl("^SOURCE\\b", lines[start_idx])) stop("Expected SOURCE at ", start_idx)
+  if (!grepl("^SOURCE\\b", lines[start_idx])) cli::cli_abort("Expected SOURCE at {start_idx}")
   source_val <- trim(sub("^SOURCE\\s*", "", lines[start_idx]))
   i <- start_idx + 1
   org <- NA_character_
@@ -435,7 +435,7 @@ parse_origin_sequence <- function(lines, origin_idx, end_idx) {
 parse_gbk_record <- function(lines) {
   # Identify major sections
   idx_locus     <- which(grepl("^LOCUS\\b", lines))[1]
-  if (is.na(idx_locus)) stop("No LOCUS line found in record.")
+  if (is.na(idx_locus)) cli::cli_abort("No LOCUS line found in record")
   # Header tags we'll parse: DEFINITION, ACCESSION, VERSION, KEYWORDS, SOURCE/ORGANISM
   # FEATURES block
   idx_features  <- which(grepl("^FEATURES\\b", lines))[1]
@@ -586,7 +586,7 @@ write_cds_table <- function(gbk_list, file) {
   
   # Empty or no rows
   if (is.null(feats) || !nrow(feats)) {
-    warning("No features to write.")
+    cli::cli_warn("No features to write")
     return(invisible(NULL))
   }
   
@@ -599,7 +599,7 @@ write_cds_table <- function(gbk_list, file) {
   
   # If 'type' column is missing, nothing to select as CDS
   if (!("type" %in% names(feats))) {
-    warning("Input has no 'type' column; cannot select CDS.")
+    cli::cli_warn("Input has no 'type' column; cannot select CDS")
     return(invisible(NULL))
   }
   
@@ -608,7 +608,7 @@ write_cds_table <- function(gbk_list, file) {
   idx <- isTRUE(idx) | (idx %in% TRUE)
   
   if (!any(idx, na.rm = TRUE)) {
-    warning("No CDS features to write.")
+    cli::cli_warn("No CDS features to write")
     return(invisible(NULL))
   }
   

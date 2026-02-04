@@ -40,11 +40,10 @@ create_bioconductor_gateway <- function() {
 
     to_granges = function(features_df) {
       if (!is_available) {
-        stop(
-          "Bioconductor packages required for GRanges conversion. ",
-          "Install with: BiocManager::install(c('GenomicRanges', 'IRanges', 'S4Vectors'))",
-          call. = FALSE
-        )
+        cli::cli_abort(c(
+          "Bioconductor packages required for GRanges conversion.",
+          "i" = "Install with: BiocManager::install(c('GenomicRanges', 'IRanges', 'S4Vectors'))"
+        ))
       }
 
       if (!is.data.frame(features_df) || nrow(features_df) == 0) {
@@ -54,7 +53,7 @@ create_bioconductor_gateway <- function() {
 
       # Ensure required columns exist
       if (!all(c("seqname", "start", "end") %in% names(features_df))) {
-        stop("features_df must have columns: seqname, start, end", call. = FALSE)
+        cli::cli_abort("features_df must have columns: seqname, start, end")
       }
 
       # Build GRanges
@@ -85,14 +84,11 @@ create_bioconductor_gateway <- function() {
 
     from_granges = function(granges) {
       if (!is_available) {
-        stop(
-          "Bioconductor packages required for GRanges conversion",
-          call. = FALSE
-        )
+        cli::cli_abort("Bioconductor packages required for GRanges conversion")
       }
 
       if (!inherits(granges, "GRanges")) {
-        stop("Input must be a GRanges object", call. = FALSE)
+        cli::cli_abort("Input must be a GRanges object")
       }
 
       if (length(granges) == 0) {
@@ -127,15 +123,14 @@ create_bioconductor_gateway <- function() {
 
     to_dnastringset = function(sequences_char) {
       if (!is_available) {
-        stop(
-          "Bioconductor packages required for DNAStringSet conversion. ",
-          "Install with: BiocManager::install('Biostrings')",
-          call. = FALSE
-        )
+        cli::cli_abort(c(
+          "Bioconductor packages required for DNAStringSet conversion.",
+          "i" = "Install with: BiocManager::install('Biostrings')"
+        ))
       }
 
       if (!is.character(sequences_char)) {
-        stop("Input must be a character vector", call. = FALSE)
+        cli::cli_abort("Input must be a character vector")
       }
 
       Biostrings::DNAStringSet(sequences_char)
@@ -143,14 +138,11 @@ create_bioconductor_gateway <- function() {
 
     from_dnastringset = function(dna_bio) {
       if (!is_available) {
-        stop(
-          "Bioconductor packages required for DNAStringSet conversion",
-          call. = FALSE
-        )
+        cli::cli_abort("Bioconductor packages required for DNAStringSet conversion")
       }
 
       if (!inherits(dna_bio, "DNAStringSet")) {
-        stop("Input must be a DNAStringSet object", call. = FALSE)
+        cli::cli_abort("Input must be a DNAStringSet object")
       }
 
       # Convert to character vector
@@ -163,15 +155,14 @@ create_bioconductor_gateway <- function() {
     # Additional utility: Create indexed FASTA file
     index_fasta = function(fasta_path) {
       if (!requireNamespace("Rsamtools", quietly = TRUE)) {
-        stop(
-          "Rsamtools package required for FASTA indexing. ",
-          "Install with: BiocManager::install('Rsamtools')",
-          call. = FALSE
-        )
+        cli::cli_abort(c(
+          "Rsamtools package required for FASTA indexing.",
+          "i" = "Install with: BiocManager::install('Rsamtools')"
+        ))
       }
 
       if (!file.exists(fasta_path)) {
-        stop("FASTA file not found: ", fasta_path, call. = FALSE)
+        cli::cli_abort("FASTA file not found: {fasta_path}")
       }
 
       # Create .fai index

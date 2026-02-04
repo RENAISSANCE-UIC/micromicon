@@ -56,7 +56,7 @@ execute_extract_sequences_by_coords <- function(entity, seqname, start, end,
   # Validate coordinates
   for (i in seq_len(n)) {
     if (!seqname[i] %in% names(entity$sequences$dna_raw)) {
-      stop("Sequence '", seqname[i], "' not found in genome_entity", call. = FALSE)
+      cli::cli_abort("Sequence '{seqname[i]}' not found in genome_entity")
     }
 
     max_length <- nchar(entity$sequences$dna_raw[[seqname[i]]])
