@@ -205,7 +205,6 @@ features(genome_remote)  # Queries database, same interface
 
 - **Getting Started**: See the [vignette](vignettes/micromicon-intro.Rmd)
 - **BLAST Setup**: [BLAST_SETUP.md](BLAST_SETUP.md)
-- **Architecture**: [Clean Architecture Guide](claude.md)
 - **Function Reference**: `?read_genome`, `?search_features`, etc.
 
 ## Extensibility
