@@ -430,17 +430,34 @@ entity_to_legacy_genome_obj <- function(entity) {
   # Get DNAStringSet (create if needed)
   fasta <- sequences(entity, format = "DNAStringSet")
 
-  # Create FaFile if we have a fasta_used path
+  # Create FaFile if we have a fasta_used path (only present for GFF+FASTA workflows)
   fa <- NULL
-  if (nzchar(entity$metadata$fasta_used)) {
-    fasta_path <- entity$metadata$fasta_used
-    if (file.exists(fasta_path)) {
-      # Index if needed
-      if (!file.exists(paste0(fasta_path, ".fai"))) {
-        Rsamtools::indexFa(fasta_path)
+  if ("fasta_used" %in% names(entity$metadata)) {
+    fasta_used <- entity$metadata$fasta_used[1]
+    if (!is.na(fasta_used) && nzchar(fasta_used)) {
+      fasta_path <- fasta_used
+      if (file.exists(fasta_path)) {
+        # Index if needed
+        if (!file.exists(paste0(fasta_path, ".fai"))) {
+          Rsamtools::indexFa(fasta_path)
+        }
+        fa <- Rsamtools::FaFile(fasta_path)
       }
-      fa <- Rsamtools::FaFile(fasta_path)
     }
+  }
+
+  # For multi-row metadata, take first row's values if columns exist
+  # (these columns only exist for GFF+FASTA workflows, not GenBank)
+  gff_used_val <- ""
+  if ("gff_used" %in% names(entity$metadata) && nrow(entity$metadata) > 0) {
+    gff_used_val <- entity$metadata$gff_used[1]
+    if (is.na(gff_used_val)) gff_used_val <- ""
+  }
+
+  import_errs_val <- ""
+  if ("import_errors" %in% names(entity$metadata) && nrow(entity$metadata) > 0) {
+    import_errs_val <- entity$metadata$import_errors[1]
+    if (is.na(import_errs_val)) import_errs_val <- ""
   }
 
   list(
@@ -448,8 +465,8 @@ entity_to_legacy_genome_obj <- function(entity) {
     fasta = fasta,
     fa = fa,
     seqnames = entity$indices$seqnames,
-    gff_used = entity$metadata$gff_used,
-    import_errs = entity$metadata$import_errors
+    gff_used = gff_used_val,
+    import_errs = import_errs_val
   )
 }
 

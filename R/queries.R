@@ -273,8 +273,39 @@ extract_sequences_by_name <- function(genome_obj,
     ))
   }
   
-  # Extract
-  dna_seqs <- Biostrings::getSeq(genome_obj$fa, features)
+  # Extract sequences
+  # Use FaFile if available (GFF+FASTA workflow), otherwise use DNAStringSet (GenBank workflow)
+  if (!is.null(genome_obj$fa)) {
+    dna_seqs <- Biostrings::getSeq(genome_obj$fa, features)
+  } else if (!is.null(genome_obj$fasta)) {
+    # Extract from DNAStringSet manually for each feature
+    seqs_list <- lapply(seq_along(features), function(i) {
+      feat <- features[i]
+      seqname <- as.character(GenomicRanges::seqnames(feat))
+      start_pos <- GenomicRanges::start(feat)
+      end_pos <- GenomicRanges::end(feat)
+      strand_val <- as.character(GenomicRanges::strand(feat))
+
+      # Extract sequence
+      seq <- Biostrings::subseq(genome_obj$fasta[[seqname]], start = start_pos, end = end_pos)
+
+      # Reverse complement if on negative strand
+      if (strand_val == "-") {
+        seq <- Biostrings::reverseComplement(seq)
+      }
+
+      seq
+    })
+
+    # Combine into DNAStringSet
+    dna_seqs <- Biostrings::DNAStringSet(seqs_list)
+  } else {
+    cli::cli_abort(c(
+      "Cannot extract sequences: both genome_obj$fa and genome_obj$fasta are NULL.",
+      "i" = "The genome object may be corrupted or incomplete."
+    ))
+  }
+
   names(dna_seqs) <- .best_labels(features)
   
   if (isTRUE(translate)) {
@@ -449,9 +480,29 @@ get_genomic_context <- function(genome_obj,
     ))
   }
 
-  # If features is a string, find matching features
+  # If features is a string, find matching features using the same logic as extract_sequences_by_name
   if (is.character(features)) {
-    features <- genome_obj$gff[grepl(features, genome_obj$gff$Name)]
+    gene_pattern <- features
+
+    # Helper to match pattern in metadata fields
+    .matches <- function(x, pat) {
+      if (is.null(x)) return(rep(FALSE, length(genome_obj$gff)))
+      y <- tryCatch(as.character(x), error = function(e) rep(NA_character_, length(x)))
+      !is.na(y) & grepl(pat, y, perl = TRUE)
+    }
+
+    # Search Name first, then fallback to other fields
+    name_idx <- .matches(genome_obj$gff$Name, gene_pattern)
+    if (any(name_idx, na.rm = TRUE)) {
+      features <- genome_obj$gff[name_idx]
+    } else {
+      # Fallback to gene, locus_tag, or product
+      idx <- .matches(genome_obj$gff$gene, gene_pattern) |
+        .matches(genome_obj$gff$locus_tag, gene_pattern) |
+        .matches(genome_obj$gff$product, gene_pattern)
+      idx[is.na(idx)] <- FALSE
+      features <- genome_obj$gff[idx]
+    }
   }
 
   if (length(features) == 0) {
@@ -464,7 +515,7 @@ get_genomic_context <- function(genome_obj,
                        fix = "center")
 
   # Find overlapping features
-  ctx_feats <- GenomicRanges::subsetByOverlaps(genome_obj$gff, ctx_region)
+  ctx_feats <- IRanges::subsetByOverlaps(genome_obj$gff, ctx_region)
   
   # Apply filter if provided
   if (!is.null(feature_filter)) {
@@ -1290,8 +1341,8 @@ tidy_features <- function(gr, sort_by = "start") {
   available_cols <- intersect(key_cols, names(df))
   
   result <- df %>%
-    select(all_of(available_cols)) %>%
-    as_tibble()
+    dplyr::select(dplyr::all_of(available_cols)) %>%
+    tibble::as_tibble()
   
   return(result)
 }

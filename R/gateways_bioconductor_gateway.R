@@ -56,6 +56,23 @@ create_bioconductor_gateway <- function() {
         cli::cli_abort("features_df must have columns: seqname, start, end")
       }
 
+      # Filter out features with NA coordinates
+      valid_coords <- !is.na(features_df$start) & !is.na(features_df$end) & !is.na(features_df$seqname)
+
+      if (!all(valid_coords)) {
+        n_invalid <- sum(!valid_coords)
+        cli::cli_warn(c(
+          "Removing {n_invalid} feature{?s} with missing coordinates (NA start/end/seqname).",
+          "i" = "These features will not be included in the GRanges object."
+        ))
+        features_df <- features_df[valid_coords, ]
+      }
+
+      # Handle empty result after filtering
+      if (nrow(features_df) == 0) {
+        return(GenomicRanges::GRanges())
+      }
+
       # Build GRanges
       gr <- GenomicRanges::GRanges(
         seqnames = features_df$seqname,
@@ -70,9 +87,12 @@ create_bioconductor_gateway <- function() {
         GenomicRanges::strand(gr) <- features_df$strand
       }
 
-      # Add metadata columns (all columns except seqname, start, end, strand)
+      # Add metadata columns (all columns except coordinate columns and GRanges reserved names)
       coord_cols <- c("seqname", "start", "end", "strand")
-      meta_cols <- setdiff(names(features_df), coord_cols)
+      # GRanges reserved slot names that cannot be used as metadata column names
+      reserved_names <- c("seqnames", "ranges", "strand", "seqlevels", "seqlengths",
+                         "isCircular", "start", "end", "width", "element")
+      meta_cols <- setdiff(names(features_df), c(coord_cols, reserved_names))
 
       if (length(meta_cols) > 0) {
         mcols_df <- features_df[, meta_cols, drop = FALSE]
