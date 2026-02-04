@@ -34,8 +34,9 @@ BiocManager::install(c("GenomicRanges", "Biostrings", "rtracklayer"))
 ```r
 library(micromicon)
 
-# Read any format
-genome <- read_genome("ecoli.gbk")  # or GFF3+FASTA
+# Read any GenBank or GFF3+FASTA
+path <- system.file("extdata", "test_ampC.gbk", package = "micromicon")
+genome <- read_genome(path) 
 
 # Explore
 features(genome, type = "CDS")
