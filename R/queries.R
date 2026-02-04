@@ -407,27 +407,44 @@ extract_sequence_by_coords <- function(genome_obj,
 #' @param feature_filter Optional regex pattern to filter context features
 #' @return GRanges with features in the flanking regions
 #' @export
-get_genomic_context <- function(genome_obj, 
-                                features, 
+get_genomic_context <- function(genome_obj,
+                                features,
                                 flank_size = 20000,
                                 feature_filter = NULL) {
-  
+
+  # Check for required Bioconductor packages
+  if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "GenomicRanges package is required for get_genomic_context().",
+      "i" = "Install with: BiocManager::install('GenomicRanges')"
+    ))
+  }
+
+  # Check that genome_obj has required components
+  if (is.null(genome_obj$gff)) {
+    cli::cli_abort(c(
+      "genome_obj$gff is NULL.",
+      "i" = "Did you create the genome object with init_genome()? This function requires GRanges data.",
+      "i" = "Make sure Bioconductor packages were available when you created the genome object."
+    ))
+  }
+
   # If features is a string, find matching features
   if (is.character(features)) {
     features <- genome_obj$gff[grepl(features, genome_obj$gff$Name)]
   }
-  
+
   if (length(features) == 0) {
     cli::cli_abort("No features provided or found")
   }
-  
+
   # Expand features to include flanks
-  ctx_region <- resize(features, 
-                       width = width(features) + 2 * flank_size, 
+  ctx_region <- GenomicRanges::resize(features,
+                       width = BiocGenerics::width(features) + 2 * flank_size,
                        fix = "center")
-  
+
   # Find overlapping features
-  ctx_feats <- subsetByOverlaps(genome_obj$gff, ctx_region)
+  ctx_feats <- GenomicRanges::subsetByOverlaps(genome_obj$gff, ctx_region)
   
   # Apply filter if provided
   if (!is.null(feature_filter)) {
@@ -1295,19 +1312,33 @@ compare_sequences <- function(seq1, seq2, type = "global") {
 #' @param blast Perform BLAST search (default = FALSE)
 #' @return List with sequences, context, and optional BLAST results
 #' @export
-analyze_gene <- function(genome_obj, 
-                         gene_pattern, 
+analyze_gene <- function(genome_obj,
+                         gene_pattern,
                          flank_size = 20000,
                          blast = FALSE) {
-  
+
+  # Check for required Bioconductor packages
+  if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "GenomicRanges package is required for analyze_gene().",
+      "i" = "Install with: BiocManager::install('GenomicRanges')"
+    ))
+  }
+  if (!requireNamespace("Biostrings", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "Biostrings package is required for analyze_gene().",
+      "i" = "Install with: BiocManager::install('Biostrings')"
+    ))
+  }
+
   message("=== Gene Analysis Pipeline ===\n")
-  
+
   # 1. Extract sequences
   dna_seqs <- extract_sequences_by_name(genome_obj, gene_pattern, translate = FALSE)
   aa_seqs <- extract_sequences_by_name(genome_obj, gene_pattern, translate = TRUE)
   
   message("\nSequence lengths:")
-  print(width(aa_seqs))
+  print(BiocGenerics::width(aa_seqs))
   
   # 2. Get genomic context
   message("\n--- Genomic Context ---")
