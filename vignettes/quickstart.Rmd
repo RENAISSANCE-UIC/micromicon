@@ -1,0 +1,341 @@
+---
+title: "Quick Start Guide"
+author: "William E. Ackerman"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quick Start Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+# Quick Start
+
+This guide demonstrates the core workflow of `micromicon` using a simple example: extracting and analyzing the *E. coli* `ampC` gene (beta-lactamase).
+
+## Installation
+
+```r
+# Install from GitHub
+devtools::install_github("RENAISSANCE-UIC/micromicon")
+
+# Or from local source
+devtools::install_local("/path/to/micromicon")
+```
+
+## Load Package and Example Data
+
+```{r load-package}
+library(micromicon)
+
+# Load example GenBank file (included with package)
+genome <- read_genome(get_example_file("test_ampC.gbk"))
+```
+
+## Explore the Genome Object
+
+The `genome_entity` object contains three main components:
+
+```{r explore-genome}
+# Print summary
+print(genome)
+
+# Access metadata
+head(genome$metadata)
+
+# Access features
+head(genome$features)
+
+# Access sequences
+names(genome$sequences$dna_raw)
+```
+
+## Extract Gene by Name
+
+Extract the `ampC` gene by searching feature names:
+
+```{r extract-by-name}
+# Extract DNA sequence
+ampC_dna <- extract_by_name(genome, "ampC", type = "CDS")
+
+cat("Found ampC gene:\n")
+cat("Length:", nchar(ampC_dna), "bp\n")
+cat("First 60 bp:", substr(ampC_dna, 1, 60), "\n")
+```
+
+## Extract Gene by Coordinates
+
+You can also extract sequences using genomic coordinates:
+
+```{r extract-by-coords}
+# ampC is located at positions 301-1434
+ampC_region <- extract_by_coords(
+  genome,
+  seqname = "TEST000002",
+  start = 301,
+  end = 1434
+)
+
+cat("Extracted region:\n")
+cat("Length:", nchar(ampC_region), "bp\n")
+cat("Matches extract_by_name:", ampC_dna == ampC_region, "\n")
+```
+
+## Access Gene Translation
+
+Get the protein sequence directly from the GenBank annotation:
+
+```{r get-translation}
+# Extract protein sequence (translated from CDS)
+ampC_protein <- extract_by_name(genome, "ampC", type = "CDS", translate = TRUE)
+
+cat("AmpC protein:\n")
+cat("Length:", nchar(ampC_protein), "amino acids\n")
+cat("First 60 aa:", substr(ampC_protein, 1, 60), "\n")
+cat("\n")
+
+# Verify start and stop
+cat("Start:", substr(ampC_protein, 1, 1), "(should be M for Methionine)\n")
+cat("Last 5 aa:", substr(ampC_protein, nchar(ampC_protein)-4, nchar(ampC_protein)), "\n")
+```
+
+## Search Features
+
+Find features by pattern matching:
+
+```{r search-features}
+# Search for all CDS features
+cds_features <- search_features(genome, type = "CDS")
+cat("Found", nrow(cds_features), "CDS feature(s)\n\n")
+
+# Search by gene name
+ampC_info <- search_features(genome, pattern = "ampC", type = "CDS")
+print(ampC_info[, c("type", "start", "end", "gene", "product")])
+```
+
+## Extract with Flanking Regions
+
+Get a gene with surrounding context:
+
+```{r extract-with-flanking}
+# Extract ampC with 200bp flanking on each side
+flank_size <- 200
+ampC_with_flanks <- extract_by_coords(
+  genome,
+  seqname = "TEST000002",
+  start = 301 - flank_size,  # 200bp upstream
+  end = 1434 + flank_size    # 200bp downstream
+)
+
+cat("Gene + flanking regions:\n")
+cat("Total length:", nchar(ampC_with_flanks), "bp\n")
+cat("Gene length:", nchar(ampC_dna), "bp\n")
+cat("Flanking:", flank_size * 2, "bp\n")
+```
+
+## BLASTP Analysis (Optional)
+
+Search for similar proteins using local BLASTP:
+
+```{r blastp-example, eval=FALSE}
+# NOTE: Requires local BLAST+ installation and database
+# See BLAST_SETUP.md for installation instructions
+
+# Run BLASTP against local SwissProt database
+blast_results <- blast_protein(
+  ampC_protein,
+  database = "swissprot",
+  evalue = 1e-5
+)
+
+# View top hits
+head(blast_results[, c("sacc", "pident", "qcovs", "evalue", "stitle")])
+
+# Filter for high-quality matches
+high_quality <- reduce_hits(
+  blast_results,
+  min_qcov = 80,      # minimum 80% query coverage
+  min_pident = 50     # minimum 50% identity
+)
+
+cat("\nHigh-quality hits:\n")
+print(high_quality[, c("sacc", "pident", "qcovs", "stitle")])
+```
+
+**Expected results for ampC**: When BLASTing against SwissProt, you should find:
+- Perfect match: P00811 (*E. coli* AmpC, ~100% identity)
+- Close homologs: CMY-2, CMY-4 variants (75-77% identity)
+- Distant homologs: Other bacterial beta-lactamases (40-60% identity)
+
+### Setting Up BLAST
+
+If you don't have BLAST+ installed:
+
+```r
+# Check if blastp is available
+Sys.which("blastp")
+
+# Check if BLASTDB environment variable is set
+Sys.getenv("BLASTDB")
+```
+
+See the `BLAST_SETUP.md` file for detailed installation instructions.
+
+## Export to Standard Formats
+
+Export your genome data for use with other tools:
+
+```{r export-formats, eval=FALSE}
+# Export to GFF3 (annotations)
+write_gff3(genome, "output.gff3")
+
+# Export to FASTA (sequences)
+write_fasta(genome, "output.fasta")
+```
+
+**⚠️ Important**: Exporting from GenBank to GFF3+FASTA loses metadata (organism, taxonomy, references). This is a **one-way conversion** - you cannot convert GFF3+FASTA back to GenBank format. Always keep your original GenBank files!
+
+## Complete Pipeline Example
+
+Here's the complete workflow in one script:
+
+```{r complete-pipeline, eval=FALSE}
+library(micromicon)
+
+# 1. Read genome
+genome <- read_genome(get_example_file("test_ampC.gbk"))
+
+# 2. Search for gene of interest
+ampC_info <- search_features(genome, pattern = "ampC", type = "CDS")
+print(ampC_info[, c("gene", "product", "start", "end")])
+
+# 3. Extract DNA sequence
+ampC_dna <- extract_by_name(genome, "ampC", type = "CDS")
+cat("DNA length:", nchar(ampC_dna), "bp\n")
+
+# 4. Get protein sequence
+ampC_protein <- extract_by_name(genome, "ampC", type = "CDS", translate = TRUE)
+cat("Protein length:", nchar(ampC_protein), "aa\n")
+
+# 5. Optional: BLAST analysis (if BLAST+ is installed)
+if (nzchar(Sys.which("blastp")) && nzchar(Sys.getenv("BLASTDB"))) {
+  blast_results <- blast_protein(ampC_protein, database = "swissprot")
+  top_hits <- reduce_hits(blast_results, min_qcov = 80, min_pident = 50)
+  print(top_hits[1:5, c("sacc", "pident", "stitle")])
+}
+
+# 6. Export for downstream analysis
+write_gff3(genome, "ampC_annotation.gff3")
+write_fasta(genome, "ampC_sequence.fasta")
+```
+
+## Next Steps
+
+- **Full tutorial**: See `vignette("micromicon-intro")` for comprehensive examples
+- **Function reference**: Use `?function_name` to view detailed documentation
+- **BLAST setup**: Read `BLAST_SETUP.md` for local BLAST+ installation
+
+## Common Patterns
+
+### Extract Multiple Genes
+
+```{r extract-multiple, eval=FALSE}
+# Extract all genes matching a pattern
+genes <- search_features(genome, pattern = "^amp", type = "CDS")
+
+# Get all their sequences
+sequences <- lapply(genes$gene, function(g) {
+  extract_by_name(genome, g, type = "CDS")
+})
+names(sequences) <- genes$gene
+```
+
+### Extract Genomic Region
+
+```{r extract-region-pattern, eval=FALSE}
+# Find features in a specific region
+region_features <- search_features(
+  genome,
+  seqname = "TEST000002",
+  start = 1,
+  end = 1000
+)
+
+# Extract the region sequence
+region_seq <- extract_by_coords(genome, "TEST000002", 1, 1000)
+```
+
+### Batch Translation
+
+```{r batch-translate, eval=FALSE}
+# Get all CDS features
+all_cds <- search_features(genome, type = "CDS")
+
+# Translate all to proteins
+proteins <- lapply(all_cds$gene, function(g) {
+  extract_by_name(genome, g, type = "CDS", translate = TRUE)
+})
+names(proteins) <- all_cds$gene
+```
+
+## Key Functions Summary
+
+| Function | Purpose |
+|----------|---------|
+| `read_genome()` | Read GenBank or GFF3+FASTA files |
+| `search_features()` | Find features by name, type, or location |
+| `extract_by_name()` | Extract sequences by gene name |
+| `extract_by_coords()` | Extract sequences by coordinates |
+| `write_gff3()` | Export annotations to GFF3 |
+| `write_fasta()` | Export sequences to FASTA |
+| `blast_protein()` | Run local BLASTP search |
+| `get_example_file()` | Get path to example data |
+
+## Troubleshooting
+
+### Package Installation Issues
+
+```r
+# If installation fails, try removing old version first
+remove.packages("micromicon")
+devtools::install_github("RENAISSANCE-UIC/micromicon", force = TRUE)
+```
+
+### BLAST Not Working
+
+```r
+# Check if blastp is on PATH
+Sys.which("blastp")
+
+# Check database location
+Sys.getenv("BLASTDB")
+
+# Set database location if needed
+Sys.setenv(BLASTDB = "/path/to/blast/databases")
+```
+
+### Gene Not Found
+
+```r
+# List all genes in genome
+all_genes <- search_features(genome, type = "CDS")
+print(all_genes$gene)
+
+# Search case-insensitive
+result <- search_features(genome, pattern = "AMPC")  # automatically case-insensitive
+```
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
