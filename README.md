@@ -20,7 +20,7 @@ devtools::install_local("/path/to/micromicon")
 
 ### Optional (But Recommended): Bioconductor Integration
 
-For advanced features (GRanges, DNAStringSet):
+For advanced features:
 
 ```r
 if (!require("BiocManager", quietly = TRUE))
