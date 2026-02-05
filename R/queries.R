@@ -357,7 +357,12 @@ extract_sequence_by_coords <- function(genome_obj,
   stopifnot(requireNamespace("Biostrings", quietly = TRUE))
   stopifnot(requireNamespace("Rsamtools", quietly = TRUE))
   stopifnot(requireNamespace("S4Vectors", quietly = TRUE))
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   # --- basic checks ---
   stopifnot(is.list(genome_obj), "fa" %in% names(genome_obj), "seqnames" %in% names(genome_obj))
   if (!strand %in% c("+", "-", "*")) {
@@ -571,10 +576,10 @@ get_genomic_context <- function(genome_obj,
 #' @param drop_extdb If TRUE, prefer human labels over extdb placeholders (default TRUE)
 #' @return GRanges or tibble with features in ROI
 #' @export
-analyze_roi <- function(genome_obj, 
-                        seqname, 
-                        start, 
-                        end, 
+analyze_roi <- function(genome_obj,
+                        seqname,
+                        start,
+                        end,
                         flank = 0,
                         feature_type = "CDS",
                         tidy = TRUE,
@@ -588,7 +593,12 @@ analyze_roi <- function(genome_obj,
   stopifnot(requireNamespace("GenomeInfoDb", quietly = TRUE))
   stopifnot(requireNamespace("BiocGenerics", quietly = TRUE))
   stopifnot(requireNamespace("tibble", quietly = TRUE))
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   gff <- genome_obj$gff
   
   # --------- resolver: map user seqname -> a level present in the GFF ---------
@@ -727,12 +737,17 @@ analyze_roi <- function(genome_obj,
 #' @return GRanges or tibble with matching features
 #' @export
 #' 
-search_features_legacy_internal <- function(genome_obj, 
-                            pattern, 
+search_features_legacy_internal <- function(genome_obj,
+                            pattern,
                             field = "Note",
                             feature_type = "CDS",
                             tidy = TRUE) {
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   gff <- genome_obj$gff
   
   # Filter by feature type
@@ -806,7 +821,12 @@ get_roi_fasta <- function(genome_obj,
                           reverse_complement = TRUE,
                           output_file = NULL,
                           seq_name = NULL) {
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   # Input validation
   if (start > end) {
     cli::cli_abort("Start coordinate must be <= end coordinate")
@@ -917,7 +937,12 @@ get_roi_fasta_batch <- function(genome_obj,
                                 roi_table,
                                 flank = 0,
                                 output_file = NULL) {
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   # Validate input table
   required_cols <- c("seqname", "start", "end")
   if (!all(required_cols %in% names(roi_table))) {
@@ -1003,7 +1028,12 @@ get_feature_fasta <- function(genome_obj,
                               flank_downstream = 0,
                               include_feature = TRUE,
                               output_file = NULL) {
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   # If features is a string, find matching features
   if (is.character(features)) {
     pattern <- features
@@ -1115,7 +1145,12 @@ extract_roi_complete <- function(genome_obj,
                                  get_sequence = TRUE,
                                  get_features = TRUE,
                                  output_fasta = NULL) {
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   result <- list()
   
   # Extract sequence if requested
@@ -1817,10 +1852,15 @@ translate_cds <- function(dna, strand = "+", drop_terminal_stop = TRUE,
   aa
 }
 
-roi_cds_to_faa <- function(genome_obj, roi_tbl, 
+roi_cds_to_faa <- function(genome_obj, roi_tbl,
                            bact_gc = Biostrings::getGeneticCode("11"),
                            outfile = tempfile(fileext = ".faa")) {
-  
+
+  # Auto-convert genome_entity objects to legacy format
+  if (inherits(genome_obj, "genome_entity")) {
+    genome_obj <- entity_to_legacy_genome_obj(genome_obj)
+  }
+
   # process data
   cds <- roi_tbl %>%
     filter(type == "CDS") %>%

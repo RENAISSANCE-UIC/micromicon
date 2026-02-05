@@ -51,38 +51,16 @@
 write_fasta <- function(x, file, wrap_width = 80, ...) {
   # Handle different input types
   if (inherits(x, "genome_entity")) {
-    # Check if source is GenBank and warn about metadata loss
-    import_source <- attr(x, "import_source")
-
-    if (!is.null(import_source) && grepl("genbank", import_source, ignore.case = TRUE)) {
-      # Check if warnings are enabled (default TRUE)
-      if (!isFALSE(getOption("micromicon.warn_export", default = TRUE))) {
-        cli::cli_alert_warning("Exporting GenBank-sourced data to FASTA LOSES metadata")
-        cli::cli_inform(c(
-          "i" = "Lost: organism, taxonomy, references, comments, accession, features",
-          "i" = "This conversion is ONE-WAY - no reverse conversion exists",
-          "i" = "Keep your original GenBank file as source of truth",
-          "i" = "Suppress: options(micromicon.warn_export = FALSE)"
-        ))
-      }
-    }
-
-    # Extract sequences from genome_entity
-    sequences_to_write <- x$sequences$dna_raw
+    # Use new export_genome generic for genome_entity objects
+    export_genome(x, file, format = "fasta", wrap_width = wrap_width, ...)
   } else if (is.character(x)) {
-    # Already a character vector
-    sequences_to_write <- x
+    # Direct character vector export (backward compatibility)
+    gateway <- create_fasta_gateway(use_bioconductor = TRUE)
+    gateway$write(x, file, wrap_width)
+    invisible(file)
   } else {
     cli::cli_abort("x must be a genome_entity object or character vector")
   }
-
-  # Create FASTA gateway
-  gateway <- create_fasta_gateway(use_bioconductor = TRUE)
-
-  # Write file
-  gateway$write(sequences_to_write, file, wrap_width)
-
-  invisible(file)
 }
 
 #' Write Features to GFF3 File
@@ -135,64 +113,8 @@ write_gff3 <- function(x, file, source = "micromicon", ...) {
     cli::cli_abort("x must be a genome_entity object")
   }
 
-  validate_genome_entity(x)
-
-  # Check if source is GenBank and warn about metadata loss
-  import_source <- attr(x, "import_source")
-
-  if (!is.null(import_source) && grepl("genbank", import_source, ignore.case = TRUE)) {
-    # Check if warnings are enabled (default TRUE)
-    if (!isFALSE(getOption("micromicon.warn_export", default = TRUE))) {
-      cli::cli_alert_warning("Exporting GenBank-sourced data to GFF3 LOSES metadata")
-      cli::cli_inform(c(
-        "i" = "Lost: organism, taxonomy, references, comments, accession",
-        "i" = "This conversion is ONE-WAY - no reverse conversion exists",
-        "i" = "Keep your original GenBank file as source of truth",
-        "i" = "Suppress: options(micromicon.warn_export = FALSE)"
-      ))
-    }
-  }
-
-  # Get features
-  feats <- x$features
-
-  if (nrow(feats) == 0) {
-    cli::cli_warn("No features to write")
-    return(invisible(file))
-  }
-
-  # Open file for writing
-  con <- file(file, open = "wt")
-  on.exit(close(con))
-
-  # Write GFF3 header
-  writeLines("##gff-version 3", con)
-
-  # Build GFF3 lines
-  for (i in seq_len(nrow(feats))) {
-    feat <- feats[i, ]
-
-    # Build attributes string
-    attrs <- build_gff3_attributes(feat)
-
-    # Build GFF3 line (9 columns: seqname, source, type, start, end, score, strand, phase, attributes)
-    gff_line <- paste(
-      feat$seqname,
-      source,
-      feat$type,
-      feat$start,
-      feat$end,
-      ".",  # score
-      ifelse(is.na(feat$strand), ".", feat$strand),
-      ".",  # phase
-      attrs,
-      sep = "\t"
-    )
-
-    writeLines(gff_line, con)
-  }
-
-  invisible(file)
+  # Use new export_genome generic
+  export_genome(x, file, format = "gff3", source = source, ...)
 }
 
 #' Build GFF3 Attributes String

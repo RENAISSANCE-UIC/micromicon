@@ -187,3 +187,127 @@ test_that("build_gff3_attributes handles missing fields", {
   # Assert: Should return "." when no attributes
   expect_equal(attrs, ".")
 })
+
+# Tests for export_genome() generic
+
+test_that("export_genome auto-detects FASTA format from extension", {
+  # Arrange
+  entity <- new_genome_entity(
+    sequences_list = list(
+      dna_raw = c(test1 = "ATCGATCG", test2 = "GCGCGCGC"),
+      dna_bio = NULL,
+      indexed_fa = NULL
+    ),
+    features_df = data.frame(),
+    metadata_df = data.frame(seqname = c("test1", "test2"), stringsAsFactors = FALSE),
+    indices_list = list(seqnames = c("test1", "test2"))
+  )
+
+  temp_file <- tempfile(fileext = ".fasta")
+  on.exit(unlink(temp_file))
+
+  # Act
+  result <- export_genome(entity, temp_file)
+
+  # Assert
+  expect_true(file.exists(temp_file))
+  expect_equal(result, temp_file)
+
+  # Read back and verify FASTA content
+  lines <- readLines(temp_file)
+  expect_true(any(grepl("^>test1", lines)))
+  expect_true(any(grepl("ATCGATCG", lines)))
+})
+
+test_that("export_genome auto-detects GFF3 format from extension", {
+  # Arrange
+  entity <- new_genome_entity(
+    sequences_list = list(dna_raw = c(chr1 = "ATCGATCG"), dna_bio = NULL, indexed_fa = NULL),
+    features_df = data.frame(
+      seqname = "chr1",
+      start = 1,
+      end = 8,
+      strand = "+",
+      type = "gene",
+      gene = "testA",
+      locus_tag = "GENE001",
+      stringsAsFactors = FALSE
+    ),
+    metadata_df = data.frame(seqname = "chr1", stringsAsFactors = FALSE),
+    indices_list = list(seqnames = "chr1")
+  )
+
+  temp_file <- tempfile(fileext = ".gff3")
+  on.exit(unlink(temp_file))
+
+  # Act
+  result <- export_genome(entity, temp_file)
+
+  # Assert
+  expect_true(file.exists(temp_file))
+  expect_equal(result, temp_file)
+
+  # Read back and verify GFF3 content
+  lines <- readLines(temp_file)
+  expect_true(any(grepl("##gff-version 3", lines)))
+  expect_true(any(grepl("gene=testA", lines)))
+})
+
+test_that("export_genome with explicit format parameter", {
+  # Arrange
+  entity <- new_genome_entity(
+    sequences_list = list(
+      dna_raw = c(test = "ATCGATCG"),
+      dna_bio = NULL,
+      indexed_fa = NULL
+    ),
+    features_df = data.frame(),
+    metadata_df = data.frame(seqname = "test", stringsAsFactors = FALSE),
+    indices_list = list(seqnames = "test")
+  )
+
+  temp_file <- tempfile(fileext = ".txt")
+  on.exit(unlink(temp_file))
+
+  # Act - specify format explicitly despite .txt extension
+  result <- export_genome(entity, temp_file, format = "fasta")
+
+  # Assert
+  expect_true(file.exists(temp_file))
+  lines <- readLines(temp_file)
+  expect_true(any(grepl("^>test", lines)))
+  expect_true(any(grepl("ATCGATCG", lines)))
+})
+
+test_that("export_genome.default throws error for unsupported class", {
+  # Arrange
+  obj <- list(some = "data")
+
+  # Act & Assert
+  expect_error(
+    export_genome(obj, "test.fasta"),
+    "not implemented for class"
+  )
+})
+
+test_that("export_genome passes additional arguments to exporters", {
+  # Arrange
+  entity <- new_genome_entity(
+    sequences_list = list(dna_raw = c(test = "ATCGATCGATCGATCGATCGATCG"), dna_bio = NULL, indexed_fa = NULL),
+    features_df = data.frame(),
+    metadata_df = data.frame(seqname = "test", stringsAsFactors = FALSE),
+    indices_list = list(seqnames = "test")
+  )
+
+  temp_file <- tempfile(fileext = ".fasta")
+  on.exit(unlink(temp_file))
+
+  # Act - Pass wrap_width parameter
+  export_genome(entity, temp_file, format = "fasta", wrap_width = 10)
+
+  # Assert - Check that sequence is wrapped at 10 characters
+  lines <- readLines(temp_file)
+  seq_lines <- lines[!grepl("^>", lines)]
+  # Each line should be <= 10 characters
+  expect_true(all(nchar(seq_lines) <= 10))
+})
