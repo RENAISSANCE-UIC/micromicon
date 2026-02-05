@@ -91,7 +91,7 @@ genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
 
 ## Core Features
 
-### Format-Agnostic Input
+### (Ostensibly) Format-Agnostic Input
 
 Read genomes from multiple formats into a unified representation:
 
@@ -168,7 +168,7 @@ write_fasta(genome, "output.fasta")
 
 **METADATA LOSS**: Exporting from GenBank to GFF3+FASTA loses organism, taxonomy, references, and comments. Keep your original GenBank file.
 
-**NO REVERSE CONVERSION**: There is no `write_genbank()` function. You cannot convert GFF3+FASTA back to GenBank format. This is FORBIDDEN (not just unimplemented) because GFF3+FASTA lacks required metadata.
+**NO REVERSE CONVERSION**: There is no `write_genbank()` function. You cannot convert GFF3+FASTA back to GenBank format. This is unimplemented because GFF3+FASTA lacks required metadata.
 
 ```r
 # FORBIDDEN - Will never be implemented:
