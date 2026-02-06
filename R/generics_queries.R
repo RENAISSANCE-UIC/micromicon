@@ -21,7 +21,7 @@ search_features.genome_entity <- function(x, type = NULL, pattern = NULL,
 
   if (!is.null(pattern)) {
     matches <- rep(FALSE, nrow(feats))
-    for (field in c("gene", "locus_tag", "product")) {
+    for (field in c("ID", "Name", "Alias", "gene", "locus_tag", "product")) {
       if (field %in% names(feats)) {
         field_matches <- grepl(pattern, feats[[field]], ignore.case = TRUE)
         matches <- matches | field_matches

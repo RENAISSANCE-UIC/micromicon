@@ -16,7 +16,10 @@ search_features(x, ...)
 
 \item{type}{Character; filter by feature type (e.g., "gene", "CDS")}
 
-\item{pattern}{Character; regex pattern to match in gene, locus_tag, or product}
+\item{pattern}{Character string to search for in feature annotations.
+Searches across ID, Name, Alias, gene, locus_tag, and product fields
+(case-insensitive). Compatible with various GFF3 annotation sources
+including breseq, Prokka, and NCBI.}
 
 \item{seqname}{Character; filter by sequence name}
 

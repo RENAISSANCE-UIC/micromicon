@@ -127,7 +127,10 @@ extract_sequences_by_coords <- function(x, seqname, start, end,
 #'
 #' @param x A genome_entity object
 #' @param type Character; filter by feature type (e.g., "gene", "CDS")
-#' @param pattern Character; regex pattern to match in gene, locus_tag, or product
+#' @param pattern Character string to search for in feature annotations.
+#'   Searches across ID, Name, Alias, gene, locus_tag, and product fields
+#'   (case-insensitive). Compatible with various GFF3 annotation sources
+#'   including breseq, Prokka, and NCBI.
 #' @param seqname Character; filter by sequence name
 #' @param start Integer; filter features starting after this position
 #' @param end Integer; filter features ending before this position
@@ -172,7 +175,7 @@ search_features <- function(x, type = NULL, pattern = NULL,
     # Search in gene, locus_tag, product fields
     matches <- rep(FALSE, nrow(feats))
 
-    for (field in c("gene", "locus_tag", "product")) {
+    for (field in c("ID", "Name", "Alias", "gene", "locus_tag", "product")) {
       if (field %in% names(feats)) {
         field_matches <- grepl(pattern, feats[[field]], ignore.case = TRUE)
         matches <- matches | field_matches

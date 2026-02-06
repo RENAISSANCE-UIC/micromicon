@@ -1,5 +1,25 @@
 
 
+# micromicon 0.2.3
+
+## Bug Fixes
+
+### search_features() Now Searches ID, Name, and Alias Fields
+
+* **Fixed**: `search_features()` now correctly finds features when searching by their `ID` or `Name` attributes
+* Previously only searched `gene`, `locus_tag`, and `product` fields, missing common GFF3 annotation fields
+* Now searches all commonly used GFF3 attributes: `ID`, `Name`, `Alias`, `gene`, `locus_tag`, `product`
+* This fix makes `search_features()` compatible with various annotation sources (breseq, Prokka, NCBI)
+* Updated documentation to clarify which fields are searched
+* Added comprehensive test suite (6 new tests) covering all searchable fields
+
+**Technical Details:**
+- Modified `R/generics_queries.R:24` (S3 method implementation)
+- Updated `R/controllers_query_controller.R:175` and documentation for consistency
+- All tests pass (67 total tests)
+
+---
+
 # micromicon 0.2.2
 
 * Docs: removed pipe workflow claim
