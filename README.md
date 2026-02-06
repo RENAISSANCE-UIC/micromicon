@@ -1,4 +1,4 @@
-# micRomicon: An ostensibly format-agnostic microbial genomics toolkit for R
+# micRomicon: An Ostensibly Format-Agnostic Microbial Genomics Toolkit for R
 
 This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether the genome arrives through GenBank, GFF3+FASTA, or another representation (such as breseq outputs, variant calls, curated mutation tables, or other analyses that encode sequence change), `micromicon` will resolve each into a unified `genome_entity` object for downstream interrogation, including future support for transcriptomics and assessing the functional consequences of observed mutations.
 

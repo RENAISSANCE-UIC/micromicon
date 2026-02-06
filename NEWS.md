@@ -1,3 +1,11 @@
+
+
+# micromicon 0.2.2
+
+* Docs: removed pipe workflow claim
+
+---
+
 # micromicon 0.2.0
 
 ## Major Changes

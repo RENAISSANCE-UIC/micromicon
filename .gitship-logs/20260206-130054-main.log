@@ -1,0 +1,575 @@
+ℹ Updating micromicon documentation
+ℹ Loading micromicon
+ℹ Testing micromicon
+✔ | F W  S  OK | Context
+
+⠏ |          0 | accessors                                                      
+⠋ |          1 | accessors                                                      
+⠦ |      1   6 | accessors                                                      
+✔ |      1  11 | accessors [4.0s]
+
+⠏ |          0 | export-warnings                                                
+✔ |          7 | export-warnings
+
+⠏ |          0 | genome_entity                                                  genome_entity Summary
+=====================
+
+Source: NA 
+Sequences: 0 sequences, 0 bp total
+Features: 0 
+Records: 0 
+
+✔ |          9 | genome_entity
+
+⠏ |          0 | integration                                                    
+✔ |      3  18 | integration
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 4.1 s
+
+── Skipped tests (4) ───────────────────────────────────────────────────────────
+• empty test (1): 'test-accessors.R:20:1'
+• Test file not found (2): 'test-integration.R:2:3', 'test-integration.R:111:3'
+• Test GFF3 file not found (1): 'test-integration.R:42:3'
+
+[ FAIL 0 | WARN 0 | SKIP 4 | PASS 45 ]
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file ‘.../DESCRIPTION’ ... OK
+* preparing ‘micromicon’:
+* checking DESCRIPTION meta-information ... OK
+* installing the package to build vignettes
+* creating vignettes ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Removed empty directory ‘micromicon/tests/testthat/controllers/_snaps’
+Removed empty directory ‘micromicon/tests/testthat/entities/_snaps’
+Removed empty directory ‘micromicon/tests/testthat/gateways/_snaps’
+Removed empty directory ‘micromicon/tests/testthat/integration’
+Removed empty directory ‘micromicon/tests/testthat/use_cases/_snaps’
+* building ‘micromicon_0.2.2.tar.gz’
+
+── R CMD check ─────────────────────────────────────────────────────────────────
+* using log directory ‘/tmp/RtmpfumBBJ/file3f0e2d965dfa/micromicon.Rcheck’
+* using R version 4.5.0 (2025-04-11)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    gcc (Ubuntu 14.2.0-19ubuntu2) 14.2.0
+    GNU Fortran (Ubuntu 14.2.0-19ubuntu2) 14.2.0
+* running under: Ubuntu 25.10
+* using session charset: UTF-8
+* using option ‘--no-manual’
+* checking for file ‘micromicon/DESCRIPTION’ ... OK
+* this is package ‘micromicon’ version ‘0.2.2’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .gitship-logs
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘micromicon’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking ‘build’ directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  ‘BiocGenerics’ ‘methods’ ‘pwalign’
+'loadNamespace' or 'requireNamespace' calls not declared from:
+  ‘BiocGenerics’ ‘pwalign’
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+  dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+  features_df, granges = NULL), metadata = list(records = records_df,
+  source = "genbank", import_date = Sys.time(), gff_used = character(),
+  fasta_used = character(), import_errors = list()), indices =
+  list(seqnames = seqnames_unique, seqname_to_record =
+  seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+  gene_index)): partial argument match of 'sequences' to
+  'sequences_list'
+gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+  dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+  features_df, granges = NULL), metadata = list(records = records_df,
+  source = "genbank", import_date = Sys.time(), gff_used = character(),
+  fasta_used = character(), import_errors = list()), indices =
+  list(seqnames = seqnames_unique, seqname_to_record =
+  seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+  gene_index)): partial argument match of 'features' to 'features_df'
+gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+  dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+  features_df, granges = NULL), metadata = list(records = records_df,
+  source = "genbank", import_date = Sys.time(), gff_used = character(),
+  fasta_used = character(), import_errors = list()), indices =
+  list(seqnames = seqnames_unique, seqname_to_record =
+  seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+  gene_index)): partial argument match of 'metadata' to 'metadata_df'
+gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+  dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+  features_df, granges = NULL), metadata = list(records = records_df,
+  source = "genbank", import_date = Sys.time(), gff_used = character(),
+  fasta_used = character(), import_errors = list()), indices =
+  list(seqnames = seqnames_unique, seqname_to_record =
+  seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+  gene_index)): partial argument match of 'indices' to 'indices_list'
+gff_fasta_to_entity: warning in new_genome_entity(sequences =
+  list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+  NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+  if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+  gff else NULL), metadata = list(records = records_df, source =
+  "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+  fasta_used = fasta_path, import_errors = import_errors), indices =
+  list(seqnames = seqnames_fasta, seqname_to_record =
+  seqname_to_record, : partial argument match of 'sequences' to
+  'sequences_list'
+gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+  gene_index = gene_index)): partial argument match of 'sequences' to
+  'sequences_list'
+gff_fasta_to_entity: warning in new_genome_entity(sequences =
+  list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+  NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+  if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+  gff else NULL), metadata = list(records = records_df, source =
+  "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+  fasta_used = fasta_path, import_errors = import_errors), indices =
+  list(seqnames = seqnames_fasta, seqname_to_record =
+  seqname_to_record, : partial argument match of 'features' to
+  'features_df'
+gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+  gene_index = gene_index)): partial argument match of 'features' to
+  'features_df'
+gff_fasta_to_entity: warning in new_genome_entity(sequences =
+  list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+  NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+  if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+  gff else NULL), metadata = list(records = records_df, source =
+  "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+  fasta_used = fasta_path, import_errors = import_errors), indices =
+  list(seqnames = seqnames_fasta, seqname_to_record =
+  seqname_to_record, : partial argument match of 'metadata' to
+  'metadata_df'
+gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+  gene_index = gene_index)): partial argument match of 'metadata' to
+  'metadata_df'
+gff_fasta_to_entity: warning in new_genome_entity(sequences =
+  list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+  NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+  if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+  gff else NULL), metadata = list(records = records_df, source =
+  "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+  fasta_used = fasta_path, import_errors = import_errors), indices =
+  list(seqnames = seqnames_fasta, seqname_to_record =
+  seqname_to_record, : partial argument match of 'indices' to
+  'indices_list'
+gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+  gene_index = gene_index)): partial argument match of 'indices' to
+  'indices_list'
+.get_fasta_index: no visible global function definition for ‘setNames’
+bioconductor_versions: no visible global function definition for
+  ‘setNames’
+blast_protein: no visible global function definition for ‘is’
+blastp_capture: no visible binding for global variable ‘pident’
+blastp_capture: no visible binding for global variable ‘qcovs’
+blastp_capture: no visible binding for global variable ‘bitscore’
+clean_gff_for_import: no visible global function definition for
+  ‘write.table’
+execute_build_indices: no visible global function definition for
+  ‘setNames’
+gbk_to_entity: no visible global function definition for ‘setNames’
+get_feature_fasta: no visible global function definition for
+  ‘seqlevels<-’
+get_feature_fasta: no visible global function definition for
+  ‘seqnames<-’
+get_feature_fasta: no visible global function definition for ‘Rle’
+get_feature_fasta : <anonymous>: no visible global function definition
+  for ‘strand’
+get_feature_fasta : <anonymous>: no visible global function definition
+  for ‘start’
+get_feature_fasta : <anonymous>: no visible global function definition
+  for ‘end’
+get_feature_fasta: no visible global function definition for
+  ‘writeXStringSet’
+get_roi_fasta: no visible global function definition for ‘seqinfo’
+get_roi_fasta: no visible global function definition for ‘seqlengths’
+get_roi_fasta: no visible global function definition for ‘GRanges’
+get_roi_fasta: no visible global function definition for ‘IRanges’
+get_roi_fasta: no visible global function definition for ‘getSeq’
+get_roi_fasta: no visible global function definition for
+  ‘reverseComplement’
+get_roi_fasta: no visible global function definition for ‘width’
+get_roi_fasta: no visible global function definition for
+  ‘writeXStringSet’
+get_roi_fasta_batch: no visible global function definition for
+  ‘writeXStringSet’
+gff_fasta_to_entity: no visible global function definition for
+  ‘setNames’
+harmonize_seqnames_simple: no visible global function definition for
+  ‘setNames’
+parse_blast_xml: no visible global function definition for ‘read_xml’
+parse_blast_xml: no visible global function definition for
+  ‘xml_find_all’
+parse_blast_xml: no visible global function definition for ‘tibble’
+parse_blast_xml: no visible global function definition for ‘head’
+print.genome_entity: no visible global function definition for ‘head’
+reduce_hits: no visible binding for global variable ‘qcovs’
+reduce_hits: no visible binding for global variable ‘pident’
+reduce_hits: no visible binding for global variable ‘qseqid’
+reduce_hits: no visible binding for global variable ‘evalue’
+reduce_hits: no visible binding for global variable ‘bitscore’
+roi_cds_to_faa: no visible global function definition for ‘filter’
+roi_cds_to_faa: no visible binding for global variable ‘type’
+roi_cds_to_faa: no visible global function definition for ‘mutate’
+roi_cds_to_faa: no visible global function definition for ‘pmap’
+roi_cds_to_faa: no visible binding for global variable ‘start’
+roi_cds_to_faa: no visible binding for global variable ‘end’
+roi_cds_to_faa: no visible binding for global variable ‘strand’
+roi_cds_to_faa: no visible global function definition for ‘map2_chr’
+roi_cds_to_faa: no visible binding for global variable ‘dna’
+roi_cds_to_faa: no visible binding for global variable ‘aa_raw’
+roi_cds_to_faa: no visible binding for global variable ‘aa’
+roi_cds_to_faa: no visible global function definition for ‘str_detect’
+roi_cds_to_faa: no visible global function definition for ‘map2’
+roi_cds_to_faa: no visible global function definition for ‘write_lines’
+tidy_features: no visible global function definition for ‘tibble’
+tidy_features: no visible global function definition for ‘start’
+translate_cds: no visible global function definition for ‘width’
+Undefined global functions or variables:
+  GRanges IRanges Rle aa aa_raw bitscore dna end evalue filter getSeq
+  head is map2 map2_chr mutate pident pmap qcovs qseqid read_xml
+  reverseComplement seqinfo seqlengths seqlevels<- seqnames<- setNames
+  start str_detect strand tibble type width write.table writeXStringSet
+  write_lines xml_find_all
+Consider adding
+  importFrom("methods", "is")
+  importFrom("stats", "end", "filter", "setNames", "start")
+  importFrom("utils", "head", "write.table")
+to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
+contains 'methods').
+* checking Rd files ... WARNING
+checkRd: (5) grapes-or-or-grapes.Rd:3: \name should not contain !, | or @
+* checking Rd metadata ... WARNING
+Rd files with duplicated alias 'extract_sequences_by_coords':
+  ‘extract_by_coords.Rd’ ‘extract_sequences_by_coords.Rd’
+Rd files with duplicated alias 'extract_sequences_by_name':
+  ‘extract_by_name.Rd’ ‘extract_sequences_by_name.Rd’
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Documented arguments not in \usage in Rd file 'detect_format_from_extension.Rd':
+  ‘path’
+Undocumented arguments in Rd file 'export_genome-methods.Rd'
+  ‘x’ ‘file’ ‘format’ ‘wrap_width’ ‘source’ ‘...’
+Undocumented arguments in Rd file 'extract_by_name.Rd'
+  ‘genome_obj’ ‘gene_pattern’ ‘translate’ ‘genetic_code’
+  ‘auto_harmonize’
+Documented arguments not in \usage in Rd file 'extract_sequences_by_coords.Rd':
+  ‘seqname’ ‘start’ ‘end’ ‘strand’ ‘translate’ ‘names’
+Undocumented arguments in Rd file 'extract_sequences_by_name.Rd'
+  ‘auto_harmonize’
+Documented arguments not in \usage in Rd file 'extract_sequences_by_name.Rd':
+  ‘x’ ‘pattern’ ‘fields’ ‘type’ ‘ignore_case’ ‘...’
+Documented arguments not in \usage in Rd file 'features.Rd':
+  ‘format’ ‘type’
+Undocumented arguments in Rd file 'init_genome.Rd'
+  ‘auto_index’
+Documented arguments not in \usage in Rd file 'init_genome.Rd':
+  ‘return_entity’ ‘auto_harmonize’ ‘...’
+Documented arguments not in \usage in Rd file 'new_genome_entity.Rd':
+  ‘sequences’ ‘features’ ‘metadata’ ‘indices’
+Documented arguments not in \usage in Rd file 'read_gbk.Rd':
+  ‘return_entity’ ‘...’
+Documented arguments not in \usage in Rd file 'search_features.Rd':
+  ‘type’ ‘pattern’ ‘seqname’ ‘start’ ‘end’ ‘strand’
+Documented arguments not in \usage in Rd file 'sequences.Rd':
+  ‘format’
+Documented arguments not in \usage in Rd file 'write_gbk_fasta.Rd':
+  ‘...’
+Documented arguments not in \usage in Rd file 'write_gbk_gff3.Rd':
+  ‘...’
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking installed files from ‘inst/doc’ ... OK
+* checking files in ‘vignettes’ ... OK
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ...
+  Running ‘testthat.R’
+ OK
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... OK
+* DONE
+Status: 4 WARNINGs, 2 NOTEs
+See
+  ‘/tmp/RtmpfumBBJ/file3f0e2d965dfa/micromicon.Rcheck/00check.log’
+for details.
+── R CMD check results ─────────────────────────────────── micromicon 0.2.2 ────
+Duration: 25.4s
+
+❯ checking dependencies in R code ... WARNING
+  '::' or ':::' imports not declared from:
+    ‘BiocGenerics’ ‘methods’ ‘pwalign’
+  'loadNamespace' or 'requireNamespace' calls not declared from:
+    ‘BiocGenerics’ ‘pwalign’
+
+❯ checking Rd files ... WARNING
+  checkRd: (5) grapes-or-or-grapes.Rd:3: \name should not contain !, | or @
+
+❯ checking Rd metadata ... WARNING
+  Rd files with duplicated alias 'extract_sequences_by_coords':
+    ‘extract_by_coords.Rd’ ‘extract_sequences_by_coords.Rd’
+  Rd files with duplicated alias 'extract_sequences_by_name':
+    ‘extract_by_name.Rd’ ‘extract_sequences_by_name.Rd’
+
+❯ checking Rd \usage sections ... WARNING
+  Documented arguments not in \usage in Rd file 'detect_format_from_extension.Rd':
+    ‘path’
+  
+  Undocumented arguments in Rd file 'export_genome-methods.Rd'
+    ‘x’ ‘file’ ‘format’ ‘wrap_width’ ‘source’ ‘...’
+  
+  Undocumented arguments in Rd file 'extract_by_name.Rd'
+    ‘genome_obj’ ‘gene_pattern’ ‘translate’ ‘genetic_code’
+    ‘auto_harmonize’
+  
+  Documented arguments not in \usage in Rd file 'extract_sequences_by_coords.Rd':
+    ‘seqname’ ‘start’ ‘end’ ‘strand’ ‘translate’ ‘names’
+  
+  Undocumented arguments in Rd file 'extract_sequences_by_name.Rd'
+    ‘auto_harmonize’
+  Documented arguments not in \usage in Rd file 'extract_sequences_by_name.Rd':
+    ‘x’ ‘pattern’ ‘fields’ ‘type’ ‘ignore_case’ ‘...’
+  
+  Documented arguments not in \usage in Rd file 'features.Rd':
+    ‘format’ ‘type’
+  
+  Undocumented arguments in Rd file 'init_genome.Rd'
+    ‘auto_index’
+  Documented arguments not in \usage in Rd file 'init_genome.Rd':
+    ‘return_entity’ ‘auto_harmonize’ ‘...’
+  
+  Documented arguments not in \usage in Rd file 'new_genome_entity.Rd':
+    ‘sequences’ ‘features’ ‘metadata’ ‘indices’
+  
+  Documented arguments not in \usage in Rd file 'read_gbk.Rd':
+    ‘return_entity’ ‘...’
+  
+  Documented arguments not in \usage in Rd file 'search_features.Rd':
+    ‘type’ ‘pattern’ ‘seqname’ ‘start’ ‘end’ ‘strand’
+  
+  Documented arguments not in \usage in Rd file 'sequences.Rd':
+    ‘format’
+  
+  Documented arguments not in \usage in Rd file 'write_gbk_fasta.Rd':
+    ‘...’
+  
+  Documented arguments not in \usage in Rd file 'write_gbk_gff3.Rd':
+    ‘...’
+  
+  Functions with \usage entries need to have the appropriate \alias
+  entries, and all their arguments documented.
+  The \usage entries must correspond to syntactically valid R code.
+  See chapter ‘Writing R documentation files’ in the ‘Writing R
+  Extensions’ manual.
+
+❯ checking for hidden files and directories ... NOTE
+  Found the following hidden files and directories:
+    .gitship-logs
+  These were most likely included in error. See section ‘Package
+  structure’ in the ‘Writing R Extensions’ manual.
+
+❯ checking R code for possible problems ... NOTE
+  gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+    dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+    features_df, granges = NULL), metadata = list(records = records_df,
+    source = "genbank", import_date = Sys.time(), gff_used = character(),
+    fasta_used = character(), import_errors = list()), indices =
+    list(seqnames = seqnames_unique, seqname_to_record =
+    seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+    gene_index)): partial argument match of 'sequences' to
+    'sequences_list'
+  gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+    dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+    features_df, granges = NULL), metadata = list(records = records_df,
+    source = "genbank", import_date = Sys.time(), gff_used = character(),
+    fasta_used = character(), import_errors = list()), indices =
+    list(seqnames = seqnames_unique, seqname_to_record =
+    seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+    gene_index)): partial argument match of 'features' to 'features_df'
+  gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+    dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+    features_df, granges = NULL), metadata = list(records = records_df,
+    source = "genbank", import_date = Sys.time(), gff_used = character(),
+    fasta_used = character(), import_errors = list()), indices =
+    list(seqnames = seqnames_unique, seqname_to_record =
+    seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+    gene_index)): partial argument match of 'metadata' to 'metadata_df'
+  gbk_to_entity: warning in new_genome_entity(sequences = list(dna_raw =
+    dna_raw, dna_bio = NULL, indexed_fa = NULL), features = list(df =
+    features_df, granges = NULL), metadata = list(records = records_df,
+    source = "genbank", import_date = Sys.time(), gff_used = character(),
+    fasta_used = character(), import_errors = list()), indices =
+    list(seqnames = seqnames_unique, seqname_to_record =
+    seqname_to_record, locus_tag_index = locus_tag_index, gene_index =
+    gene_index)): partial argument match of 'indices' to 'indices_list'
+  gff_fasta_to_entity: warning in new_genome_entity(sequences =
+    list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+    NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+    if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+    gff else NULL), metadata = list(records = records_df, source =
+    "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+    fasta_used = fasta_path, import_errors = import_errors), indices =
+    list(seqnames = seqnames_fasta, seqname_to_record =
+    seqname_to_record, : partial argument match of 'sequences' to
+    'sequences_list'
+  gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+    gene_index = gene_index)): partial argument match of 'sequences' to
+    'sequences_list'
+  gff_fasta_to_entity: warning in new_genome_entity(sequences =
+    list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+    NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+    if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+    gff else NULL), metadata = list(records = records_df, source =
+    "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+    fasta_used = fasta_path, import_errors = import_errors), indices =
+    list(seqnames = seqnames_fasta, seqname_to_record =
+    seqname_to_record, : partial argument match of 'features' to
+    'features_df'
+  gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+    gene_index = gene_index)): partial argument match of 'features' to
+    'features_df'
+  gff_fasta_to_entity: warning in new_genome_entity(sequences =
+    list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+    NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+    if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+    gff else NULL), metadata = list(records = records_df, source =
+    "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+    fasta_used = fasta_path, import_errors = import_errors), indices =
+    list(seqnames = seqnames_fasta, seqname_to_record =
+    seqname_to_record, : partial argument match of 'metadata' to
+    'metadata_df'
+  gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+    gene_index = gene_index)): partial argument match of 'metadata' to
+    'metadata_df'
+  gff_fasta_to_entity: warning in new_genome_entity(sequences =
+    list(dna_raw = dna_raw, dna_bio = if (exists("dna_bio")) dna_bio else
+    NULL, indexed_fa = NULL), features = list(df = features_df, granges =
+    if (has_bioconductor() && exists("gff") && inherits(gff, "GRanges"))
+    gff else NULL), metadata = list(records = records_df, source =
+    "gff3_fasta", import_date = Sys.time(), gff_used = gff_path,
+    fasta_used = fasta_path, import_errors = import_errors), indices =
+    list(seqnames = seqnames_fasta, seqname_to_record =
+    seqname_to_record, : partial argument match of 'indices' to
+    'indices_list'
+  gff_fasta_to_entity: warning in locus_tag_index = locus_tag_index,
+    gene_index = gene_index)): partial argument match of 'indices' to
+    'indices_list'
+  .get_fasta_index: no visible global function definition for ‘setNames’
+  bioconductor_versions: no visible global function definition for
+    ‘setNames’
+  blast_protein: no visible global function definition for ‘is’
+  blastp_capture: no visible binding for global variable ‘pident’
+  blastp_capture: no visible binding for global variable ‘qcovs’
+  blastp_capture: no visible binding for global variable ‘bitscore’
+  clean_gff_for_import: no visible global function definition for
+    ‘write.table’
+  execute_build_indices: no visible global function definition for
+    ‘setNames’
+  gbk_to_entity: no visible global function definition for ‘setNames’
+  get_feature_fasta: no visible global function definition for
+    ‘seqlevels<-’
+  get_feature_fasta: no visible global function definition for
+    ‘seqnames<-’
+  get_feature_fasta: no visible global function definition for ‘Rle’
+  get_feature_fasta : <anonymous>: no visible global function definition
+    for ‘strand’
+  get_feature_fasta : <anonymous>: no visible global function definition
+    for ‘start’
+  get_feature_fasta : <anonymous>: no visible global function definition
+    for ‘end’
+  get_feature_fasta: no visible global function definition for
+    ‘writeXStringSet’
+  get_roi_fasta: no visible global function definition for ‘seqinfo’
+  get_roi_fasta: no visible global function definition for ‘seqlengths’
+  get_roi_fasta: no visible global function definition for ‘GRanges’
+  get_roi_fasta: no visible global function definition for ‘IRanges’
+  get_roi_fasta: no visible global function definition for ‘getSeq’
+  get_roi_fasta: no visible global function definition for
+    ‘reverseComplement’
+  get_roi_fasta: no visible global function definition for ‘width’
+  get_roi_fasta: no visible global function definition for
+    ‘writeXStringSet’
+  get_roi_fasta_batch: no visible global function definition for
+    ‘writeXStringSet’
+  gff_fasta_to_entity: no visible global function definition for
+    ‘setNames’
+  harmonize_seqnames_simple: no visible global function definition for
+    ‘setNames’
+  parse_blast_xml: no visible global function definition for ‘read_xml’
+  parse_blast_xml: no visible global function definition for
+    ‘xml_find_all’
+  parse_blast_xml: no visible global function definition for ‘tibble’
+  parse_blast_xml: no visible global function definition for ‘head’
+  print.genome_entity: no visible global function definition for ‘head’
+  reduce_hits: no visible binding for global variable ‘qcovs’
+  reduce_hits: no visible binding for global variable ‘pident’
+  reduce_hits: no visible binding for global variable ‘qseqid’
+  reduce_hits: no visible binding for global variable ‘evalue’
+  reduce_hits: no visible binding for global variable ‘bitscore’
+  roi_cds_to_faa: no visible global function definition for ‘filter’
+  roi_cds_to_faa: no visible binding for global variable ‘type’
+  roi_cds_to_faa: no visible global function definition for ‘mutate’
+  roi_cds_to_faa: no visible global function definition for ‘pmap’
+  roi_cds_to_faa: no visible binding for global variable ‘start’
+  roi_cds_to_faa: no visible binding for global variable ‘end’
+  roi_cds_to_faa: no visible binding for global variable ‘strand’
+  roi_cds_to_faa: no visible global function definition for ‘map2_chr’
+  roi_cds_to_faa: no visible binding for global variable ‘dna’
+  roi_cds_to_faa: no visible binding for global variable ‘aa_raw’
+  roi_cds_to_faa: no visible binding for global variable ‘aa’
+  roi_cds_to_faa: no visible global function definition for ‘str_detect’
+  roi_cds_to_faa: no visible global function definition for ‘map2’
+  roi_cds_to_faa: no visible global function definition for ‘write_lines’
+  tidy_features: no visible global function definition for ‘tibble’
+  tidy_features: no visible global function definition for ‘start’
+  translate_cds: no visible global function definition for ‘width’
+  Undefined global functions or variables:
+    GRanges IRanges Rle aa aa_raw bitscore dna end evalue filter getSeq
+    head is map2 map2_chr mutate pident pmap qcovs qseqid read_xml
+    reverseComplement seqinfo seqlengths seqlevels<- seqnames<- setNames
+    start str_detect strand tibble type width write.table writeXStringSet
+    write_lines xml_find_all
+  Consider adding
+    importFrom("methods", "is")
+    importFrom("stats", "end", "filter", "setNames", "start")
+    importFrom("utils", "head", "write.table")
+  to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
+  contains 'methods').
+
+0 errors ✔ | 4 warnings ✖ | 2 notes ✖
