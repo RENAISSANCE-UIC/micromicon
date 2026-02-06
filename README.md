@@ -223,18 +223,6 @@ In this initial release, we employ S3 objects as the primary interface for `geno
 As the codebase matures, we plan a gradatim migration toward more constrained and less mutable object systems, likely S4 or S7. Both provide stricter contracts, clearer invariants, and richer introspection, which will become increasingly important as the toolkit grows to support variant-aware workflows, functional consequence inference, and multi-genome comparative operations.
 The precise destination remains open. S7, in particular, offers an appealing blend of rigor and simplicity (orthogonal to S4’s sometimes baroque formalism) while preserving the kind of explicitness that helps prevent accumulation of structural drift. Whatever the final form, the public interface will retain its present ethos: clean, predictable generics and minimal cognitive overhead for downstream analysis.
 
-
-### Functional Style
-
-All operations return new data without mutating inputs:
-
-```r
-# Functional pipeline
-genome |>
-  search_features(pattern = "lac", type = "CDS") |>
-  extract_by_name(genome, ., translate = TRUE)
-```
-
 ### S3 Generics for Extensibility
 
 Core accessors use S3 dispatch, enabling custom implementations:
