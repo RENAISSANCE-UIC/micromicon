@@ -66,7 +66,7 @@ write_gff3(genome, "output.gff3")          # Export GFF3 ✓
 write_fasta(genome, "output.fasta")        # Export FASTA ✓
 ```
 
-**WARNING**: This conversion LOSES metadata (organism, taxonomy, references, comments).
+**ALERT**: This conversion LOSES metadata.
 
 #### FORBIDDEN: GFF3+FASTA → GenBank 
 ```r
@@ -93,7 +93,7 @@ genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
 
 ### (Ostensibly) Format-Agnostic Input
 
-Read genomes from multiple formats into a unified representation:
+Read genomes (annotations and sequence data) from multiple formats into a unified representation:
 
 ```r
 # GenBank
