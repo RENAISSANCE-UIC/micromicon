@@ -317,7 +317,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 `micromicon` builds on the shoulders of:
 - Bioconductor ecosystem (GenomicRanges, Biostrings, rtracklayer)
 - NCBI BLAST+ toolkit
-- Clean Architecture principles by Robert C. Martin
+- Clean Architecture principles by Robert C. Martin ("Uncle Bob")
 
 ---
 
