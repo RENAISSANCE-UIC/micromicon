@@ -305,7 +305,7 @@ We welcome contributions! Areas of interest:
 If you use `micromicon` in your research, please cite:
 
 ```
-[Citation information - to be added]
+Ackerman, W. (2026). micRomicon: An ostensibly format-agnostic microbial genomics toolkit for R. Zenodo. https://doi.org/10.5281/zenodo.18500345
 ```
 
 ## License
