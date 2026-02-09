@@ -1,4 +1,11 @@
+# micromicon 0.2.4
 
+## BLAST Gateway Refactoring 
+
+* Added gateway for local blast `gateways_blast.R`
+* Refactored `blast_protein()` to use gateway
+
+---
 
 # micromicon 0.2.3
 
