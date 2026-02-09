@@ -95,3 +95,5 @@ print.roi_spec <- function(x, ...) {
       " (", x$strand, ")\n", sep = "")
   invisible(x)
 }
+
+`%||%` <- function(a, b) if (!is.null(a)) a else b
