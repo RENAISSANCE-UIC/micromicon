@@ -1,21 +1,33 @@
-
-#' Constructor for genome_entity_gd
+# --- object constructor + validator -------------------------------------------
 #' @keywords internal
-new_genome_entity_gd <- function(header, events, file, reference = NULL, strict = TRUE) {
-  stopifnot(is.list(header), is.list(events), is.list(file))
-  stopifnot(is.null(reference) || is.list(reference))
+new_genome_entity_gd <- function(header, events, file, 
+                                 entity, reference, strict = TRUE) {
+  stopifnot(is.list(header), is.list(events), is.list(file), inherits(entity, "genome_entity"))
   
-  # light normalization of events: ensure standard names exist
+  # Required fields in every event (rectangular core + minimal flags)
+  req <- c(
+    "type","id","rank","seq_id","position","col6","col7","col8",
+    "contig","tags","raw_line","hash",
+    # at least these evidence flags exist (values may be NA)
+    "is_evidence","evidence_class",
+    # and descriptive mutation fields exist (values may be NA)
+    "snp_alt_base","snp_ref_base","del_size","ins_seq","ins_size",
+    "sub_size","sub_new_seq","mob_repeat_name","mob_strand","mob_duplication_size",
+    # evidence descriptive columns (values may be NA)
+    "ev_frequency","ev_quality",
+    "ev_ref_cov_1","ev_ref_cov_2","ev_new_cov_1","ev_new_cov_2","ev_tot_cov_1","ev_tot_cov_2",
+    "ev_alignment_overlap","ev_cov_minus","ev_cov_plus","ev_pos_start","ev_pos_end"
+  )
+  
   events <- lapply(events, function(ev) {
-    req <- c("type","id","rank","genome","position","ref_seq_fixed","alt_or_len","tags","raw_line","hash")
     missing <- setdiff(req, names(ev))
     if (length(missing)) stop("Event missing fields: ", paste(missing, collapse = ", "))
     ev
   })
   
   provenance <- list(
-    gd_file = file,
-    reference_checksums = if (!is.null(reference) && !is.null(reference$checksums)) reference$checksums else NULL,
+    gd_file   = file,
+    reference_checksums = reference$checksums %||% list(),
     created_at = format(Sys.time(), tz = "UTC", usetz = TRUE),
     host       = Sys.info()[["nodename"]],
     validation = list(status = "unvalidated", messages = character())
@@ -25,67 +37,34 @@ new_genome_entity_gd <- function(header, events, file, reference = NULL, strict 
     list(
       header     = header,
       events     = events,
-      reference  = reference,  # may be NULL until caller binds it
+      entity     = entity,
+      reference  = reference,
       provenance = provenance,
       strict     = isTRUE(strict)
     ),
-    class = c("genome_entity_gd", "micromicon_gd")
+    class = c("genome_entity_gd","micromicon_gd")
   )
 }
 
-#' Validate a genome_entity_gd against a Mode A reference (if provided)
-#'
-#' @param x genome_entity_gd
-#' @param strict logical
-#' @export
 validate_genome_entity_gd <- function(x, strict = x$strict) {
   stopifnot(inherits(x, "genome_entity_gd"))
+  msgs <- character(); status <- "ok"
   
-  msgs <- character()
-  status <- "ok"
-  
-  # Check for unique hashes (identity invariant)
+  # Identity invariant: hashes must be unique
   hashes <- vapply(x$events, `[[`, character(1), "hash")
-  if (anyDuplicated(hashes)) {
-    msgs <- c(msgs, "Duplicate event hashes detected.")
-    status <- "error"
-  }
+  if (anyDuplicated(hashes)) { msgs <- c(msgs, "Duplicate event hashes detected."); status <- "error" }
   
-  # If reference provided, verify contig name/length discipline
-  if (!is.null(x$reference) && !is.null(x$reference$contigs)) {
-    contigs_df <- x$reference$contigs
-    # Gather contig mentions from tags if present (e.g., seq_id) or infer from header if you have a map
-    # You can refine this as your GD schema stabilizes.
-    # Here we only check lengths if header enumerates contigs (optional).
-    if (!all(c("name","length") %in% names(contigs_df))) {
-      msgs <- c(msgs, "Reference contigs must have columns: name, length.")
-      status <- "error"
-    }
-    
-    # Example: if header includes CONTIG and LENGTH lists, compare.
-    # This is a placeholder; wire to your real header keys when available.
-    hdr_names  <- unname(unlist(x$header[["CONTIG"]] %||% list()))
-    hdr_lengths <- suppressWarnings(as.numeric(unname(unlist(x$header[["LENGTH"]] %||% list()))))
-    
-    if (length(hdr_names) && length(hdr_lengths) && length(hdr_names) == length(hdr_lengths)) {
-      ref_map <- setNames(contigs_df$length, contigs_df$name)
-      for (j in seq_along(hdr_names)) {
-        nm <- hdr_names[j]
-        ln <- hdr_lengths[j]
-        if (!nm %in% names(ref_map)) {
-          msgs <- c(msgs, sprintf("Contig in GD not present in reference: %s", nm))
-          status <- if (strict) "error" else "warn"
-        } else if (!isTRUE(as.numeric(ref_map[[nm]]) == as.numeric(ln))) {
-          msgs <- c(msgs, sprintf("Length mismatch for contig %s: GD=%s, REF=%s", nm, ln, ref_map[[nm]]))
-          status <- if (strict) "error" else "warn"
-        }
-      }
-    } else {
-      # If GD header doesn't enumerate contigs/lengths, we decline to liftover or remap.
-      # We only assert that we won't silently transform coordinates later.
-      msgs <- c(msgs, "GD header lacks contig/length enumeration; no remapping will be performed.")
-      if (strict) {
-        status <- "warn"
+  # Contig & coordinate discipline vs Mode A
+  contig_lengths <- setNames(as.numeric(x$entity$metadata$length_bp), x$entity$metadata$seqname)
+  for (ev in x$events) {
+    if (!ev$contig %in% names(contig_lengths)) {
+      msgs <- c(msgs, sprintf("Contig in GD not present in reference: %s", ev$contig))
+      status <- if (strict) "error" else "warn"
+    } else if (!is.na(ev$position)) {
+      ln <- contig_lengths[[ev$contig]]
+      if (ev$position < 1L || ev$position > ln) {
+        msgs <- c(msgs, sprintf("Position out of bounds for %s: %d not in [1..%d]", ev$contig, ev$position, ln))
+        status <- if (strict) "error" else "warn"
       }
     }
   }
@@ -93,10 +72,11 @@ validate_genome_entity_gd <- function(x, strict = x$strict) {
   if (identical(status, "error") && strict) {
     stop(paste(c("Validation failed (strict mode).", msgs), collapse = "\n- "))
   } else if (identical(status, "warn") || (identical(status, "error") && !strict)) {
-    warning(paste(c("Validation warnings:", msgs), collapse = "\n- "))
+    cli::cli_warn(paste(c("Validation warnings:", msgs), collapse = "\n- "))
   }
   
-  x$provenance$validation$status    <- if (strict && identical(status, "ok")) "ok_strict" else status
-  x$provenance$validation$messages  <- unique(c(x$provenance$validation$messages, msgs))
+  x$provenance$validation$status   <- if (strict && identical(status, "ok")) "ok_strict" else status
+  x$provenance$validation$messages <- unique(c(x$provenance$validation$messages, msgs))
   x
 }
+
