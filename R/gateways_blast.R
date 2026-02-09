@@ -34,8 +34,7 @@ create_blast_gateway <- function(blast_type = "blastp") {
 
   # ---- Internal helper functions (shared across BLAST types) ----
 
-  #' Resolve BLAST binary path deterministically
-  #' @keywords internal
+  # Resolve BLAST binary path deterministically
   resolve_blast_binary <- function(bin, dir, program = "blastp") {
     if (nzchar(bin)) {
       if (file.exists(bin) && isTRUE(file.info(bin)$isdir)) {
@@ -54,8 +53,7 @@ create_blast_gateway <- function(blast_type = "blastp") {
     }
   }
 
-  #' Validate BLAST database exists
-  #' @keywords internal
+  # Validate BLAST database exists
   validate_blast_db <- function(db_path, blastdbcmd) {
     if (nzchar(blastdbcmd)) {
       # Use blastdbcmd for validation
@@ -121,9 +119,9 @@ create_blast_gateway <- function(blast_type = "blastp") {
   # ---- Gateway Methods ----
 
   list(
-    #' Run BLASTP with explicit binary and DB paths
-    #'
-    #' @param query_faa Path to query FASTA/FAA file
+    # Run BLASTP with explicit binary and DB paths
+    #
+    # @param query_faa Path to query FASTA/FAA file
     #' @param db BLAST database prefix (e.g., "swissprot" or absolute "/path/to/swissprot")
     #' @param dbdir Directory containing BLAST DBs; if db is relative, dbdir is prepended
     #' @param blastp_bin Full path to blastp binary (preferred explicit control)
@@ -293,11 +291,11 @@ create_blast_gateway <- function(blast_type = "blastp") {
         dplyr::arrange(evalue, dplyr::desc(bitscore), dplyr::desc(qcovs))
     },
 
-    #' Run BLASTP on one or more query FAA files and return tidy hits
-    #'
-    #' @inheritParams blastp_capture
-    #' @param faa_path Character vector of one or more query FASTA/FAA file paths
-    #' @return tibble of combined BLAST hits from all queries
+    # Run BLASTP on one or more query FAA files and return tidy hits
+    #
+    # @inheritParams blastp_capture
+    # @param faa_path Character vector of one or more query FASTA/FAA file paths
+    # @return tibble of combined BLAST hits from all queries
     blastp_roi = function(
         faa_path,
         db = "swissprot",
@@ -350,14 +348,14 @@ create_blast_gateway <- function(blast_type = "blastp") {
       out
     },
 
-    #' Reduce BLAST hits with coverage/identity thresholds
-    #'
-    #' @param hits Data frame of BLAST hits (from blastp_capture or blastp_roi)
-    #' @param min_qcov Minimum query coverage percentage (default 40)
-    #' @param min_pident Minimum percent identity (default 25)
-    #' @param besthit Logical; if TRUE, return only best hit per query (default TRUE)
-    #' @param max_per_query If not NULL and besthit=FALSE, return top N hits per query
-    #' @return Filtered tibble of BLAST hits
+    # Reduce BLAST hits with coverage/identity thresholds
+    #
+    # @param hits Data frame of BLAST hits (from blastp_capture or blastp_roi)
+    # @param min_qcov Minimum query coverage percentage (default 40)
+    # @param min_pident Minimum percent identity (default 25)
+    # @param besthit Logical; if TRUE, return only best hit per query (default TRUE)
+    # @param max_per_query If not NULL and besthit=FALSE, return top N hits per query
+    # @return Filtered tibble of BLAST hits
     reduce_hits = function(
         hits,
         min_qcov = 40,

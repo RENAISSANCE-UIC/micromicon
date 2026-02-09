@@ -10,8 +10,6 @@ create_blast_gateway(blast_type = "blastp")
 \item{blast_type}{Type of BLAST to configure (default "blastp"). Reserved
 for future extensibility (blastn, blastx, etc.)}
 
-\item{query_faa}{Path to query FASTA/FAA file}
-
 \item{db}{BLAST database prefix (e.g., "swissprot" or absolute "/path/to/swissprot")}
 
 \item{dbdir}{Directory containing BLAST DBs; if db is relative, dbdir is prepended}
@@ -29,29 +27,11 @@ for future extensibility (blastn, blastx, etc.)}
 \item{validate_db}{Logical; check DB via blastdbcmd before running}
 
 \item{more_args}{Character vector of additional BLASTP args}
-
-\item{faa_path}{Character vector of one or more query FASTA/FAA file paths}
-
-\item{hits}{Data frame of BLAST hits (from blastp_capture or blastp_roi)}
-
-\item{min_qcov}{Minimum query coverage percentage (default 40)}
-
-\item{min_pident}{Minimum percent identity (default 25)}
-
-\item{besthit}{Logical; if TRUE, return only best hit per query (default TRUE)}
-
-\item{max_per_query}{If not NULL and besthit=FALSE, return top N hits per query}
 }
 \value{
 Gateway object (list with BLAST methods)
 
 tibble of hits; aborts with rich diagnostics on failure
-Run BLASTP on one or more query FAA files and return tidy hits
-
-tibble of combined BLAST hits from all queries
-Reduce BLAST hits with coverage/identity thresholds
-
-Filtered tibble of BLAST hits
 }
 \description{
 Creates a gateway for running BLAST searches against local databases.
@@ -76,18 +56,4 @@ results <- gateway$blastp_capture(
 )
 filtered <- gateway$reduce_hits(results, min_qcov = 80)
 }
-Resolve BLAST binary path deterministically
 }
-\keyword{BLAST}
-\keyword{BLASTP}
-\keyword{DB}
-\keyword{Run}
-\keyword{Validate}
-\keyword{and}
-\keyword{binary}
-\keyword{database}
-\keyword{exists}
-\keyword{explicit}
-\keyword{internal}
-\keyword{paths}
-\keyword{with}
