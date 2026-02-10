@@ -9,12 +9,13 @@
 \arguments{
 \item{entity}{A genome_entity object}
 
-\item{gene}{Gene identifier: gene name, locus_tag, feature index (integer), or feature row (data.frame)}
+\item{gene}{Gene identifier: gene name, locus_tag, Name, Alias, ID, feature index (integer), or feature row (data.frame)}
 }
 \value{
 Single-row data.frame (feature)
 }
 \description{
 Internal helper to resolve various gene identifiers to a single feature row.
+Search order for character identifiers: locus_tag → gene → Name → Alias → ID
 }
 \keyword{internal}

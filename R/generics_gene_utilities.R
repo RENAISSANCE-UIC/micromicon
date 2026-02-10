@@ -488,9 +488,10 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
 #'
 #' @description
 #' Internal helper to resolve various gene identifiers to a single feature row.
+#' Search order for character identifiers: locus_tag → gene → Name → Alias → ID
 #'
 #' @param entity A genome_entity object
-#' @param gene Gene identifier: gene name, locus_tag, feature index (integer), or feature row (data.frame)
+#' @param gene Gene identifier: gene name, locus_tag, Name, Alias, ID, feature index (integer), or feature row (data.frame)
 #'
 #' @return Single-row data.frame (feature)
 #' @keywords internal
@@ -532,6 +533,28 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
         return(entity$features[matches[1], , drop = FALSE])
       } else if (length(matches) > 1) {
         result <- .resolve_multiple_matches(entity$features[matches, , drop = FALSE], gene, "gene")
+        return(result)
+      }
+    }
+
+    # Try Name (GFF3 display name)
+    if ("Name" %in% names(entity$features)) {
+      matches <- which(entity$features$Name == gene)
+      if (length(matches) == 1) {
+        return(entity$features[matches[1], , drop = FALSE])
+      } else if (length(matches) > 1) {
+        result <- .resolve_multiple_matches(entity$features[matches, , drop = FALSE], gene, "Name")
+        return(result)
+      }
+    }
+
+    # Try Alias (alternative names, common in breseq)
+    if ("Alias" %in% names(entity$features)) {
+      matches <- which(entity$features$Alias == gene)
+      if (length(matches) == 1) {
+        return(entity$features[matches[1], , drop = FALSE])
+      } else if (length(matches) > 1) {
+        result <- .resolve_multiple_matches(entity$features[matches, , drop = FALSE], gene, "Alias")
         return(result)
       }
     }

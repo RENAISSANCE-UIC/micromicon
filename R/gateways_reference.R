@@ -10,8 +10,7 @@ gd_create_reference_gateway <- function(entity, logger = NULL) {
   }
   
   translate <- function(dna, transl_table = 11L) {
-    if (!has_translate) stop("translate_dna() not found; required by gd utilities.")
-    translate_dna(dna, codon_table = transl_table)  # literal
+    gd_translate_literal(dna, transl_table = transl_table, frame = 1L)
   }
   
   .compl_map <- function(x) chartr("ACGTacgtnN", "TGCAtgcanN", x)

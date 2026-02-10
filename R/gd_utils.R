@@ -16,6 +16,9 @@ gd_replace_substring1 <- function(s, pos, newchar) {
   paste0(substr(s, 1L, pos - 1L), newchar, substr(s, pos + 1L, nchar(s)))
 }
 
+gd_translate_literal <- function(dna, transl_table = 11L, frame = 1L) {
+  translate_dna(dna, frame = frame, genetic_code = as.character(transl_table), .internal = TRUE)
+}
 
 gd_summarize_snp <- function(gd_row, entity, gw_annot = NULL, 
                              gw_ref = NULL, logger = NULL) {
@@ -99,8 +102,6 @@ gd_summarize_snp <- function(gd_row, entity, gw_annot = NULL,
   )
 }
 
-
-
 gd_summarize_effects <- function(gd, entity, logger = NULL) {
   stopifnot(inherits(entity, "genome_entity"),
             is.data.frame(gd))  # ok whether or not class 'genome_entity_gd' is set
@@ -151,13 +152,226 @@ gd_resolve_gene_id <- function(cds_row) {
 }
 
 gd_parse_int <- function(x) {
-  # x is character or factor; always coerce to character first
   xs <- as.character(x)
-  
-  # remove all non-numeric characters (except minus sign just in case)
   xs_clean <- gsub("[^0-9-]", "", xs)
-  
-  # Convert to integer; return NA if empty or non-convertible
   out <- suppressWarnings(as.integer(xs_clean))
   out
 }
+
+gd_nt_window <- function(entity, seq_id, start, end, strict = TRUE) {
+  if (start > end) stop("gd_nt_window: start > end")
+  get_roi_dna(entity, seq_id, start, end, strand = "+")
+}
+
+gd_translate_literal <- function(dna, transl_table = 11L, frame = 1L) {
+  # Your translate_dna signature uses 'genetic_code'
+  translate_dna(dna, frame = frame, genetic_code = as.character(transl_table), .internal = TRUE)
+}
+
+gd_revcomp <- function(dna) {
+  if (exists("reverse_complement", mode = "function")) return(reverse_complement(dna))
+  map <- function(x) chartr("ACGTacgtnN", "TGCAtgcanN", x)
+  s   <- strsplit(dna, "", fixed = TRUE)[[1]]
+  paste0(rev(map(s)), collapse = "")
+}
+
+gd_pos_in_row <- function(cds_row, pos) {
+  # Fast path: single interval
+  if (!gd_col_has(cds_row, "location_type") || identical(as.character(cds_row$location_type[1]), "single")) {
+    s <- gd_parse_int(cds_row$start[1]); e <- gd_parse_int(cds_row$end[1])
+    return(!is.na(s) && !is.na(e) && pos >= s && pos <= e)
+  }
+  
+  # Multi-segment via 'ranges' (PGAP)
+  if (gd_col_has(cds_row, "ranges")) {
+    rr <- cds_row$ranges[[1]]
+    if (is.data.frame(rr) || is.matrix(rr)) {
+      starts <- gd_parse_int(rr[, 1]); ends <- gd_parse_int(rr[, 2])
+      hit <- (pos >= starts) & (pos <= ends)
+      return(any(hit[!is.na(hit)]))
+    } else if (is.list(rr)) {
+      ok <- vapply(rr, function(x) {
+        if (length(x) < 2) return(FALSE)
+        a <- gd_parse_int(x[[1]]); b <- gd_parse_int(x[[2]])
+        !is.na(a) && !is.na(b) && pos >= a && pos <= b
+      }, logical(1))
+      return(any(ok))
+    }
+  }
+  
+  # Fallback: parse 'location_string'
+  if (gd_col_has(cds_row, "location_string")) {
+    loc <- cds_row$location_string[1]
+    loc <- gsub("complement\\(|join\\(|order\\(|\\)", "", loc)
+    tokens <- unlist(strsplit(loc, ",", fixed = TRUE))
+    ok <- vapply(tokens, function(tok) {
+      m <- regexec("([0-9<>?]+)\\.\\.([0-9<>?]+)", tok)
+      r <- regmatches(tok, m)[[1]]
+      if (length(r) != 3) return(FALSE)
+      a <- gd_parse_int(r[2]); b <- gd_parse_int(r[3])
+      !is.na(a) && !is.na(b) && pos >= a && pos <= b
+    }, logical(1))
+    return(any(ok))
+  }
+  
+  # Last resort
+  s <- gd_parse_int(cds_row$start[1]); e <- gd_parse_int(cds_row$end[1])
+  !is.na(s) && !is.na(e) && pos >= s && pos <= e
+}
+
+gd_cds_by_position <- function(entity, seq_id, pos) {
+  feat <- entity$features
+  cand <- feat[feat$seqname == seq_id & feat$type == "CDS", , drop = FALSE]
+  keep <- vapply(seq_len(nrow(cand)), function(i) gd_pos_in_row(cand[i, , drop = FALSE], pos), logical(1))
+  cand[keep, , drop = FALSE]
+}
+
+gd_codon_context <- function(entity, cds_row, pos) {
+  strand <- as.character(cds_row$strand[1])
+  start  <- gd_parse_int(cds_row$start[1])
+  end    <- gd_parse_int(cds_row$end[1])
+  seq_id <- as.character(cds_row$seqname[1])
+  tt     <- gd_get_transl_table(cds_row, default = 11L)
+  
+  # Heads-up if PGAP multi-segment; still using contiguous approximation
+  if (gd_col_has(cds_row, "location_type") && !identical(as.character(cds_row$location_type[1]), "single")) {
+    cli::cli_warn("Multi-segment CDS at {seq_id}:{start}-{end}; using contiguous approximation for codon mapping.")
+  }
+  
+  if (strand == "+") {
+    idx0 <- pos - start
+    codon_index <- floor(idx0 / 3L) + 1L
+    codon_pos   <- (idx0 %% 3L) + 1L
+    codon_start <- start + 3L * (codon_index - 1L)
+    codon_end   <- codon_start + 2L
+    codon_seq   <- gd_nt_window(entity, seq_id, codon_start, codon_end, strict = TRUE)
+    aa_ref      <- gd_translate_literal(codon_seq, transl_table = tt, frame = 1L)
+  } else if (strand == "-") {
+    idx0 <- end - pos
+    codon_index <- floor(idx0 / 3L) + 1L
+    codon_pos   <- (idx0 %% 3L) + 1L
+    codon_end   <- end - 3L * (codon_index - 1L)
+    codon_start <- codon_end - 2L
+    codon_fw    <- gd_nt_window(entity, seq_id, codon_start, codon_end, strict = TRUE)
+    codon_seq   <- gd_revcomp(codon_fw)
+    aa_ref      <- gd_translate_literal(codon_seq, transl_table = tt, frame = 1L)
+  } else {
+    cli::cli_abort("Unknown strand value: {.val {strand}}")
+  }
+  
+  list(
+    seq_id = seq_id, strand = strand, transl_table = tt,
+    codon_index = codon_index, codon_pos = codon_pos,
+    codon_start = codon_start, codon_end = codon_end,
+    codon_seq_ref = codon_seq, aa_ref = aa_ref
+  )
+}
+
+gd_complement_base <- function(b) {
+  switch(toupper(b),
+         "A" = "T", "T" = "A", "G" = "C", "C" = "G", "N" = "N",
+         stop(sprintf("Invalid base for complement: %s", b))
+  )
+}
+
+gd_replace_substring1 <- function(s, pos, newchar) {
+  if (pos < 1L || pos > nchar(s)) stop("gd_replace_substring1: pos out of range")
+  paste0(substr(s, 1L, pos - 1L), newchar, substr(s, pos + 1L, nchar(s)))
+}
+
+gd_summarize_snp_row <- function(gd, i, logger = NULL) {
+  stopifnot(inherits(gd, "genome_entity_gd"))
+  entity <- gd$entity
+  row    <- gd$events[[i]]
+  if (!identical(row$type, "SNP")) {
+    return(data.frame(
+      id = row$id, type = row$type, chrom = row$seq_id, pos = row$position,
+      gene = NA_character_, strand = NA_character_,
+      dna_before = NA_character_, dna_after = NA_character_,
+      aa_before  = NA_character_, aa_after  = NA_character_,
+      effect = "undetermined",
+      ref = row$snp_ref_base %||% NA_character_, alt = row$snp_alt_base %||% row$col6, length = 1L,
+      cds_pos = NA_integer_, aa_pos = NA_integer_,
+      messages = I(list("Not a SNP row"))
+    ))
+  }
+  
+  seq_id <- as.character(row$seq_id)
+  pos    <- as.integer(row$position)
+  alt    <- as.character(row$snp_alt_base %||% row$col6)
+  ref    <- as.character(row$snp_ref_base %||% NA_character_)
+  
+  cds_rows <- gd_cds_by_position(entity, seq_id, pos)
+  if (nrow(cds_rows) == 0L) {
+    return(data.frame(
+      id = row$id, type = row$type, chrom = seq_id, pos = pos,
+      gene = NA_character_, strand = NA_character_,
+      dna_before = NA_character_, dna_after = NA_character_,
+      aa_before  = NA_character_, aa_after  = NA_character_,
+      effect = "intergenic",
+      ref = ref, alt = alt, length = 1L,
+      cds_pos = NA_integer_, aa_pos = NA_integer_,
+      messages = I(list(character()))
+    ))
+  }
+  
+  cds_row <- cds_rows[1, , drop = FALSE]
+  ctx     <- gd_codon_context(entity, cds_row, pos)
+  
+  # Validate reference base if provided
+  ref_at_pos <- gd_nt_window(entity, seq_id, pos, pos, strict = TRUE)
+  if (!is.na(ref) && nzchar(ref) && toupper(ref) != toupper(ref_at_pos)) {
+    stop(sprintf("Ref base '%s' does not match reference '%s' at %s:%d", ref, ref_at_pos, seq_id, pos))
+  }
+  
+  alt_gene     <- if (ctx$strand == "+") toupper(alt) else gd_complement_base(alt)
+  codon_alt    <- gd_replace_substring1(ctx$codon_seq_ref, ctx$codon_pos, alt_gene)
+  aa_ref_local <- ctx$aa_ref
+  aa_alt_local <- gd_translate_literal(codon_alt, transl_table = ctx$transl_table, frame = 1L)
+  
+  effect <- if (aa_ref_local == aa_alt_local) "synonymous"
+  else if (aa_alt_local == "*")     "nonsense"
+  else                               "missense"
+  
+  gene_id <- gd_resolve_gene_id(cds_row)
+  
+  cds_pos <- {
+    start <- gd_parse_int(cds_row$start[1]); end <- gd_parse_int(cds_row$end[1])
+    if (ctx$strand == "+") ctx$codon_start - start + ctx$codon_pos
+    else                   end - ctx$codon_end + ctx$codon_pos
+  }
+  aa_pos <- ctx$codon_index
+  
+  data.frame(
+    id = row$id, type = row$type, chrom = seq_id, pos = pos,
+    gene = gene_id, strand = ctx$strand,
+    dna_before = ctx$codon_seq_ref, dna_after = codon_alt,
+    aa_before  = aa_ref_local,      aa_after  = aa_alt_local,
+    effect = effect,
+    ref = ref_at_pos, alt = alt, length = 1L,
+    cds_pos = cds_pos, aa_pos = aa_pos,
+    messages = I(list(character()))
+  )
+}
+
+gd_summarize_effects <- function(gd, logger = NULL) {
+  stopifnot(inherits(gd, "genome_entity_gd"))
+  out <- lapply(seq_along(gd$events), function(i) {
+    row <- gd$events[[i]]
+    if (identical(row$type, "SNP")) gd_summarize_snp_row(gd, i, logger = logger) else
+      data.frame(
+        id = row$id, type = row$type, chrom = row$seq_id, pos = row$position,
+        gene = NA_character_, strand = NA_character_,
+        dna_before = NA_character_, dna_after = NA_character_,
+        aa_before  = NA_character_, aa_after  = NA_character_,
+        effect = "undetermined",
+        ref = row$snp_ref_base %||% NA_character_,
+        alt = (row$snp_alt_base %||% row$col6),
+        length = if (!is.null(row$del_size)) row$del_size else NA_integer_,
+        cds_pos = NA_integer_, aa_pos = NA_integer_,
+        messages = I(list(sprintf("Type '%s' not yet implemented", row$type)))
+      )
+  })
+  do.call(rbind, out)
+}
+

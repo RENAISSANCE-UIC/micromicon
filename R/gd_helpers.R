@@ -3,23 +3,6 @@
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
 
-#' @title Fingerprint helper (base-R, no digest)
-#' @description
-#' Compute an md5 fingerprint for a file or an R object without importing `digest`.
-#' For files we call tools::md5sum(). For in-memory objects we serialize to a
-#' temp file (stable RDS) then md5 that file. This is intentionally simple,
-#' reproducible, and dependency-free.
-#'
-#' @param x File path (if file = TRUE) or an arbitrary R object (if file = FALSE).
-#' @param file Logical. If TRUE, treat `x` as a file path.
-#' @param algo Character. Ignored unless `"md5"`. Provided for API compatibility.
-#' @return A length-1 character vector with the md5 fingerprint.
-#' @examples
-#' # files
-#' # gd_fingerprint("annotated.gd", file = TRUE)
-#'
-#' # objects
-#' # gd_fingerprint(list(a = 1, b = letters[1:3]))
 gd_fingerprint <- function(x, file = FALSE, algo = "md5") {
   if (!identical(tolower(algo), "md5")) {
     warning("Only 'md5' is supported without external dependencies; ignoring algo = '", algo, "'.",
@@ -139,7 +122,6 @@ gd_get_qual <- function(row, key, default = NA_character_) {
   if (length(val) == 0) return(default)
   as.character(val[[1]])
 }
-
 
 gd_pos_in_row <- function(cds_row, pos) {
   # Fast path: single contiguous CDS
