@@ -102,7 +102,6 @@ reference_manifest_from_genome_entity <- function(entity, fasta_path = NULL,
   list(contigs = contigs, checksums = checksums)
 }
 
-
 .parse_pair <- function(x, sep = "/", as = c("int","num")) {
   if (is.null(x) || !length(x) || is.na(x[1])) return(c(NA, NA))
   as <- match.arg(as)
@@ -124,4 +123,72 @@ reference_manifest_from_genome_entity <- function(entity, fasta_path = NULL,
   if (is.null(x) || !length(x)) return(NA_integer_)
   suppressWarnings(as.integer(x[1]))
 }
+
+
+gd_col_has <- function(row, nm) !is.null(row[[nm]]) && !all(is.na(row[[nm]]))
+
+gd_get1    <- function(row, nm) as.character(row[[nm]][1])
+
+gd_qual_has <- function(row) gd_col_has(row, "qualifiers") && length(row$qualifiers[[1]]) > 0
+
+gd_get_qual <- function(row, key, default = NA_character_) {
+  if (!gd_qual_has(row)) return(default)
+  q <- row$qualifiers[[1]]
+  if (is.null(names(q)) || !(key %in% names(q))) return(default)
+  val <- q[[key]]
+  if (length(val) == 0) return(default)
+  as.character(val[[1]])
+}
+
+
+gd_pos_in_row <- function(cds_row, pos) {
+  # Fast path: single contiguous CDS
+  if (!gd_col_has(cds_row, "location_type") || identical(as.character(cds_row$location_type[1]), "single")) {
+    s <- gd_parse_int(cds_row$start[1]); e <- gd_parse_int(cds_row$end[1])
+    return(!is.na(s) && !is.na(e) && pos >= s && pos <= e)
+  }
+  
+  # Multi-segment via 'ranges' list-col (PGAP)
+  if (gd_col_has(cds_row, "ranges")) {
+    rr <- cds_row$ranges[[1]]
+    if (is.data.frame(rr) || is.matrix(rr)) {
+      starts <- gd_parse_int(rr[, 1]); ends <- gd_parse_int(rr[, 2])
+      hit <- (pos >= starts) & (pos <= ends)
+      return(any(hit[!is.na(hit)]))
+    } else if (is.list(rr)) {
+      ok <- vapply(rr, function(x) {
+        if (length(x) < 2) return(FALSE)
+        a <- gd_parse_int(x[[1]]); b <- gd_parse_int(x[[2]])
+        !is.na(a) && !is.na(b) && pos >= a && pos <= b
+      }, logical(1))
+      return(any(ok))
+    }
+  }
+  
+  # Fallback: parse 'location_string' like "complement(123..456,789..999)"
+  if (gd_col_has(cds_row, "location_string")) {
+    loc <- cds_row$location_string[1]
+    loc <- gsub("complement\\(|join\\(|order\\(|\\)", "", loc)
+    tokens <- unlist(strsplit(loc, ",", fixed = TRUE))
+    ok <- vapply(tokens, function(tok) {
+      m <- regexec("([0-9<>?]+)\\.\\.([0-9<>?]+)", tok)
+      r <- regmatches(tok, m)[[1]]
+      if (length(r) != 3) return(FALSE)
+      a <- gd_parse_int(r[2]); b <- gd_parse_int(r[3])
+      !is.na(a) && !is.na(b) && pos >= a && pos <= b
+    }, logical(1))
+    return(any(ok))
+  }
+  
+  # Last resort
+  s <- gd_parse_int(cds_row$start[1]); e <- gd_parse_int(cds_row$end[1])
+  !is.na(s) && !is.na(e) && pos >= s && pos <= e
+}
+
+gd_filter_cds_covering <- function(feat, seq_id, pos) {
+  cand <- feat[feat$seqname == seq_id & feat$type == "CDS", , drop = FALSE]
+  keep <- vapply(seq_len(nrow(cand)), function(i) gd_pos_in_row(cand[i, , drop = FALSE], pos), logical(1))
+  cand[keep, , drop = FALSE]
+}
+
 

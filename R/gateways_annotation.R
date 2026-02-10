@@ -1,20 +1,22 @@
-
 gd_create_annotation_gateway <- function(entity, logger = NULL) {
   stopifnot(inherits(entity, "genome_entity"))
   feat <- entity$features
   
   cds_by_position <- function(seq_id, pos) {
-    feat[feat$seqname == seq_id &
-           feat$type == "CDS" &
-           feat$start <= pos & feat$end >= pos, , drop = FALSE]
+    gd_filter_cds_covering(feat, seq_id, pos)
   }
   
   codon_context <- function(ref_gw, cds_row, pos) {
-    strand <- as.character(cds_row$strand)[1]
-    start  <- as.integer(cds_row$start[1])
-    end    <- as.integer(cds_row$end[1])
+    strand <- as.character(cds_row$strand[1])
+    start  <- gd_parse_int(cds_row$start[1])
+    end    <- gd_parse_int(cds_row$end[1])
     seq_id <- as.character(cds_row$seqname[1])
-    tt     <- suppressWarnings(as.integer(cds_row$transl_table[1])); if (is.na(tt)) tt <- 11L
+    tt     <- gd_get_transl_table(cds_row, default = 11L)
+    
+    # Optional heads-up for multi-segment (we still approximate contiguity here)
+    if (gd_col_has(cds_row, "location_type") && !identical(as.character(cds_row$location_type[1]), "single")) {
+      cli::cli_warn("Multi-segment CDS at {seq_id}:{start}-{end}; using contiguous approximation for codon mapping.")
+    }
     
     if (strand == "+") {
       idx0 <- pos - start
@@ -45,8 +47,5 @@ gd_create_annotation_gateway <- function(entity, logger = NULL) {
     )
   }
   
-  list(
-    cds_by_position = cds_by_position,
-    codon_context   = codon_context
-  )
+  list(cds_by_position = cds_by_position, codon_context = codon_context)
 }
