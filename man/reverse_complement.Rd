@@ -10,9 +10,16 @@ reverse_complement(seq)
 \item{seq}{Character string of DNA sequence}
 }
 \value{
-Reverse complement
+Character string of reverse complement sequence
 }
 \description{
-Reverse Complement DNA Sequence
+Reverse complement a DNA sequence. Handles standard bases (A, T, G, C) and
+IUPAC ambiguity codes (N, R, Y, S, W, K, M, B, V, D, H).
 }
-\keyword{internal}
+\examples{
+reverse_complement("ATCG")
+# Returns: "CGAT"
+
+reverse_complement("ATCGATCG")
+# Returns: "CGATCGAT"
+}

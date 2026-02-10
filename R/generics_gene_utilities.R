@@ -676,9 +676,20 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
 
 #' Reverse Complement DNA Sequence
 #'
+#' @description
+#' Reverse complement a DNA sequence. Handles standard bases (A, T, G, C) and
+#' IUPAC ambiguity codes (N, R, Y, S, W, K, M, B, V, D, H).
+#'
 #' @param seq Character string of DNA sequence
-#' @return Reverse complement
-#' @keywords internal
+#' @return Character string of reverse complement sequence
+#' @export
+#'
+#' @examples
+#' reverse_complement("ATCG")
+#' # Returns: "CGAT"
+#'
+#' reverse_complement("ATCGATCG")
+#' # Returns: "CGATCGAT"
 reverse_complement <- function(seq) {
   # Complement lookup
   complement_map <- c(
