@@ -2,8 +2,46 @@
 
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
+
+#' @title Fingerprint helper (base-R, no digest)
+#' @description
+#' Compute an md5 fingerprint for a file or an R object without importing `digest`.
+#' For files we call tools::md5sum(). For in-memory objects we serialize to a
+#' temp file (stable RDS) then md5 that file. This is intentionally simple,
+#' reproducible, and dependency-free.
+#'
+#' @param x File path (if file = TRUE) or an arbitrary R object (if file = FALSE).
+#' @param file Logical. If TRUE, treat `x` as a file path.
+#' @param algo Character. Ignored unless `"md5"`. Provided for API compatibility.
+#' @return A length-1 character vector with the md5 fingerprint.
+#' @examples
+#' # files
+#' # gd_fingerprint("annotated.gd", file = TRUE)
+#'
+#' # objects
+#' # gd_fingerprint(list(a = 1, b = letters[1:3]))
+gd_fingerprint <- function(x, file = FALSE, algo = "md5") {
+  if (!identical(tolower(algo), "md5")) {
+    warning("Only 'md5' is supported without external dependencies; ignoring algo = '", algo, "'.",
+            call. = FALSE, immediate. = TRUE)
+  }
+  
+  if (isTRUE(file)) {
+    # tools::md5sum returns a named vector; unname to keep old shape
+    return(unname(tools::md5sum(x)))
+  }
+  
+  # In-memory object: serialize to a stable RDS on disk, md5 that file
+  tf <- tempfile(fileext = ".rds")
+  on.exit(unlink(tf), add = TRUE)
+  # version = 2 for stability across R >= 3.x; matches common practice for reproducibility
+  saveRDS(x, tf, version = 2, compress = FALSE)
+  unname(tools::md5sum(tf))
+}
+
+#' @keywords internal
 gd_digest <- function(x, file = FALSE, algo = "xxhash64") {
-  if (file) digest::digest(file = x, algo = algo) else digest::digest(x, algo = algo)
+  gd_fingerprint(x, file = file, algo = "md5")
 }
 
 # Conservative heuristic: annotated.gd should have gene-level tags somewhere
@@ -87,42 +125,3 @@ reference_manifest_from_genome_entity <- function(entity, fasta_path = NULL,
   suppressWarnings(as.integer(x[1]))
 }
 
-# Build a reference manifest from a genome_entity (Mode A)
-# If you can pass the file paths you used to create Mode A, we store true file checksums.
-# Otherwise we synthesize checksums deterministically from object content.
-# DO WE NEED THIS??? ----
-reference_manifest_from_genome_entity <- function(entity, 
-                                                  fasta_path = NULL, 
-                                                  gff3_path = NULL, 
-                                                  gbk_path = NULL) {
-  stopifnot(inherits(entity, "genome_entity"))
-  contigs <- data.frame(
-    name   = entity$metadata$seqname,
-    length = as.numeric(entity$metadata$length_bp),
-    stringsAsFactors = FALSE
-  )
-  checksums <- list()
-  if (!is.null(fasta_path) && file.exists(fasta_path)) checksums$fasta <- gd_digest(fasta_path, file = TRUE)
-  if (!is.null(gff3_path)  && file.exists(gff3_path))  checksums$gff3  <- gd_digest(gff3_path,  file = TRUE)
-  if (!is.null(gbk_path)   && file.exists(gbk_path))   checksums$gbk   <- gd_digest(gbk_path,   file = TRUE)
-  
-  # If no file paths available, synthesize
-  if (length(checksums) == 0L) {
-    # fasta-like digest from dna_raw
-    seqs <- entity$sequences$dna_raw
-    # ensure deterministic order
-    nm <- names(seqs)
-    ord <- order(nm)
-    seq_payload <- paste(paste0(">", nm[ord]), seqs[ord], collapse = "\n")
-    checksums$fasta_synth <- gd_digest(seq_payload)
-    # gff3-like digest from features
-    if (is.data.frame(entity$features)) {
-      # stable key subset
-      cols <- intersect(c("seqname","start","end","strand","type","ID","Name","Alias","locus_tag","product"), names(entity$features))
-      feat_payload <- paste(utils::capture.output(print(entity$features[ , cols, drop = FALSE])), collapse = "\n")
-      checksums$gff3_synth <- gd_digest(feat_payload)
-    }
-  }
-  
-  list(contigs = contigs, checksums = checksums)
-}

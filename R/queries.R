@@ -1540,7 +1540,6 @@ analyze_gene <- function(genome_obj,
 #' results <- gateway$blastp_capture(...)
 #' ```
 #'
-#' @inheritParams create_blast_gateway
 #' @param query_faa Path to query FASTA/FAA file
 #' @param db BLAST database prefix
 #' @param dbdir Directory containing BLAST DBs
@@ -1598,8 +1597,16 @@ blastp_capture <- function(
 #' results <- gateway$blastp_roi(...)
 #' ```
 #'
-#' @inheritParams blastp_capture
 #' @param faa_path Character vector of one or more query FASTA/FAA file paths
+#' @param db BLAST database prefix
+#' @param dbdir Directory containing BLAST DBs
+#' @param blastp_bin Full path to blastp binary
+#' @param blastp_dir Directory containing blastp
+#' @param evalue E-value threshold
+#' @param threads Integer number of threads
+#' @param fields Vector of outfmt 6 columns
+#' @param validate_db Logical; check DB via blastdbcmd before running
+#' @param more_args Character vector of additional BLASTP args
 #' @return tibble of combined BLAST hits
 #' @export
 blastp_roi <- function(
