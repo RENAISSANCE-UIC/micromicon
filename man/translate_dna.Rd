@@ -4,7 +4,7 @@
 \alias{translate_dna}
 \title{Translate DNA to Protein}
 \usage{
-translate_dna(dna, frame = 1, genetic_code = "11")
+translate_dna(dna, frame = 1, genetic_code = "11", .internal = FALSE)
 }
 \arguments{
 \item{dna}{Character string of DNA sequence}
@@ -13,6 +13,8 @@ translate_dna(dna, frame = 1, genetic_code = "11")
 
 \item{genetic_code}{Genetic code to use (default = "11" for bacterial/archaeal).
 Can be NCBI genetic code number ("1", "11", etc.) or a named codon table vector.}
+
+\item{.internal}{Internal use only - suppress informational message}
 }
 \value{
 Protein sequence (single-letter amino acids)

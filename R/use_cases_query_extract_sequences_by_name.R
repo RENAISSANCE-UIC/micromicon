@@ -107,7 +107,7 @@ execute_extract_sequences_by_name <- function(entity, pattern,
 
     # Translate if requested (only for CDS)
     if (translate && !is.na(feat$type) && feat$type == "CDS") {
-      subseq <- translate_dna(subseq, frame = 1, genetic_code = "11")
+      subseq <- translate_dna(subseq, frame = 1, genetic_code = "11", .internal = TRUE)
     }
 
     sequences[i] <- subseq

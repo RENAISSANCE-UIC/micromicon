@@ -62,7 +62,7 @@ execute_extract_sequences_by_coords <- function(entity, seqname, start, end,
 
     # Translate if requested
     if (translate) {
-      subseq <- translate_dna(subseq, frame = 1, genetic_code = "11")
+      subseq <- translate_dna(subseq, frame = 1, genetic_code = "11", .internal = TRUE)
     }
 
     sequences[i] <- subseq

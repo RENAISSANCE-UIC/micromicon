@@ -111,8 +111,8 @@ get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_co
     }
   }
 
-  # Translate
-  aa <- translate_dna(dna, frame = 1, genetic_code = genetic_code)
+  # Translate (internal call - suppress message)
+  aa <- translate_dna(dna, frame = 1, genetic_code = genetic_code, .internal = TRUE)
 
   # Fix alternative start codons (GTG, TTG, CTG → M in bacteria)
   if (fix_start_codon && nchar(dna) >= 3) {
@@ -189,11 +189,12 @@ get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
 #'   Can be NCBI genetic code number ("1", "11", etc.) or a named codon table vector.
 #'
 #' @return Protein sequence (single-letter amino acids)
+#' @param .internal Internal use only - suppress informational message
 #' @seealso \code{\link{get_gene_aa}} for CDS translation with alternative start codon handling
 #' @export
-translate_dna <- function(dna, frame = 1, genetic_code = "11") {
-  # One-time informational message per session
-  if (!isTRUE(getOption("micromicon.translate_dna.informed"))) {
+translate_dna <- function(dna, frame = 1, genetic_code = "11", .internal = FALSE) {
+  # One-time informational message per session (only for user-facing calls)
+  if (!.internal && !isTRUE(getOption("micromicon.translate_dna.informed"))) {
     cli::cli_inform(c(
       "i" = "{.fn translate_dna} uses standard genetic code translation",
       "i" = "Alternative start codons (GTG, TTG, etc.) are NOT converted to M",
