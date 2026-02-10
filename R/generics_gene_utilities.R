@@ -176,7 +176,12 @@ get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
 #'
 #' @description
 #' Translate DNA sequence to amino acid sequence using specified genetic code and reading frame.
-#' Enhanced version with frame and genetic code support.
+#' This function performs standard genetic code translation without special handling
+#' of alternative start codons.
+#'
+#' **Note:** If you are translating a complete CDS from a bacterial genome, use
+#' \code{\link{get_gene_aa}} instead, which correctly handles alternative start codons
+#' (GTG, TTG, CTG, etc.) that translate to Methionine when used as start codons.
 #'
 #' @param dna Character string of DNA sequence
 #' @param frame Reading frame (1, 2, or 3, default = 1)
@@ -184,8 +189,19 @@ get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
 #'   Can be NCBI genetic code number ("1", "11", etc.) or a named codon table vector.
 #'
 #' @return Protein sequence (single-letter amino acids)
+#' @seealso \code{\link{get_gene_aa}} for CDS translation with alternative start codon handling
 #' @export
 translate_dna <- function(dna, frame = 1, genetic_code = "11") {
+  # One-time informational message per session
+  if (!isTRUE(getOption("micromicon.translate_dna.informed"))) {
+    cli::cli_inform(c(
+      "i" = "{.fn translate_dna} uses standard genetic code translation",
+      "i" = "Alternative start codons (GTG, TTG, etc.) are NOT converted to M",
+      ">" = "For complete CDS translation, use {.fn get_gene_aa} instead"
+    ))
+    options(micromicon.translate_dna.informed = TRUE)
+  }
+
   # Validate frame
   if (!frame %in% 1:3) {
     cli::cli_abort("frame must be 1, 2, or 3")

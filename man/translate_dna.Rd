@@ -19,5 +19,13 @@ Protein sequence (single-letter amino acids)
 }
 \description{
 Translate DNA sequence to amino acid sequence using specified genetic code and reading frame.
-Enhanced version with frame and genetic code support.
+This function performs standard genetic code translation without special handling
+of alternative start codons.
+
+\strong{Note:} If you are translating a complete CDS from a bacterial genome, use
+\code{\link{get_gene_aa}} instead, which correctly handles alternative start codons
+(GTG, TTG, CTG, etc.) that translate to Methionine when used as start codons.
+}
+\seealso{
+\code{\link{get_gene_aa}} for CDS translation with alternative start codon handling
 }
