@@ -70,9 +70,14 @@ get_gene_dna.default <- function(x, gene, ...) {
 #' Uses the genetic code specified in the feature's transl_table attribute,
 #' or defaults to genetic code 11 (bacterial/archaeal).
 #'
+#' In bacterial genomes, alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA)
+#' are translated as Methionine (M) when they occur as the first codon, even though
+#' they normally code for other amino acids (e.g., GTG → V internally, but M at start).
+#'
 #' @param x A genome_entity object
 #' @param gene Gene identifier: gene name, locus_tag, feature index (integer), or feature row (data.frame)
 #' @param genetic_code Genetic code to use (default = "11" for bacteria). Overrides feature transl_table.
+#' @param fix_start_codon Logical, whether to fix alternative start codons to M (default = TRUE)
 #' @param ... Additional arguments
 #'
 #' @return Character vector (amino acid sequence)
@@ -82,7 +87,7 @@ get_gene_aa <- function(x, gene, ...) {
 }
 
 #' @export
-get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, ...) {
+get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_codon = TRUE, ...) {
   validate_genome_entity(x)
 
   # Resolve gene to feature row
@@ -107,7 +112,21 @@ get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, ...) {
   }
 
   # Translate
-  translate_dna(dna, frame = 1, genetic_code = genetic_code)
+  aa <- translate_dna(dna, frame = 1, genetic_code = genetic_code)
+
+  # Fix alternative start codons (GTG, TTG, CTG → M in bacteria)
+  if (fix_start_codon && nchar(dna) >= 3) {
+    start_codon <- toupper(substr(dna, 1, 3))
+    # Alternative start codons in bacteria: GTG, TTG, CTG, ATT, ATC, ATA
+    alt_starts <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
+
+    if (start_codon %in% alt_starts && nchar(aa) > 0) {
+      # Replace first amino acid with M (methionine)
+      substr(aa, 1, 1) <- "M"
+    }
+  }
+
+  aa
 }
 
 #' @export

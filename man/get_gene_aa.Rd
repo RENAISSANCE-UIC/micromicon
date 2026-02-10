@@ -14,6 +14,8 @@ get_gene_aa(x, gene, ...)
 \item{...}{Additional arguments}
 
 \item{genetic_code}{Genetic code to use (default = "11" for bacteria). Overrides feature transl_table.}
+
+\item{fix_start_codon}{Logical, whether to fix alternative start codons to M (default = TRUE)}
 }
 \value{
 Character vector (amino acid sequence)
@@ -22,4 +24,8 @@ Character vector (amino acid sequence)
 Extract and translate the amino acid sequence for a CDS feature.
 Uses the genetic code specified in the feature's transl_table attribute,
 or defaults to genetic code 11 (bacterial/archaeal).
+
+In bacterial genomes, alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA)
+are translated as Methionine (M) when they occur as the first codon, even though
+they normally code for other amino acids (e.g., GTG → V internally, but M at start).
 }

@@ -296,3 +296,51 @@ test_that("genetic code tables work correctly", {
     "not implemented"
   )
 })
+
+test_that("alternative start codons are handled correctly", {
+  # Create test entity with GTG start codon
+  test_entity <- new_genome_entity(
+    sequences_list = list(
+      dna_raw = c(chr1 = "GTGAAATTTCCC"),
+      dna_bio = NULL,
+      indexed_fa = NULL
+    ),
+    features_df = data.frame(
+      seqname = "chr1",
+      start = 1,
+      end = 12,
+      strand = "+",
+      type = "CDS",
+      gene = "testGene",
+      locus_tag = "tag1",
+      stringsAsFactors = FALSE
+    ),
+    metadata_df = data.frame(
+      seqname = "chr1",
+      length_bp = 100,
+      stringsAsFactors = FALSE
+    ),
+    indices_list = list(
+      seqnames = "chr1",
+      locus_tag_index = c(tag1 = 1L),
+      gene_index = list(testGene = 1L)
+    )
+  )
+
+  # Test with fix_start_codon = TRUE (default)
+  aa_fixed <- get_gene_aa(test_entity, "testGene", fix_start_codon = TRUE)
+  expect_equal(substr(aa_fixed, 1, 1), "M")  # GTG should be M at start
+
+  # Test with fix_start_codon = FALSE
+  aa_unfixed <- get_gene_aa(test_entity, "testGene", fix_start_codon = FALSE)
+  expect_equal(substr(aa_unfixed, 1, 1), "V")  # GTG should be V without fix
+
+  # Test other alternative start codons
+  alt_starts <- c("TTG", "CTG", "ATT", "ATC", "ATA")
+  for (start_codon in alt_starts) {
+    test_entity$sequences$dna_raw["chr1"] <- paste0(start_codon, "AAATTTCCC")
+    aa <- get_gene_aa(test_entity, "testGene")
+    expect_equal(substr(aa, 1, 1), "M",
+                 info = paste("Start codon", start_codon, "should be translated as M"))
+  }
+})
