@@ -484,8 +484,8 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
       if (length(matches) == 1) {
         return(entity$features[matches[1], , drop = FALSE])
       } else if (length(matches) > 1) {
-        cli::cli_warn("Multiple features with locus_tag '{gene}', using first match")
-        return(entity$features[matches[1], , drop = FALSE])
+        result <- .resolve_multiple_matches(entity$features[matches, , drop = FALSE], gene, "locus_tag")
+        return(result)
       }
     }
 
@@ -495,8 +495,8 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
       if (length(matches) == 1) {
         return(entity$features[matches[1], , drop = FALSE])
       } else if (length(matches) > 1) {
-        cli::cli_warn("Multiple features with gene name '{gene}', using first match")
-        return(entity$features[matches[1], , drop = FALSE])
+        result <- .resolve_multiple_matches(entity$features[matches, , drop = FALSE], gene, "gene")
+        return(result)
       }
     }
 
@@ -506,8 +506,8 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
       if (length(matches) == 1) {
         return(entity$features[matches[1], , drop = FALSE])
       } else if (length(matches) > 1) {
-        cli::cli_warn("Multiple features with ID '{gene}', using first match")
-        return(entity$features[matches[1], , drop = FALSE])
+        result <- .resolve_multiple_matches(entity$features[matches, , drop = FALSE], gene, "ID")
+        return(result)
       }
     }
 
@@ -515,6 +515,66 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
   }
 
   cli::cli_abort("Invalid gene identifier type: {class(gene)[1]}")
+}
+
+
+#' Resolve Multiple Feature Matches
+#'
+#' @description
+#' Internal helper to intelligently handle multiple feature matches.
+#' When multiple features match (e.g., gene + CDS with same name at same location),
+#' this function prefers CDS features and only warns for genuinely ambiguous cases.
+#'
+#' @param matched_features Data.frame of features that matched the query
+#' @param gene_id Gene identifier that was searched
+#' @param field_name Name of field that was searched ("gene", "locus_tag", or "ID")
+#'
+#' @return Single-row data.frame (the selected feature)
+#' @keywords internal
+.resolve_multiple_matches <- function(matched_features, gene_id, field_name) {
+  # Check if all matches are at the same genomic location
+  if ("start" %in% names(matched_features) && "end" %in% names(matched_features)) {
+    same_location <- length(unique(matched_features$start)) == 1 &&
+                     length(unique(matched_features$end)) == 1
+
+    if (same_location && "type" %in% names(matched_features)) {
+      # Multiple features at same location - likely gene + CDS + mRNA etc.
+      # Prefer CDS for protein-coding genes
+      cds_matches <- matched_features[matched_features$type == "CDS", , drop = FALSE]
+
+      if (nrow(cds_matches) > 0) {
+        # Found CDS at this location - use it without warning
+        if (nrow(cds_matches) == 1) {
+          return(cds_matches[1, , drop = FALSE])
+        } else {
+          # Multiple CDS at same location - this is genuinely ambiguous
+          cli::cli_warn(paste0(
+            "Multiple CDS features with ", field_name, " '{gene_id}' at same location. ",
+            "Using first match. Consider using locus_tag or feature index for specificity."
+          ))
+          return(cds_matches[1, , drop = FALSE])
+        }
+      } else {
+        # No CDS, but multiple features at same location (e.g., gene + rRNA)
+        # Use first match but inform user
+        types <- paste(unique(matched_features$type), collapse = ", ")
+        cli::cli_inform(paste0(
+          "Found ", nrow(matched_features), " features with ", field_name, " '{gene_id}' ",
+          "at same location (types: ", types, "). Using first match (",
+          matched_features$type[1], ")."
+        ))
+        return(matched_features[1, , drop = FALSE])
+      }
+    }
+  }
+
+  # Genuinely different features (different locations or no location info)
+  # This is ambiguous - warn and use first
+  cli::cli_warn(paste0(
+    "Multiple distinct features with ", field_name, " '{gene_id}'. ",
+    "Using first match. Consider using locus_tag or feature index for specificity."
+  ))
+  return(matched_features[1, , drop = FALSE])
 }
 
 

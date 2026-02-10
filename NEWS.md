@@ -1,3 +1,9 @@
+# micromicon 0.2.6
+
+## Added convenience functions to be used in genome diff integration  
+
+---
+
 # micromicon 0.2.4
 
 ## BLAST Gateway Refactoring 
