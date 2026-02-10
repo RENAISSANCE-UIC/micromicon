@@ -1,0 +1,313 @@
+---
+title: "Gene Utility Functions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Gene Utility Functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Gene Utility Functions
+
+The `micromicon` package provides a comprehensive set of utility functions for working with genes in `genome_entity` objects. These functions make it easy to extract sequences, translate proteins, map positions, and validate variants.
+
+## Overview
+
+The gene utility functions include:
+
+- **`get_gene_dna()`** - Extract DNA sequence for a gene in 5'-to-3' canonical orientation
+- **`get_gene_aa()`** - Get translated amino acid sequence for a CDS
+- **`get_roi_dna()`** - Extract DNA for an arbitrary genomic region
+- **`translate_dna()`** - Translate DNA to protein with frame and genetic code support
+- **`map_genomic_to_cds()`** - Convert genomic position to CDS position
+- **`map_cds_to_genomic()`** - Convert CDS position to genomic position
+- **`gene_info()`** - Get comprehensive gene metadata
+- **`validate_variant_in_gene()`** - Validate genomic variants
+
+## Setup
+
+```{r setup, eval=FALSE}
+library(micromicon)
+
+# Load a genome
+entity <- read_genome("path/to/genome.gbk")
+# OR
+entity <- read_genome(gff = "path/to/genome.gff3", fasta = "path/to/genome.fasta")
+```
+
+## Getting Gene Sequences
+
+### DNA Sequence
+
+Extract the DNA sequence for a gene in 5'-to-3' orientation (automatically handles reverse complement for minus strand genes):
+
+```{r get-dna, eval=FALSE}
+# By feature index
+dna <- get_gene_dna(entity, 1)
+
+# By locus tag
+dna <- get_gene_dna(entity, "b0001")
+
+# By gene name
+dna <- get_gene_dna(entity, "dnaA")
+
+# Get as Biostrings DNAString (requires Biostrings package)
+dna_string <- get_gene_dna(entity, "dnaA", format = "DNAString")
+```
+
+### Amino Acid Sequence
+
+Get the translated amino acid sequence for a CDS:
+
+```{r get-aa, eval=FALSE}
+# Use default genetic code (11 - bacterial/archaeal)
+aa <- get_gene_aa(entity, "dnaA")
+
+# Use standard genetic code (1)
+aa <- get_gene_aa(entity, "dnaA", genetic_code = "1")
+
+# The function automatically uses the transl_table attribute if present
+# in the feature annotation
+```
+
+### Region of Interest (ROI)
+
+Extract DNA for any arbitrary genomic region:
+
+```{r get-roi, eval=FALSE}
+# Get 100 bp region from position 1000-1099 on plus strand
+roi <- get_roi_dna(entity, chrom = "chromosome", start = 1000, end = 1099, strand = "+")
+
+# Get region on minus strand (automatically reverse complements)
+roi_minus <- get_roi_dna(entity, chrom = "chromosome", start = 1000, end = 1099, strand = "-")
+```
+
+## Translation
+
+The `translate_dna()` function supports multiple reading frames and genetic codes:
+
+```{r translate, eval=FALSE}
+dna <- "ATGAAATTTCCCGGGTTTAAATAG"
+
+# Translate in frame 1 (default)
+aa1 <- translate_dna(dna, frame = 1, genetic_code = "11")
+
+# Translate in frame 2 (skip first base)
+aa2 <- translate_dna(dna, frame = 2, genetic_code = "11")
+
+# Translate in frame 3 (skip first two bases)
+aa3 <- translate_dna(dna, frame = 3, genetic_code = "11")
+
+# Use standard genetic code
+aa_std <- translate_dna(dna, frame = 1, genetic_code = "1")
+```
+
+### Supported Genetic Codes
+
+Currently supported NCBI genetic codes:
+- `"1"` - Standard (universal) genetic code
+- `"11"` - Bacterial, Archaeal, and Plant Plastid Code (default)
+
+## Position Mapping
+
+### Genomic to CDS Position
+
+Convert a genomic coordinate to a CDS-relative position (accounts for strand):
+
+```{r map-to-cds, eval=FALSE}
+# For a gene on the plus strand
+genomic_pos <- 12345
+cds_pos <- map_genomic_to_cds(entity, "dnaA", genomic_pos)
+# If gene starts at 12000, cds_pos will be 346
+
+# For a gene on the minus strand
+# The function automatically accounts for reverse orientation
+cds_pos <- map_genomic_to_cds(entity, "some_minus_gene", genomic_pos)
+```
+
+### CDS to Genomic Position
+
+Convert a CDS position back to genomic coordinates:
+
+```{r map-to-genomic, eval=FALSE}
+# Convert CDS position 100 to genomic coordinate
+cds_pos <- 100
+genomic_pos <- map_cds_to_genomic(entity, "dnaA", cds_pos)
+
+# This is the inverse of map_genomic_to_cds()
+```
+
+## Gene Information
+
+Get comprehensive metadata about a gene:
+
+```{r gene-info, eval=FALSE}
+info <- gene_info(entity, "dnaA")
+
+# Returns a list with:
+# - chrom: Chromosome/contig name
+# - start: Start position (1-based)
+# - end: End position (1-based)
+# - strand: Strand ("+" or "-")
+# - type: Feature type (e.g., "CDS")
+# - length: Gene length in bp
+# - cds_ranges: List of CDS coordinate ranges
+# - frame: Reading frame offset (0, 1, or 2)
+# - gene: Gene name
+# - locus_tag: Locus tag
+# - product: Product description
+
+cat(sprintf("Gene %s is located at %s:%d-%d\n",
+            info$gene, info$chrom, info$start, info$end))
+cat(sprintf("Length: %d bp on %s strand\n",
+            info$length, info$strand))
+```
+
+## Variant Validation
+
+Validate that a genomic variant is correctly positioned and has the expected reference base:
+
+```{r validate-variant, eval=FALSE}
+# Validate a SNP
+result <- validate_variant_in_gene(
+  entity,
+  gene = "dnaA",
+  genomic_pos = 12345,
+  ref_base = "A"
+)
+
+if (result) {
+  cat("Valid variant!\n")
+} else {
+  cat(sprintf("Invalid: %s\n", attr(result, "message")))
+}
+
+# Common validation failures:
+# - Position outside gene boundaries
+# - Reference base mismatch
+# - Position on wrong chromosome
+```
+
+## Gene Identifier Types
+
+All gene utility functions support multiple ways to identify genes:
+
+1. **By integer index**: `get_gene_dna(entity, 1)` - Uses the first feature
+2. **By locus tag**: `get_gene_dna(entity, "b0001")` - Searches locus_tag field
+3. **By gene name**: `get_gene_dna(entity, "dnaA")` - Searches gene field
+4. **By ID**: `get_gene_dna(entity, "gene-001")` - Searches ID field
+5. **By feature row**: `get_gene_dna(entity, features(entity)[1,])` - Pass data.frame row
+
+## Example Workflow
+
+Here's a complete example of analyzing a gene:
+
+```{r workflow, eval=FALSE}
+library(micromicon)
+
+# Load genome
+entity <- read_genome("ecoli.gbk")
+
+# Find gene of interest
+gene_name <- "dnaA"
+
+# Get gene information
+info <- gene_info(entity, gene_name)
+cat(sprintf("Analyzing gene: %s\n", info$gene))
+cat(sprintf("Location: %s:%d-%d (%s)\n",
+            info$chrom, info$start, info$end, info$strand))
+cat(sprintf("Length: %d bp, Frame: %d\n", info$length, info$frame))
+
+# Get sequences
+dna <- get_gene_dna(entity, gene_name)
+aa <- get_gene_aa(entity, gene_name)
+cat(sprintf("DNA: %d bp\n", nchar(dna)))
+cat(sprintf("Protein: %d aa\n", nchar(aa)))
+
+# Check if there's a premature stop codon
+if (grepl("\\*", substr(aa, 1, nchar(aa) - 1))) {
+  cat("WARNING: Premature stop codon detected!\n")
+}
+
+# Validate a known variant
+variant_pos <- info$start + 50
+ref_base <- substr(get_roi_dna(entity, info$chrom, variant_pos, variant_pos), 1, 1)
+is_valid <- validate_variant_in_gene(entity, gene_name, variant_pos, ref_base)
+cat(sprintf("Variant at position %d: %s\n",
+            variant_pos, ifelse(is_valid, "VALID", "INVALID")))
+
+# Calculate CDS position for variant
+cds_pos <- map_genomic_to_cds(entity, gene_name, variant_pos)
+cat(sprintf("Variant is at CDS position %d\n", cds_pos))
+
+# Determine which codon is affected
+codon_num <- ceiling(cds_pos / 3)
+codon_pos <- ((cds_pos - 1) %% 3) + 1
+cat(sprintf("Affects codon %d, position %d\n", codon_num, codon_pos))
+```
+
+## Working with Mode A (Reference Genomes)
+
+When working with genome diffs (breseq output), the reference genome is called "Mode A". All the gene utility functions work seamlessly with Mode A genomes:
+
+```{r mode-a, eval=FALSE}
+# Load reference genome (Mode A)
+ref_genome <- read_genome("reference.gbk")
+
+# Parse genome diff against reference
+gd <- parse_gd_annotated("annotated.gd", ref_genome)
+
+# Use gene utilities on the reference
+gene_dna <- get_gene_dna(ref_genome, "mutS")
+gene_aa <- get_gene_aa(ref_genome, "mutS")
+
+# Validate variants from genome diff
+for (event in gd$events) {
+  if (event$type == "SNP") {
+    # Find which gene this SNP affects
+    affected_genes <- search_features(
+      ref_genome,
+      seqname = event$contig,
+      start = event$position,
+      end = event$position,
+      type = "CDS"
+    )
+
+    if (nrow(affected_genes) > 0) {
+      gene <- affected_genes[1, ]
+      is_valid <- validate_variant_in_gene(
+        ref_genome,
+        gene$gene,
+        event$position,
+        event$snp_ref_base
+      )
+      cat(sprintf("SNP in %s: %s\n",
+                  gene$gene,
+                  ifelse(is_valid, "VALID", "INVALID")))
+    }
+  }
+}
+```
+
+## Performance Notes
+
+- All functions validate inputs and provide informative error messages
+- DNA sequences are stored as character vectors for efficiency
+- Position mappings use 1-based coordinates (standard in biology)
+- Functions automatically handle strand orientation (reverse complement)
+- Genetic code translation is optimized for bacterial genomes (code 11)
+
+## See Also
+
+- `features()` - Access genome features
+- `sequences()` - Access genome sequences
+- `search_features()` - Search for features by pattern
+- `extract_by_coords()` - Extract sequences by coordinates
+- `parse_gd_annotated()` - Parse breseq genome diffs

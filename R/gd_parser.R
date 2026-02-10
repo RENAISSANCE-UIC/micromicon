@@ -1,14 +1,4 @@
-#' Parse a breseq annotated.gd, bound to a Mode A genome_entity
-#'
-#' @param gd_path Path to annotated.gd (annotated only; raw output.gd is rejected)
-#' @param entity A locked genome_entity created by micromicon::read_genome()
-#' @param strict If TRUE, halt on any mismatch; if FALSE, warn loudly and continue
-#' @param fasta_path Optional path to the FASTA used for Mode A, for file checksum
-#' @param gff3_path  Optional path to the GFF3 used for Mode A, for file checksum
-#' @param gbk_path   Optional path to the GBK used for Mode A, for file checksum
-#' @return An object of class genome_entity_gd
-#' @export
-#' Parse a breseq annotated.gd, bound to a Mode A genome_entity
+#' Parse a breseq annotated.gd bound to a Mode A genome_entity
 #'
 #' @param gd_path Path to annotated.gd (annotated only; raw output.gd is rejected)
 #' @param entity A locked genome_entity created by micromicon::read_genome()

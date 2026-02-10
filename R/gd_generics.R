@@ -126,5 +126,4 @@ write_ndjson.genome_entity_gd <- function(x, path,
   }
   invisible(normalizePath(path))
 }
-``
 

@@ -107,7 +107,7 @@ execute_extract_sequences_by_name <- function(entity, pattern,
 
     # Translate if requested (only for CDS)
     if (translate && !is.na(feat$type) && feat$type == "CDS") {
-      subseq <- translate_dna(subseq)
+      subseq <- translate_dna(subseq, frame = 1, genetic_code = "11")
     }
 
     sequences[i] <- subseq
@@ -117,82 +117,6 @@ execute_extract_sequences_by_name <- function(entity, pattern,
   sequences <- sequences[!is.na(sequences)]
 
   sequences
-}
-
-#' Reverse Complement DNA Sequence
-#'
-#' @param seq Character string of DNA sequence
-#' @return Reverse complement
-#' @keywords internal
-reverse_complement <- function(seq) {
-  # Complement lookup
-  complement_map <- c(
-    A = "T", T = "A", G = "C", C = "G",
-    a = "t", t = "a", g = "c", c = "g",
-    N = "N", n = "n",
-    R = "Y", Y = "R", S = "S", W = "W", K = "M", M = "K",
-    B = "V", V = "B", D = "H", H = "D"
-  )
-
-  # Split into characters
-  chars <- strsplit(seq, "")[[1]]
-
-  # Complement
-  comp_chars <- complement_map[chars]
-
-  # Handle unknown characters
-  comp_chars[is.na(comp_chars)] <- "N"
-
-  # Reverse
-  paste(rev(comp_chars), collapse = "")
-}
-
-#' Translate DNA to Protein
-#'
-#' @param dna Character string of DNA sequence
-#' @return Protein sequence (single-letter amino acids)
-#' @keywords internal
-translate_dna <- function(dna) {
-  # Standard genetic code
-  codon_table <- c(
-    TTT = "F", TTC = "F", TTA = "L", TTG = "L",
-    TCT = "S", TCC = "S", TCA = "S", TCG = "S",
-    TAT = "Y", TAC = "Y", TAA = "*", TAG = "*",
-    TGT = "C", TGC = "C", TGA = "*", TGG = "W",
-    CTT = "L", CTC = "L", CTA = "L", CTG = "L",
-    CCT = "P", CCC = "P", CCA = "P", CCG = "P",
-    CAT = "H", CAC = "H", CAA = "Q", CAG = "Q",
-    CGT = "R", CGC = "R", CGA = "R", CGG = "R",
-    ATT = "I", ATC = "I", ATA = "I", ATG = "M",
-    ACT = "T", ACC = "T", ACA = "T", ACG = "T",
-    AAT = "N", AAC = "N", AAA = "K", AAG = "K",
-    AGT = "S", AGC = "S", AGA = "R", AGG = "R",
-    GTT = "V", GTC = "V", GTA = "V", GTG = "V",
-    GCT = "A", GCC = "A", GCA = "A", GCG = "A",
-    GAT = "D", GAC = "D", GAA = "E", GAG = "E",
-    GGT = "G", GGC = "G", GGA = "G", GGG = "G"
-  )
-
-  # Convert to uppercase
-  dna <- toupper(dna)
-
-  # Extract codons (groups of 3)
-  n_codons <- floor(nchar(dna) / 3)
-  if (n_codons == 0) return("")
-
-  codons <- character(n_codons)
-  for (i in seq_len(n_codons)) {
-    start <- (i - 1) * 3 + 1
-    codons[i] <- substr(dna, start, start + 2)
-  }
-
-  # Translate
-  aa <- codon_table[codons]
-
-  # Handle unknown codons
-  aa[is.na(aa)] <- "X"
-
-  paste(aa, collapse = "")
 }
 
 # Helper: %||% operator
