@@ -145,7 +145,7 @@ harmonize_gff_seqlevels <- function(genome_obj,
   stopifnot(requireNamespace("GenomicRanges", quietly = TRUE))
   stopifnot(requireNamespace("S4Vectors", quietly = TRUE))
   
-  # --- Basic object checks ---
+  # --- Basic object checks 
   stopifnot(
     is.list(genome_obj),
     all(c("gff","fa","seqnames") %in% names(genome_obj))
@@ -155,7 +155,7 @@ harmonize_gff_seqlevels <- function(genome_obj,
   gff <- genome_obj$gff
   fa_headers <- genome_obj$seqnames
   
-  # ---- Compatibility shims ---------------------------------------------------
+  # ---- Compatibility shims 
   .set_seqlevels <- function(gr, keep, pruning = "coarse") {
     # Try modern form with pruning.mode, else fall back
     ok <- TRUE
@@ -182,7 +182,7 @@ harmonize_gff_seqlevels <- function(genome_obj,
     # Fallback (older GenomeInfoDb)
     GenomeInfoDb::renameSeqlevels(gr, map_named_vector)
   }
-  # ---------------------------------------------------------------------------
+  # 
   
   cli::cli_h2("Reconciling GFF seqlevels with FASTA headers")
   cli::cli_li("FASTA headers: {.val {fa_headers}}")

@@ -241,11 +241,3 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
 
 
 
-#' Read a breseq annotated.gd bound to a genome_entity
-#'
-#' @inheritParams parse_gd_annotated
-#' @return genome_entity_gd
-#' @export
-#gd_read_annotated <- parse_gd_annotated
-
-
