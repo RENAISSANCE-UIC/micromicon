@@ -10,7 +10,7 @@
 #' @export
 print.genome_entity <- function(x, ...) {
   cat("genome_entity\n")
-  cat("=============\n\n")
+  cat("=============\n")
 
   # Source information (if available in metadata)
   if ("source" %in% names(x$metadata)) {

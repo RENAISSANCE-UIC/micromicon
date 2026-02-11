@@ -122,7 +122,6 @@ clean_gff_for_import <- function(gff_path,
   tmp
 }
 
-
 #' Harmonize GFF seqlevels to FASTA headers
 #'
 #' Attempts, seriatim:
@@ -133,8 +132,6 @@ clean_gff_for_import <- function(gff_path,
 #'
 #' Returns a modified genome_obj with gff seqlevels renamed to match genome_obj$seqnames.
 #' Emits informative cli messages; uses cli::warn on partial successes; cli::abort only when hopeless.
-
-
 harmonize_gff_seqlevels <- function(genome_obj,
                                     use_length_fallback = FALSE) {
   
@@ -315,12 +312,4 @@ harmonize_gff_seqlevels <- function(genome_obj,
   ))
 }
 
-#' Initialize Genome Resources
-#'
-#' @param gff_path Path to GFF3 file
-#' @param fasta_path Path to FASTA file
-#' @param auto_index Logical; automatically index FASTA if needed
-#' @return List with gff (GRanges), fasta (DNAStringSet), and fa (FaFile) objects
-#' @export
-#' 
-#' 
+

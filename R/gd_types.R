@@ -42,7 +42,7 @@ new_genome_entity_gd <- function(header, events, file,
       provenance = provenance,
       strict     = isTRUE(strict)
     ),
-    class = c("genome_entity_gd","micromicon_gd")
+    class = c("genome_entity_gd","genome_entity")
   )
 }
 
