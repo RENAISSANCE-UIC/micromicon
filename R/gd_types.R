@@ -1,24 +1,22 @@
 # --- object constructor + validator 
 
-#' Internal constructor: genome_entity_gd (with hoisted fields + invariant)
+#' Internal constructor: genome_entity_gd (with hoisted fields)
 #'
 #' Builds a genome_entity_gd that is shape-compatible with genome_entity by
-#' hoisting core fields to the top level. Optionally retains the nested parent
-#' object for provenance. Enforces a shape invariant at construction time.
+#' hoisting core fields to the top level for backward compatibility.
 #'
 #' @keywords internal
 new_genome_entity_gd <- function(header, events, file,
-                                 entity, reference, strict = TRUE,
-                                 keep_entity = TRUE) {
+                                 entity, reference, strict = TRUE) {
   stopifnot(is.list(header), is.list(events), is.list(file),
             inherits(entity, "genome_entity"))
-  
-  # ---- Hoist core genome_entity fields for backward compatibility 
+
+  # ---- Hoist core genome_entity fields for backward compatibility
   sequences <- entity$sequences %||% list()
   features  <- entity$features  %||% NULL
   metadata  <- entity$metadata  %||% NULL
   indices   <- entity$indices   %||% list()
-  
+
   # ---- Rectify event schema (fail-fast if missing required fields) ----
   req <- c(
     "type","id","rank","seq_id","position","col6","col7","col8",
@@ -38,8 +36,8 @@ new_genome_entity_gd <- function(header, events, file,
     }
     ev
   })
-  
-  # ---- Provenance scaffold 
+
+  # ---- Provenance scaffold
   provenance <- list(
     gd_file   = file,
     reference_checksums = reference$checksums %||% list(),
@@ -47,8 +45,8 @@ new_genome_entity_gd <- function(header, events, file,
     host       = Sys.info()[["nodename"]],
     validation = list(status = "unvalidated", messages = character())
   )
-  
-  # ---- Assemble object 
+
+  # ---- Assemble object
   x <- list(
     # Hoisted parent fields (back-compat surface)
     sequences  = sequences,
@@ -62,34 +60,9 @@ new_genome_entity_gd <- function(header, events, file,
     provenance = provenance,
     strict     = isTRUE(strict)
   )
-  if (isTRUE(keep_entity)) x$entity <- entity
-  
+
   class(x) <- c("genome_entity_gd", "genome_entity")
-  
-  # ---- Constructor-time shape invariant (guarded by option) 
-  # Ensures hoisted fields mirror nested entity during migration.
-  # Toggle with options(genediff.check_shape_on_new = TRUE/FALSE)
-  if (isTRUE(getOption("genediff.check_shape_on_new", TRUE)) &&
-      isTRUE(keep_entity) && !is.null(x$entity) &&
-      inherits(x$entity, "genome_entity")) {
-    
-    same <- isTRUE(all.equal(x$sequences, x$entity$sequences)) &&
-      isTRUE(all.equal(x$features,  x$entity$features))  &&
-      isTRUE(all.equal(x$metadata,  x$entity$metadata))  &&
-      isTRUE(all.equal(x$indices,   x$entity$indices))
-    
-    if (!same) {
-      msg <- "Constructor invariant failed: hoisted fields != nested entity."
-      if (isTRUE(strict)) stop(msg) else {
-        if (requireNamespace("cli", quietly = TRUE)) {
-          cli::cli_warn(msg)
-        } else {
-          warning(msg, call. = FALSE)
-        }
-      }
-    }
-  }
-  
+
   x
 }
 

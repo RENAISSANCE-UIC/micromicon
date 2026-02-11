@@ -281,8 +281,7 @@ gd_replace_substring1 <- function(s, pos, newchar) {
 
 gd_summarize_snp_row <- function(gd, i, logger = NULL) {
   stopifnot(inherits(gd, "genome_entity_gd"))
-  entity <- gd$entity
-  row    <- gd$events[[i]]
+  row <- gd$events[[i]]
   if (!identical(row$type, "SNP")) {
     return(data.frame(
       id = row$id, type = row$type, chrom = row$seq_id, pos = row$position,
@@ -295,13 +294,14 @@ gd_summarize_snp_row <- function(gd, i, logger = NULL) {
       messages = I(list("Not a SNP row"))
     ))
   }
-  
+
   seq_id <- as.character(row$seq_id)
   pos    <- as.integer(row$position)
   alt    <- as.character(row$snp_alt_base %||% row$col6)
   ref    <- as.character(row$snp_ref_base %||% NA_character_)
-  
-  cds_rows <- gd_cds_by_position(entity, seq_id, pos)
+
+  # Use gd directly - it has hoisted fields (features, sequences, etc.)
+  cds_rows <- gd_cds_by_position(gd, seq_id, pos)
   if (nrow(cds_rows) == 0L) {
     return(data.frame(
       id = row$id, type = row$type, chrom = seq_id, pos = pos,
@@ -314,12 +314,12 @@ gd_summarize_snp_row <- function(gd, i, logger = NULL) {
       messages = I(list(character()))
     ))
   }
-  
+
   cds_row <- cds_rows[1, , drop = FALSE]
-  ctx     <- gd_codon_context(entity, cds_row, pos)
-  
+  ctx     <- gd_codon_context(gd, cds_row, pos)
+
   # Validate reference base if provided
-  ref_at_pos <- gd_nt_window(entity, seq_id, pos, pos, strict = TRUE)
+  ref_at_pos <- gd_nt_window(gd, seq_id, pos, pos, strict = TRUE)
   if (!is.na(ref) && nzchar(ref) && toupper(ref) != toupper(ref_at_pos)) {
     stop(sprintf("Ref base '%s' does not match reference '%s' at %s:%d", ref, ref_at_pos, seq_id, pos))
   }
