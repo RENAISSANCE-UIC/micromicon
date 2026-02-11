@@ -1,6 +1,66 @@
+# micromicon 0.2.7
+
+## Major: Genome Difference (GD) Parser and Viewing API
+
+### New Type-Aware GD Parser
+
+* **Added**: Complete rewrite of `parse_gd_annotated()` with type-aware dispatch pattern
+* Handles all mutation types: SNP, DEL, INS, SUB, MOB, AMP, CON, INV
+* Handles all evidence types: RA (Read Alignment), MC (Missing Coverage), JC (Junction), UN (Unknown)
+* Handles validation types: TSEQ, PFLP, RFLP, PFGE, PHYL, CURA, NOTE, FPOS
+* Events automatically binned by kind in `gd$provenance$by_kind` for efficient filtering
+* Flexible parsing with offset detection handles malformed breseq output gracefully
+* Comprehensive bounds checking with configurable strict mode
+
+### New Viewing and Analysis Functions
+
+* **`gd_events_table()`** - Convert nested events to tidy data frame with optional tag expansion
+* **`view_events()`** - Preview events with sensible column ordering and filtering
+* **`view_mutations()`** - Convenience wrapper for mutation events only
+* **`view_evidence()`** - Convenience wrapper for evidence events with coverage columns
+* **`probe_ra()`** - Diagnostic tool showing raw vs parsed RA event fields
+* **`peek_tags()`** - Inspect tags for a specific event in key-value format
+* **`tag_get_first()`** - Extract first value of a tag into a new column
+* **`tag_get_concat()`** - Concatenate multi-valued tags with separator
+* **`print_event()`** - Pretty-print individual events with type-specific formatting
+* **`format_freq()`** - Format numeric frequencies as percentages
+
+### Tag Extraction API
+
+Events can be extracted with tags as a list-column for programmatic manipulation:
+
+```r
+ev_tbl <- gd_events_table(gd, expand_tags = FALSE)
+ev_tbl <- ev_tbl |>
+  tag_get_first("gene_name") |>
+  tag_get_concat("locus_tag", sep = ";")
+```
+
+### Documentation
+
+* Added comprehensive roxygen2 documentation for all new functions
+* All user-facing functions now have parameter descriptions, return values, and examples
+* Improved `parse_gd_annotated()` documentation with detailed description of type-aware parsing
+
+### Bug Fixes
+
+* **Fixed**: Missing field defaults for AMP, CON, and INV mutation types in parser
+* **Fixed**: Removed duplicate `tag_get()` function
+* **Fixed**: Added missing `@export` tags to `summary.genome_entity_gd()`
+
+### Technical Details
+
+* Parser uses `.parse_mut()` and `.parse_evidence()` dispatch functions
+* `.rectify_for_constructor()` ensures backward compatibility with existing code
+* All events include `kind` field ("mutation", "evidence", "validation")
+* Events indexed by kind in `provenance$by_kind` for O(1) filtering
+* Robust handling of missing tags and optional fields
+
+---
+
 # micromicon 0.2.6
 
-## Added convenience functions to be used in genome diff integration  
+## Added convenience functions to be used in genome diff integration
 
 ---
 

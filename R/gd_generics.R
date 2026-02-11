@@ -47,6 +47,23 @@ print.genome_entity_gd <- function(x, ...) {
   invisible(x)
 }
 
+#' Summarize a genome_entity_gd object
+#'
+#' Creates a summary of events in a genome_entity_gd object, showing event
+#' counts by type and validation status.
+#'
+#' @param object A genome_entity_gd object
+#' @param ... Additional arguments (currently unused)
+#' @return A list of class "summary_genome_entity_gd" with components:
+#'   \item{n_events}{Total number of events}
+#'   \item{by_type}{Table of event counts by type}
+#'   \item{validation}{Validation status from provenance}
+#' @export
+#' @examples
+#' \dontrun{
+#'   gd <- parse_gd_annotated("annotated.gd", ref)
+#'   summary(gd)
+#' }
 summary.genome_entity_gd <- function(object, ...) {
   n <- length(object$events)
   kinds <- sort(table(vapply(object$events, `[[`, character(1), "type")), decreasing = TRUE)

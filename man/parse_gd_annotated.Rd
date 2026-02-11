@@ -2,7 +2,7 @@
 % Please edit documentation in R/gd_parser.R
 \name{parse_gd_annotated}
 \alias{parse_gd_annotated}
-\title{Parse a breseq annotated.gd bound to a Mode A genome_entity}
+\title{Parse a breseq annotated.gd file with type-aware dispatch}
 \usage{
 parse_gd_annotated(
   gd_path,
@@ -14,21 +14,34 @@ parse_gd_annotated(
 )
 }
 \arguments{
-\item{gd_path}{Path to annotated.gd (annotated only; raw output.gd is rejected)}
+\item{gd_path}{Path to the annotated.gd file (not raw output.gd)}
 
-\item{entity}{A locked genome_entity created by micromicon::read_genome()}
+\item{entity}{A genome_entity object (reference genome; fields will be hoisted)}
 
-\item{strict}{If TRUE, halt on any mismatch; if FALSE, warn loudly and continue}
+\item{strict}{Logical; if TRUE, stop on inconsistencies; if FALSE, warn and continue}
 
-\item{fasta_path}{Optional path to the FASTA used for Mode A, for file checksum}
+\item{fasta_path}{Optional path to FASTA file for provenance checksums}
 
-\item{gff3_path}{Optional path to the GFF3 used for Mode A, for file checksum}
+\item{gff3_path}{Optional path to GFF3 file for provenance checksums}
 
-\item{gbk_path}{Optional path to the GBK used for Mode A, for file checksum}
+\item{gbk_path}{Optional path to GenBank file for provenance checksums}
 }
 \value{
-An object of class genome_entity_gd
+A genome_entity_gd object with parsed events binned by kind in
+\code{provenance$by_kind} (mutation_idx, evidence_idx, validation_idx)
 }
 \description{
-Parse a breseq annotated.gd bound to a Mode A genome_entity
+Parses a breseq annotated.gd file (produced by gdtools ANNOTATE) and creates
+a genome_entity_gd object. The parser uses type-aware dispatch to handle
+different mutation types (SNP, DEL, INS, SUB, MOB, AMP, CON, INV), evidence
+types (RA, MC, JC, UN), and validation types (TSEQ, PFLP, etc.). Events are
+automatically binned by kind (mutation/evidence/validation) for efficient filtering.
+}
+\examples{
+\dontrun{
+  ref <- read_genome("reference.gbk")
+  gd <- parse_gd_annotated("annotated.gd", ref, strict = TRUE)
+  length(gd$events)
+  gd$provenance$by_kind$mutation_idx  # indices of mutation events
+}
 }

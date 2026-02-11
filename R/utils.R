@@ -369,6 +369,35 @@ first_non_na <- function(x) {
 #' @param cols optional character vector for preferred column order (others appended)
 #' @return data.frame or tibble
 
+#' Convert genome_entity_gd events to a data frame
+#'
+#' Converts the nested event list from a genome_entity_gd object into a tidy
+#' data frame with one row per event. Tags can either be expanded into individual
+#' columns (tag_*) or kept as a list-column for programmatic access.
+#'
+#' @param gd A genome_entity_gd object
+#' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns;
+#'   if FALSE, keep as a list-column
+#' @param include_raw Logical; include the raw_line field
+#' @param include_hash Logical; include the event hash field
+#' @param types Character vector of event types to filter (e.g., c("SNP", "DEL"))
+#' @param kinds Character vector of event kinds to filter: "mutation", "evidence", "validation"
+#' @param n Maximum number of rows to return (default Inf for all)
+#' @param cols Character vector of column names to prioritize in output order
+#' @param stringsAsFactors Logical; passed to as.data.frame()
+#' @return A data frame (or tibble if available) with one row per event
+#' @export
+#' @examples
+#' \dontrun{
+#'   # Get all events with tags as list-column
+#'   ev_tbl <- gd_events_table(gd, expand_tags = FALSE)
+#'
+#'   # Get only mutations with expanded tags
+#'   mut_tbl <- gd_events_table(gd, kinds = "mutation", expand_tags = TRUE)
+#'
+#'   # Filter to specific types
+#'   snps <- gd_events_table(gd, types = c("SNP", "DEL"), n = 100)
+#' }
 gd_events_table <- function(
     gd,
     expand_tags = TRUE,
@@ -529,14 +558,31 @@ gd_events_table <- function(
 
 
 
-#' Compact preview of gd$events with sensible defaults
-#' @param gd genome_entity_gd
-#' @param types filter by event type(s)
-#' @param kinds filter by kind(s): "mutation","evidence","validation"
-#' @param n number of rows to print (default 20)
-#' @param expand_tags flatten tags into tag_* columns
-#' @param include_raw include raw_line
-#' @return the previewed data.frame/tibble (invisibly)
+#' Preview genome_entity_gd events in a compact table
+#'
+#' Displays a formatted preview of events from a genome_entity_gd object with
+#' sensible column ordering and filtering. Returns the table invisibly for
+#' further manipulation.
+#'
+#' @param gd A genome_entity_gd object
+#' @param types Character vector of event types to filter (e.g., c("SNP", "RA"))
+#' @param kinds Character vector of event kinds to filter: "mutation", "evidence", "validation"
+#' @param n Number of rows to display (default 20)
+#' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns
+#' @param include_raw Logical; include the raw GD line in output
+#' @return The previewed data frame/tibble (invisibly)
+#' @export
+#' @examples
+#' \dontrun{
+#'   # Preview all events
+#'   view_events(gd)
+#'
+#'   # View only SNPs
+#'   view_events(gd, types = "SNP", n = 50)
+#'
+#'   # View evidence events
+#'   view_events(gd, kinds = "evidence")
+#' }
 view_events <- function(
     gd,
     types = NULL,
@@ -578,12 +624,43 @@ view_events <- function(
 }
 
 
-#' Mutations only (SNP/SUB/DEL/INS/MOB/AMP/CON/INV)
+#' Preview mutation events only
+#'
+#' Convenience wrapper for \code{view_events()} that filters to mutation events
+#' only (SNP, SUB, DEL, INS, MOB, AMP, CON, INV).
+#'
+#' @param gd A genome_entity_gd object
+#' @param n Number of rows to display (default 20)
+#' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns
+#' @return The previewed data frame/tibble (invisibly)
+#' @export
+#' @seealso \code{\link{view_events}}, \code{\link{view_evidence}}
+#' @examples
+#' \dontrun{
+#'   view_mutations(gd)
+#'   view_mutations(gd, n = 50, expand_tags = FALSE)
+#' }
 view_mutations <- function(gd, n = 20, expand_tags = TRUE) {
   view_events(gd, kinds = "mutation", n = n, expand_tags = expand_tags)
 }
 
-#' Evidence only (RA/MC/JC/UN)
+#' Preview evidence events only
+#'
+#' Convenience wrapper for \code{view_events()} that filters to evidence events
+#' only (RA, MC, JC, UN) and displays evidence-specific columns (coverage,
+#' frequency, quality scores).
+#'
+#' @param gd A genome_entity_gd object
+#' @param n Number of rows to display (default 25)
+#' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns
+#' @return The previewed data frame/tibble (invisibly)
+#' @export
+#' @seealso \code{\link{view_events}}, \code{\link{view_mutations}}
+#' @examples
+#' \dontrun{
+#'   view_evidence(gd)
+#'   view_evidence(gd, n = 100)
+#' }
 view_evidence <- function(gd, n = 25, expand_tags = TRUE) {
   key_cols <- c(
     "type","id","seq_id","position","contig",
@@ -622,7 +699,21 @@ view_evidence <- function(gd, n = 25, expand_tags = TRUE) {
 }
 
 
-#Micro‑probe: show raw RA lines vs parsed fields
+#' Diagnostic probe for RA event parsing
+#'
+#' Shows the raw GD lines alongside parsed fields for RA (Read Alignment) events,
+#' useful for debugging parser behavior or understanding breseq output.
+#'
+#' @param gd A genome_entity_gd object
+#' @param k Maximum number of RA events to examine (default 10)
+#' @return A list of lists with raw_line and parsed fields for each RA event
+#' @export
+#' @examples
+#' \dontrun{
+#'   probe <- probe_ra(gd, k = 5)
+#'   probe[[1]]$raw      # Original GD line
+#'   probe[[1]]$parsed   # Parsed fields
+#' }
 probe_ra <- function(gd, k = 10) {
   idx <- which(vapply(gd$events, function(e) identical(e$type, "RA"), logical(1)))
   idx <- head(idx, k)
@@ -660,7 +751,22 @@ tags_as_kv <- function(tags) {
   )
 }
 
-# Pretty peek for a single event's tags
+#' Peek at tags for a specific event
+#'
+#' Displays the tags for a single event from an events table in a tidy
+#' key-value format, useful for exploring tag contents.
+#'
+#' @param ev_tbl A data frame from \code{gd_events_table()} with a tags list-column
+#' @param i Row index of the event to inspect (default 1)
+#' @param n Maximum number of tag key-value pairs to display (default 20)
+#' @return A data frame with columns: key, index, value
+#' @export
+#' @seealso \code{\link{gd_events_table}}
+#' @examples
+#' \dontrun{
+#'   ev_tbl <- gd_events_table(gd, expand_tags = FALSE)
+#'   peek_tags(ev_tbl, i = 1, n = 25)
+#' }
 peek_tags <- function(ev_tbl, i = 1L, n = 20L) {
   kv <- tags_as_kv(ev_tbl$tags[[i]])
   if (nrow(kv) == 0) return(kv)
@@ -668,17 +774,23 @@ peek_tags <- function(ev_tbl, i = 1L, n = 20L) {
 }
 
 
-# Vectorized extractor: pull one tag into a scalar column (first value if repeated)
-tag_get <- function(ev_tbl, name, into = paste0("tag_", name)) {
-  ev_tbl[[into]] <- vapply(ev_tbl$tags, function(t) {
-    if (is.null(t) || is.null(t[[name]]) || !length(t[[name]])) return(NA_character_)
-    as.character(t[[name]][1])
-  }, character(1))
-  ev_tbl
-}
-
-
-# First value of a tag (or NA if absent)
+#' Extract first value of a tag into a column
+#'
+#' Extracts the first value of a multi-valued tag from the tags list-column
+#' and creates a new scalar column. Returns NA if the tag is absent.
+#'
+#' @param tbl A data frame from \code{gd_events_table()} with a tags list-column
+#' @param name Name of the tag to extract (without "tag_" prefix)
+#' @param into Name for the new column (default: "tag_{name}")
+#' @return The input data frame with the new column added
+#' @export
+#' @seealso \code{\link{tag_get_concat}}, \code{\link{gd_events_table}}
+#' @examples
+#' \dontrun{
+#'   ev_tbl <- gd_events_table(gd, expand_tags = FALSE)
+#'   ev_tbl <- tag_get_first(ev_tbl, "gene_name")
+#'   ev_tbl$tag_gene_name  # New column with first gene_name value
+#' }
 tag_get_first <- function(tbl, name, into = paste0("tag_", name)) {
   tbl[[into]] <- vapply(tbl$tags, function(t) {
     if (is.null(t) || is.null(t[[name]]) || !length(t[[name]])) return(NA_character_)
@@ -687,7 +799,24 @@ tag_get_first <- function(tbl, name, into = paste0("tag_", name)) {
   tbl
 }
 
-# Concatenate all values of a tag with a separator (e.g., '|' or '/')
+#' Concatenate all values of a tag into a column
+#'
+#' Extracts all values of a multi-valued tag from the tags list-column,
+#' concatenates them with a separator, and creates a new column.
+#'
+#' @param tbl A data frame from \code{gd_events_table()} with a tags list-column
+#' @param name Name of the tag to extract (without "tag_" prefix)
+#' @param into Name for the new column (default: "tag_{name}")
+#' @param sep Separator for concatenating multiple values (default "|")
+#' @return The input data frame with the new column added
+#' @export
+#' @seealso \code{\link{tag_get_first}}, \code{\link{gd_events_table}}
+#' @examples
+#' \dontrun{
+#'   ev_tbl <- gd_events_table(gd, expand_tags = FALSE)
+#'   ev_tbl <- tag_get_concat(ev_tbl, "locus_tag", sep = ";")
+#'   ev_tbl$tag_locus_tag  # New column with concatenated values
+#' }
 tag_get_concat <- function(tbl, name, into = paste0("tag_", name), sep = "|") {
   tbl[[into]] <- vapply(tbl$tags, function(t) {
     if (is.null(t) || is.null(t[[name]]) || !length(t[[name]])) return(NA_character_)
@@ -696,7 +825,20 @@ tag_get_concat <- function(tbl, name, into = paste0("tag_", name), sep = "|") {
   tbl
 }
 
-# Sometimes you just want to print one RA or one JC in aninterpretable form
+#' Pretty-print a single event
+#'
+#' Prints a human-readable summary of a single event, with type-specific
+#' formatting for RA, JC, MC, and UN events.
+#'
+#' @param gd A genome_entity_gd object
+#' @param i Index of the event to print (1-based)
+#' @return The event object (invisibly)
+#' @export
+#' @examples
+#' \dontrun{
+#'   print_event(gd, 10)  # Print event #10
+#'   print_event(gd, gd$provenance$by_kind$evidence_idx[1])  # First evidence event
+#' }
 print_event <- function(gd, i) {
   e <- gd$events[[i]]
   cat(sprintf("[%s] id=%s kind=%s\n", e$type, e$id, e$kind))
@@ -726,7 +868,19 @@ print_event <- function(gd, i) {
   invisible(e)
 }
 
-# Human readable frequencies
+#' Format frequencies as percentages
+#'
+#' Converts numeric frequencies (0-1 range) to percentage strings for display.
+#'
+#' @param x Numeric vector of frequencies (values between 0 and 1)
+#' @param digits Number of decimal places (default 2)
+#' @return Character vector of formatted percentages (e.g., "85.50%")
+#' @export
+#' @examples
+#' \dontrun{
+#'   format_freq(c(0.855, 0.12, NA))  # "85.50%" "12.00%" NA
+#'   format_freq(0.333, digits = 1)   # "33.3%"
+#' }
 format_freq <- function(x, digits = 2) {
   ifelse(is.na(x), NA, sprintf(paste0("%.", digits, "f%%"), 100 * x))
 }
