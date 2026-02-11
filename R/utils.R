@@ -12,7 +12,7 @@
 #' @keywords internal
 NULL
 
-# Setup and Data Loading Functions ====
+# Setup and Data Loading Functions 
 
 # A tiny infix helper to mirror rlang's %||%, avoiding hard dependency.
 `%||%` <- function(x, y) if (is.null(x)) y else x
@@ -355,4 +355,373 @@ first_non_na <- function(x) {
   if (is.null(x) || length(x) == 0L) return(NA)
   i <- which(!is.na(x))
   if (length(i)) x[i[1]] else x[1]
+}
+
+
+#' Convert gd$events to a rectangular table
+#' @param gd genome_entity_gd
+#' @param expand_tags logical; flatten tags list into tag_* columns
+#' @param include_raw logical; include raw_line column
+#' @param include_hash logical; include hash column
+#' @param types optional character vector to keep only these event types (e.g., c("SNP","DEL"))
+#' @param kinds optional character vector to keep only these kinds: "mutation","evidence","validation"
+#' @param n show only first n rows (Inf keeps all)
+#' @param cols optional character vector for preferred column order (others appended)
+#' @return data.frame or tibble
+
+gd_events_table <- function(
+    gd,
+    expand_tags = TRUE,
+    include_raw = FALSE,
+    include_hash = TRUE,
+    types = NULL,
+    kinds = NULL,
+    n = Inf,
+    cols = NULL,
+    stringsAsFactors = FALSE
+) {
+  stopifnot(inherits(gd, "genome_entity_gd"))
+  ev <- gd$events
+  if (!length(ev)) return(.coerce_tbl(data.frame()))
+  
+  # Optional filters
+  if (!is.null(types)) {
+    keep <- vapply(ev, function(x) isTRUE(x$type %in% types), logical(1))
+    ev <- ev[keep]
+  }
+  if (!is.null(kinds)) {
+    keep <- vapply(ev, function(x) isTRUE(x$kind %in% kinds), logical(1))
+    ev <- ev[keep]
+  }
+  if (!length(ev)) return(.coerce_tbl(data.frame()))
+  
+  # Helpers -
+  .flatten_tags <- function(tags) {
+    if (is.null(tags) || length(tags) == 0) return(list())
+    out <- list()
+    for (nm in names(tags)) {
+      v <- tags[[nm]]
+      if (length(v) >= 1) {
+        v1  <- v[1]
+        num <- suppressWarnings(as.numeric(v1))
+        out[[paste0("tag_", nm)]] <-
+          if (!is.na(num) && is.character(v1) && grepl("^[0-9.+-eE]+$", v1)) num else as.character(v1)
+      }
+    }
+    out
+  }
+  
+  # NEW: sanitize any length-0 to NA; collapse any length>1 to first element
+  
+  .scalarize_row <- function(r) {
+    for (nm in names(r)) {
+      v <- r[[nm]]
+      if (is.list(v)) next                      # <-- keep list-cols intact
+      if (is.null(v) || length(v) == 0L) {
+        r[[nm]] <- NA
+      } else if (length(v) > 1L) {
+        r[[nm]] <- v[1]
+      }
+    }
+    r
+  }
+  
+  
+  # Row assembly 
+  rows <- lapply(ev, function(x) {
+    row <- list(
+      type     = x$type,
+      kind     = x$kind,
+      id       = x$id,
+      rank     = x$rank,
+      seq_id   = x$seq_id,
+      position = x$position,
+      contig   = x$contig,
+      col6     = x$col6, col7 = x$col7, col8 = x$col8,
+      
+      snp_ref_base = x$snp_ref_base,
+      snp_alt_base = x$snp_alt_base,
+      del_size     = x$del_size,
+      ins_seq      = x$ins_seq,
+      ins_size     = x$ins_size,
+      sub_size     = x$sub_size,
+      sub_new_seq  = x$sub_new_seq,
+      mob_repeat_name      = x$mob_repeat_name,
+      mob_strand           = x$mob_strand,
+      mob_duplication_size = x$mob_duplication_size,
+      
+      ev_frequency = x$ev_frequency,
+      ev_quality   = x$ev_quality,
+      ev_ref_cov_1 = x$ev_ref_cov_1, ev_ref_cov_2 = x$ev_ref_cov_2,
+      ev_new_cov_1 = x$ev_new_cov_1, ev_new_cov_2 = x$ev_new_cov_2,
+      ev_tot_cov_1 = x$ev_tot_cov_1, ev_tot_cov_2 = x$ev_tot_cov_2,
+      ev_alignment_overlap = x$ev_alignment_overlap,
+      ev_cov_minus = x$ev_cov_minus,
+      ev_cov_plus  = x$ev_cov_plus,
+      ev_pos_start = x$ev_pos_start,
+      ev_pos_end   = x$ev_pos_end,
+      
+      ra_insert_position = x$ra_insert_position,
+      ra_ref_base        = x$ra_ref_base,
+      ra_new_base        = x$ra_new_base,
+      
+      start              = x$start,
+      end                = x$end,
+      mc_start_range     = x$mc_start_range,
+      mc_end_range       = x$mc_end_range,
+      
+      side_1_seq_id      = x$side_1_seq_id,
+      side_1_position    = x$side_1_position,
+      side_1_strand      = x$side_1_strand,
+      side_2_seq_id      = x$side_2_seq_id,
+      side_2_position    = x$side_2_position,
+      side_2_strand      = x$side_2_strand,
+      jc_overlap         = x$jc_overlap
+    )
+    if (include_hash) row$hash <- x$hash
+    if (include_raw)  row$raw_line <- x$raw_line
+    
+    if (isTRUE(expand_tags)) {
+      row <- c(row, .flatten_tags(x$tags))
+    } else {
+      # Force a single list-column for tags, uniformly across rows
+      row$tags <- I(list(if (is.null(x$tags)) NULL else x$tags))
+    }
+    
+    .scalarize_row(row)  # ensure 1×1 scalars for all atomic fields
+  })
+  
+  # Align names and bind 
+  all_names <- Reduce(union, lapply(rows, names))
+  rows_aligned <- lapply(rows, function(r) { r[setdiff(all_names, names(r))] <- NA; r[all_names] })
+  
+  # As data.frame, then optional tibble conversion
+  df <- as.data.frame(
+    do.call(rbind, lapply(rows_aligned, function(r) as.data.frame(r, stringsAsFactors = stringsAsFactors))),
+    stringsAsFactors = stringsAsFactors, check.names = FALSE
+  )
+  
+  # Light type nudges
+  intish <- c("id","rank","position","del_size","ins_size","sub_size",
+              "mob_strand","mob_duplication_size","ev_ref_cov_1","ev_ref_cov_2",
+              "ev_new_cov_1","ev_new_cov_2","ev_tot_cov_1","ev_tot_cov_2",
+              "ev_alignment_overlap","ev_cov_minus","ev_cov_plus","ev_pos_start","ev_pos_end",
+              "mc_start_range","mc_end_range","side_1_position","side_2_position","jc_overlap")
+  numish <- c("ev_frequency","ev_quality")
+  for (nm in intersect(intish, names(df))) df[[nm]] <- suppressWarnings(as.integer(df[[nm]]))
+  for (nm in intersect(numish, names(df))) df[[nm]] <- suppressWarnings(as.numeric(df[[nm]]))
+  
+  # Preferred column order (optional)
+  if (!is.null(cols)) {
+    keep <- intersect(cols, names(df))
+    df <- df[, c(keep, setdiff(names(df), keep)), drop = FALSE]
+  }
+  
+  # Optional head
+  if (is.finite(n)) df <- utils::head(df, n)
+  
+  .coerce_tbl(df)
+}
+
+.coerce_tbl <- function(df) {
+  if (requireNamespace("tibble", quietly = TRUE)) tibble::as_tibble(df) else df
+}
+
+
+
+#' Compact preview of gd$events with sensible defaults
+#' @param gd genome_entity_gd
+#' @param types filter by event type(s)
+#' @param kinds filter by kind(s): "mutation","evidence","validation"
+#' @param n number of rows to print (default 20)
+#' @param expand_tags flatten tags into tag_* columns
+#' @param include_raw include raw_line
+#' @return the previewed data.frame/tibble (invisibly)
+view_events <- function(
+    gd,
+    types = NULL,
+    kinds = NULL,
+    n = 20,
+    expand_tags = TRUE,
+    include_raw = FALSE
+) {
+  key_cols <- c(
+    "type","kind","id","rank","seq_id","position","contig",
+    "snp_ref_base","snp_alt_base","del_size","ins_seq","ins_size","sub_size",
+    "mob_repeat_name","mob_strand","mob_duplication_size",
+    "ra_insert_position","ra_ref_base","ra_new_base",
+    "start","end","mc_start_range","mc_end_range",
+    "side_1_seq_id","side_1_position","side_1_strand",
+    "side_2_seq_id","side_2_position","side_2_strand","jc_overlap",
+    "ev_frequency","ev_quality"
+  )
+  tag_pref <- c("tag_gene_name","tag_locus_tag","tag_genes_overlapping",
+                "tag_mutation_category","tag_snp_type","tag_frequency")
+  
+  tbl <- gd_events_table(
+    gd,
+    expand_tags = expand_tags,
+    include_raw = include_raw,
+    include_hash = TRUE,
+    types = types,
+    kinds = kinds,
+    n = n,
+    cols = c(key_cols, tag_pref, "hash")
+  )
+  
+  # Order: descending id, then type
+  ord <- order(-as.integer(tbl$id), tbl$type, na.last = TRUE)
+  tbl <- tbl[ord, , drop = FALSE]
+  
+  print(tbl, n = min(nrow(tbl), n))
+  invisible(tbl)
+}
+
+
+#' Mutations only (SNP/SUB/DEL/INS/MOB/AMP/CON/INV)
+view_mutations <- function(gd, n = 20, expand_tags = TRUE) {
+  view_events(gd, kinds = "mutation", n = n, expand_tags = expand_tags)
+}
+
+#' Evidence only (RA/MC/JC/UN)
+view_evidence <- function(gd, n = 25, expand_tags = TRUE) {
+  key_cols <- c(
+    "type","id","seq_id","position","contig",
+    # RA
+    "ra_insert_position","ra_ref_base","ra_new_base",
+    # MC
+    "start","end","mc_start_range","mc_end_range",
+    # JC
+    "side_1_seq_id","side_1_position","side_1_strand",
+    "side_2_seq_id","side_2_position","side_2_strand","jc_overlap",
+    # UN
+    # (uses start/end already)
+    # Evidence numerics
+    "ev_frequency","ev_quality","ev_ref_cov_1","ev_ref_cov_2",
+    "ev_new_cov_1","ev_new_cov_2","ev_tot_cov_1","ev_tot_cov_2",
+    "ev_alignment_overlap","ev_cov_minus","ev_cov_plus"
+  )
+  tag_pref <- c("tag_frequency","tag_mutation_category","tag_gene_name","tag_locus_tag")
+  
+  tbl <- gd_events_table(
+    gd,
+    kinds = "evidence",
+    expand_tags = expand_tags,
+    include_raw = FALSE,
+    include_hash = TRUE,
+    n = n,
+    cols = c(key_cols, tag_pref, "hash")
+  )
+  
+  # Sort: type then id
+  ord <- order(tbl$type, as.integer(tbl$id), na.last = TRUE)
+  tbl <- tbl[ord, , drop = FALSE]
+  
+  print(tbl, n = min(nrow(tbl), n))
+  invisible(tbl)
+}
+
+
+#Micro‑probe: show raw RA lines vs parsed fields
+probe_ra <- function(gd, k = 10) {
+  idx <- which(vapply(gd$events, function(e) identical(e$type, "RA"), logical(1)))
+  idx <- head(idx, k)
+  lapply(idx, function(i) {
+    e <- gd$events[[i]]
+    list(
+      i = i,
+      raw = e$raw_line,
+      parsed = list(
+        seq_id = e$seq_id,
+        position = e$position,
+        insert_position = e$ra_insert_position,
+        ref_base = e$ra_ref_base,
+        new_base = e$ra_new_base
+      )
+    )
+  })
+}
+
+# Return a tidy two-column data.frame: key | value
+tags_as_kv <- function(tags) {
+  if (is.null(tags) || !length(tags)) {
+    return(data.frame(key = character(0), value = character(0), stringsAsFactors = FALSE))
+  }
+  # Flatten multi-valued tags; keep first value index for traceability
+  keys   <- rep.int(names(tags), vapply(tags, length, integer(1)))
+  values <- unlist(tags, use.names = FALSE)
+  idx    <- sequence(vapply(tags, length, integer(1)))  # 1,2,... per key
+  data.frame(
+    key   = as.character(keys),
+    index = as.integer(idx),
+    value = as.character(values),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+}
+
+# Pretty peek for a single event's tags
+peek_tags <- function(ev_tbl, i = 1L, n = 20L) {
+  kv <- tags_as_kv(ev_tbl$tags[[i]])
+  if (nrow(kv) == 0) return(kv)
+  utils::head(kv[order(kv$key, kv$index), , drop = FALSE], n)
+}
+
+
+# Vectorized extractor: pull one tag into a scalar column (first value if repeated)
+tag_get <- function(ev_tbl, name, into = paste0("tag_", name)) {
+  ev_tbl[[into]] <- vapply(ev_tbl$tags, function(t) {
+    if (is.null(t) || is.null(t[[name]]) || !length(t[[name]])) return(NA_character_)
+    as.character(t[[name]][1])
+  }, character(1))
+  ev_tbl
+}
+
+
+# First value of a tag (or NA if absent)
+tag_get_first <- function(tbl, name, into = paste0("tag_", name)) {
+  tbl[[into]] <- vapply(tbl$tags, function(t) {
+    if (is.null(t) || is.null(t[[name]]) || !length(t[[name]])) return(NA_character_)
+    as.character(t[[name]][1])
+  }, character(1))
+  tbl
+}
+
+# Concatenate all values of a tag with a separator (e.g., '|' or '/')
+tag_get_concat <- function(tbl, name, into = paste0("tag_", name), sep = "|") {
+  tbl[[into]] <- vapply(tbl$tags, function(t) {
+    if (is.null(t) || is.null(t[[name]]) || !length(t[[name]])) return(NA_character_)
+    paste0(as.character(t[[name]]), collapse = sep)
+  }, character(1))
+  tbl
+}
+
+# Sometimes you just want to print one RA or one JC in aninterpretable form
+print_event <- function(gd, i) {
+  e <- gd$events[[i]]
+  cat(sprintf("[%s] id=%s kind=%s\n", e$type, e$id, e$kind))
+  if (e$type == "RA") {
+    cat(sprintf("  %s:%s  ref=%s new=%s ins=%s  freq=%s\n",
+                e$seq_id, e$position, e$ra_ref_base, e$ra_new_base,
+                e$ra_insert_position, e$ev_frequency))
+  } else if (e$type == "JC") {
+    cat(sprintf("  %s:%s (%+d)  <->  %s:%s (%+d)  overlap=%s\n",
+                e$side_1_seq_id, e$side_1_position, e$side_1_strand,
+                e$side_2_seq_id, e$side_2_position, e$side_2_strand,
+                e$jc_overlap))
+  } else if (e$type == "MC") {
+    cat(sprintf("  %s:[%s..%s]  ranges: +%s / -%s\n",
+                e$seq_id, e$start, e$end, e$mc_start_range, e$mc_end_range))
+  } else if (e$type == "UN") {
+    cat(sprintf("  %s:[%s..%s]\n", e$seq_id, e$start, e$end))
+  } else {
+    cat("  (mutation row)\n")
+  }
+  # print a few tags
+  kv <- utils::head(tags_as_kv(e$tags), 8)
+  if (nrow(kv)) {
+    cat("  tags:\n")
+    apply(kv, 1, function(r) cat(sprintf("    - %s[%s]: %s\n", r["key"], r["index"], r["value"])))
+  }
+  invisible(e)
 }

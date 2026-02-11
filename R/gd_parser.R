@@ -5,7 +5,8 @@
 #' @param fasta_path,gff3_path,gbk_path optional provenance
 #' @return genome_entity_gd with events parsed and binned by kind
 parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
-                               fasta_path = NULL, gff3_path = NULL, gbk_path = NULL) {
+                               fasta_path = NULL, gff3_path = NULL, 
+                               gbk_path = NULL) {
   if (!file.exists(gd_path)) stop("File does not exist: ", gd_path)
   stopifnot(inherits(entity, "genome_entity"))
   
@@ -24,7 +25,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     a
   }
   
-  # ---- local helpers used by the parser ----
+  # ---- local helpers used by the parser -
   .normalize_seq_id <- function(s) {
     if (is.null(s)) return(NA_character_)
     s <- as.character(s); s <- trimws(s)
@@ -67,7 +68,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     invisible(TRUE)
   }
   
-  # ---------- read and pre-filter ----------
+  # ---------- read and pre-filter 
   lines <- readLines(gd_path, warn = FALSE)
   lines <- lines[nzchar(lines)]
   
@@ -102,7 +103,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
   EVI_TYPES <- c("RA","MC","JC","UN")
   VAL_TYPES <- c("TSEQ","PFLP","RFLP","PFGE","PHYL","CURA","NOTE","FPOS")
   
-  # ---------- type-specific parsers ----------
+  # ---------- type-specific parsers 
   .parse_mut <- function(row, type) {
     # mutation: type, id, parent-ids, seq_id, position, ...
     idx <- 4L
@@ -231,16 +232,58 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     idx <- 3L
     f   <- function(k) if (length(row) >= k) row[k] else NA_character_
     
+    
     if (type == "RA") {
-      seq_id     <- .normalize_seq_id(f(idx + 0L))
-      position   <- .as_int(f(idx + 1L))
-      insert_pos <- .as_int(f(idx + 2L))
-      ref_base   <- f(idx + 3L)
-      new_base   <- f(idx + 4L)
+      # RA: seq_id, position, insert_position, ref_base, new_base
+      toks <- if (length(row) >= idx) row[idx:length(row)] else character(0)
+      
+      .is_base_char <- function(x) {
+        if (is.null(x) || length(x) == 0L) return(FALSE)
+        x <- as.character(x[1])
+        # Accept DNA bases and '.' as used by breseq for placeholders
+        grepl("^[ACGTN\\.]$", x, ignore.case = FALSE)
+      }
+      .is_nonneg <- function(x) !is.na(x) && x >= 0L
+      .has_sid   <- function(s) { s <- .normalize_seq_id(s); !is.na(s) && nzchar(s) }
+      
+      attempt <- function(o) {
+        need <- o + 5L
+        if (length(toks) < need) return(NULL)
+        sid <- .normalize_seq_id(toks[o + 1L])
+        pos <- .as_int(toks[o + 2L])
+        ins <- .as_int(toks[o + 3L])
+        ref <- toks[o + 4L]
+        new <- toks[o + 5L]
+        
+        ok  <- .is_nonneg(ins) && .is_base_char(ref) && .is_base_char(new)
+        # score: prefer real seq_id, then prefer ref not "0" (guards against shifted digits)
+        score <- (if (.has_sid(sid)) 2L else 0L) + (ref != "0")
+        list(ok = ok, score = score,
+             sid = sid, pos = pos, ins = ins, ref = ref, new = new, used = need)
+      }
+      
+      cand <- list(attempt(0L), attempt(1L), attempt(2L))
+      cand <- Filter(Negate(is.null), cand)
+      ok   <- Filter(function(z) isTRUE(z$ok), cand)
+      
+      pick <- NULL
+      if (length(ok)) {
+        # choose the highest score; ties go to the earliest offset
+        sc   <- vapply(ok, function(z) z$score, integer(1))
+        pick <- ok[[ which.max(sc) ]]
+      } else if (length(cand)) {
+        # fall back to offset 0 so tags still get parsed
+        pick <- cand[[1L]]
+      } else {
+        return(list(.fixed_end = idx - 1L))  # no fixed fields; let the caller parse tags
+      }
+      
       return(list(
-        seq_id = seq_id, position = position, contig = seq_id,
-        ra_insert_position = insert_pos, ra_ref_base = ref_base, ra_new_base = new_base,
-        .fixed_end = idx + 4L
+        seq_id = pick$sid, position = pick$pos, contig = pick$sid,
+        ra_insert_position = pick$ins,
+        ra_ref_base        = pick$ref,
+        ra_new_base        = pick$new,
+        .fixed_end         = (idx - 1L) + pick$used
       ))
     }
     
@@ -385,7 +428,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     ev
   }
   
-  # ---------- parse body ----------
+  # ---------- parse body main loop
   events   <- vector("list", length(body_lines))
   kind_vec <- character(length(body_lines))
   
