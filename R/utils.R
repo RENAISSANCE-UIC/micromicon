@@ -725,3 +725,9 @@ print_event <- function(gd, i) {
   }
   invisible(e)
 }
+
+# Human readable frequencies
+format_freq <- function(x, digits = 2) {
+  ifelse(is.na(x), NA, sprintf(paste0("%.", digits, "f%%"), 100 * x))
+}
+
