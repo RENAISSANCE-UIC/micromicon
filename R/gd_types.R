@@ -66,6 +66,7 @@ new_genome_entity_gd <- function(header, events, file,
   x
 }
 
+
 validate_genome_entity_gd <- function(x, strict = x$strict) {
   stopifnot(inherits(x, "genome_entity_gd"))
   msgs <- character(); status <- "ok"
@@ -77,24 +78,28 @@ validate_genome_entity_gd <- function(x, strict = x$strict) {
     status <- "error"
   }
   
-  # Contig and coordinate discipline vs locked reference
   contig_lengths <- setNames(
     as.numeric(x$metadata$length_bp %||% numeric(0)),
     x$metadata$seqname %||% character(0)
   )
   
   for (ev in x$events) {
-    if (!ev$contig %in% names(contig_lengths)) {
-      msgs   <- c(msgs, sprintf("Contig not present in reference: %s", ev$contig))
+    contig <- ev$contig
+    pos    <- ev$position
+    
+    # --- NEW: skip validation when contig is missing/unknown ---
+    if (is.null(contig) || length(contig) == 0L || is.na(contig) || !nzchar(contig)) next
+    
+    if (!(contig %in% names(contig_lengths))) {
+      msgs   <- c(msgs, sprintf("Contig not present in reference: %s", contig))
       status <- if (strict) "error" else "warn"
-    } else if (!is.na(ev$position)) {
-      ln <- contig_lengths[[ev$contig]]
-      if (ev$position < 1L || ev$position > ln) {
-        msgs <- c(
-          msgs,
-          sprintf("Position out of bounds for %s: %d not in [1..%d]",
-                  ev$contig, ev$position, ln)
-        )
+      next
+    }
+    
+    if (!is.null(pos) && !is.na(pos)) {
+      ln <- contig_lengths[[contig]]
+      if (pos < 1L || pos > ln) {
+        msgs <- c(msgs, sprintf("Position out of bounds for %s: %d not in [1..%d]", contig, pos, ln))
         status <- if (strict) "error" else "warn"
       }
     }
@@ -107,13 +112,8 @@ validate_genome_entity_gd <- function(x, strict = x$strict) {
     cli::cli_warn(paste(c("Validation warnings:", msgs), collapse = "\n- "))
   }
   
-  x$provenance$validation$status <- if (strict && identical(status, "ok")) {
-    "ok_strict"
-  } else status
-  x$provenance$validation$messages <- unique(c(
-    x$provenance$validation$messages, msgs
-  ))
-  
+  x$provenance$validation$status   <- if (strict && identical(status, "ok")) "ok_strict" else status
+  x$provenance$validation$messages <- unique(c(x$provenance$validation$messages, msgs))
   x
 }
 

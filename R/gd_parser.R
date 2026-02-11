@@ -1,28 +1,80 @@
-#' Parse a breseq annotated.gd bound to a Mode A genome_entity
-#'
-#' @param gd_path Path to annotated.gd (annotated only; raw output.gd is rejected)
-#' @param entity A locked genome_entity created by micromicon::read_genome()
-#' @param strict If TRUE, halt on any mismatch; if FALSE, warn loudly and continue
-#' @param fasta_path Optional path to the FASTA used for Mode A, for file checksum
-#' @param gff3_path  Optional path to the GFF3 used for Mode A, for file checksum
-#' @param gbk_path   Optional path to the GBK used for Mode A, for file checksum
-#' @return An object of class genome_entity_gd
-#' @export
+#' Parse a breseq annotated.gd with type-aware dispatch
+#' @param gd_path path to annotated.gd
+#' @param entity  genome_entity (reference backbone; will be hoisted)
+#' @param strict  stop on inconsistencies (vs warn)
+#' @param fasta_path,gff3_path,gbk_path optional provenance
+#' @return genome_entity_gd with events parsed and binned by kind
 parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
-                               fasta_path = NULL, gff3_path = NULL, 
-                               gbk_path = NULL) {
+                               fasta_path = NULL, gff3_path = NULL, gbk_path = NULL) {
   if (!file.exists(gd_path)) stop("File does not exist: ", gd_path)
   stopifnot(inherits(entity, "genome_entity"))
   
+  # ---- local scalar helpers 
+  `%||%` <- function(x, y) if (is.null(x)) y else x
+  
+  first_non_na <- function(x) {
+    if (is.null(x) || length(x) == 0L) return(NA)
+    i <- which(!is.na(x))
+    if (length(i)) x[i[1]] else x[1]
+  }
+  scalar_coalesce <- function(a, b) {
+    if (is.null(a))                  return(b)
+    if (length(a) == 0L)             return(b)
+    if (length(a) == 1L && is.na(a)) return(b)
+    a
+  }
+  
+  # ---- local helpers used by the parser ----
+  .normalize_seq_id <- function(s) {
+    if (is.null(s)) return(NA_character_)
+    s <- as.character(s); s <- trimws(s)
+    if (identical(s, ".") || !nzchar(s)) NA_character_ else s
+  }
+  .parse_pair <- function(x, sep = "/", as = c("int","num","char")) {
+    as <- match.arg(as)
+    if (is.null(x) || !length(x)) return(c(NA, NA))
+    y <- strsplit(x[1], sep, fixed = TRUE)[[1]]
+    if (length(y) < 2) y <- c(y, NA_character_)
+    if (as == "int") suppressWarnings(as.integer(y))
+    else if (as == "num") suppressWarnings(as.numeric(y))
+    else y
+  }
+  .as_int <- function(x) suppressWarnings(as.integer(if (length(x)) x else NA))
+  .as_num <- function(x) suppressWarnings(as.numeric(if (length(x)) x else NA))
+  .parse_tags <- function(tags_raw) {
+    out <- list()
+    if (!length(tags_raw)) return(out)
+    for (t in tags_raw) {
+      kv <- strsplit(t, "=", fixed = TRUE)[[1]]
+      k  <- kv[1]
+      v  <- if (length(kv) > 1) kv[2] else NA_character_
+      if (k %in% names(out)) out[[k]] <- c(out[[k]], v) else out[[k]] <- v
+    }
+    out
+  }
+  # Skip bounds if seq_id is NA; otherwise validate contig and position
+  .bounds_check <- function(i, contig, pos, strict, contig_lengths) {
+    if (is.null(contig) || is.na(contig)) return(invisible(TRUE))  # skip
+    if (!contig %in% names(contig_lengths)) {
+      msg <- sprintf("GD contig '%s' not found in locked reference; no liftover attempted.", contig)
+      if (strict) stop(msg) else return(invisible(NULL))
+    }
+    ln <- contig_lengths[[contig]]
+    if (!is.null(pos) && !is.na(pos) && (pos < 1L || pos > ln)) {
+      msg <- sprintf("Event %d position %s out of bounds for contig %s [1..%d].", i, pos, contig, ln)
+      if (strict) stop(msg)
+    }
+    invisible(TRUE)
+  }
+  
+  # ---------- read and pre-filter ----------
   lines <- readLines(gd_path, warn = FALSE)
   lines <- lines[nzchar(lines)]
   
-  # Fail fast: annotated only (presence of annotation tags)
   if (!is_annotated_gd(lines)) {
     stop(
       "This appears to be a raw breseq output.gd (annotation tags not detected).\n",
-      "Please run breseq and supply the annotated.gd plus either the original input GBK ",
-      "or the output FASTA+GFF3."
+      "Supply an annotated.gd produced by gdtools ANNOTATE together with the reference."
     )
   }
   
@@ -31,7 +83,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
   header_lines <- lines[header_idx]
   body_lines   <- lines[body_idx]
   
-  # Header map (keep all #=KEY value pairs)
+  # Header key/values
   header <- list()
   for (h in header_lines) {
     h2 <- sub("^#+=*", "", h)
@@ -42,202 +94,411 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     if (key %in% names(header)) header[[key]] <- c(header[[key]], val) else header[[key]] <- val
   }
   
-  # Provenance from Mode A
+  # Provenance + reference
   ref_manifest   <- reference_manifest_from_genome_entity(entity, fasta_path, gff3_path, gbk_path)
   contig_lengths <- setNames(as.numeric(entity$metadata$length_bp), entity$metadata$seqname)
   
-  events <- vector("list", length(body_lines))
+  MUT_TYPES <- c("SNP","SUB","DEL","INS","MOB","AMP","CON","INV")
+  EVI_TYPES <- c("RA","MC","JC","UN")
+  VAL_TYPES <- c("TSEQ","PFLP","RFLP","PFGE","PHYL","CURA","NOTE","FPOS")
+  
+  # ---------- type-specific parsers ----------
+  .parse_mut <- function(row, type) {
+    # mutation: type, id, parent-ids, seq_id, position, ...
+    idx <- 4L
+    f   <- function(k) if (length(row) >= k) row[k] else NA_character_
+    
+    parent_ids_raw <- if (length(row) >= 3L) row[3L] else NA_character_
+    parent_ids     <- if (is.na(parent_ids_raw) || parent_ids_raw %in% c(".", "")) integer(0) else {
+      suppressWarnings(as.integer(strsplit(parent_ids_raw, ",", fixed = TRUE)[[1]]))
+    }
+    
+    if (type == "SNP") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      new_seq  <- f(idx + 2L)
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        snp_ref_base = NA_character_, snp_alt_base = new_seq,
+        col6 = new_seq, col7 = NA, col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 2L
+      ))
+    }
+    
+    if (type == "SUB") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      size     <- .as_int(f(idx + 2L))
+      new_seq  <- f(idx + 3L)
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        sub_size = size, sub_new_seq = new_seq,
+        col6 = f(idx + 2L), col7 = f(idx + 3L), col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 3L
+      ))
+    }
+    
+    if (type == "DEL") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      size     <- .as_int(f(idx + 2L))
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        del_size = size,
+        col6 = f(idx + 2L), col7 = NA, col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 2L
+      ))
+    }
+    
+    if (type == "INS") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      new_seq  <- f(idx + 2L)
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        ins_seq = new_seq,
+        ins_size = if (!is.na(new_seq)) nchar(new_seq) else NA_integer_,
+        col6 = new_seq, col7 = NA, col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 2L
+      ))
+    }
+    
+    if (type == "MOB") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      rname    <- f(idx + 2L)
+      strand   <- .as_int(f(idx + 3L))
+      dup      <- .as_int(f(idx + 4L))
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        mob_repeat_name = rname, mob_strand = strand, mob_duplication_size = dup,
+        col6 = rname, col7 = f(idx + 3L), col8 = f(idx + 4L),
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 4L
+      ))
+    }
+    
+    if (type == "AMP") {
+      seq_id     <- .normalize_seq_id(f(idx + 0L))
+      position   <- .as_int(f(idx + 1L))
+      size       <- .as_int(f(idx + 2L))
+      new_copies <- .as_int(f(idx + 3L))
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        amp_size = size, amp_new_copy_number = new_copies,
+        col6 = f(idx + 2L), col7 = f(idx + 3L), col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 3L
+      ))
+    }
+    
+    if (type == "CON") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      size     <- .as_int(f(idx + 2L))
+      region   <- f(idx + 3L)
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        con_size = size, con_region = region,
+        col6 = f(idx + 2L), col7 = f(idx + 3L), col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 3L
+      ))
+    }
+    
+    if (type == "INV") {
+      seq_id   <- .normalize_seq_id(f(idx + 0L))
+      position <- .as_int(f(idx + 1L))
+      size     <- .as_int(f(idx + 2L))
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        inv_size = size,
+        col6 = f(idx + 2L), col7 = NA, col8 = NA,
+        parent_ids_raw = parent_ids_raw, parent_ids = parent_ids,
+        .fixed_end = idx + 2L
+      ))
+    }
+    
+    stop("Unhandled mutation type: ", type)
+  }
+  
+  .parse_evidence <- function(row, type) {
+    # evidence: type, evidence-id, then seq_id/... (type-specific)
+    idx <- 3L
+    f   <- function(k) if (length(row) >= k) row[k] else NA_character_
+    
+    if (type == "RA") {
+      seq_id     <- .normalize_seq_id(f(idx + 0L))
+      position   <- .as_int(f(idx + 1L))
+      insert_pos <- .as_int(f(idx + 2L))
+      ref_base   <- f(idx + 3L)
+      new_base   <- f(idx + 4L)
+      return(list(
+        seq_id = seq_id, position = position, contig = seq_id,
+        ra_insert_position = insert_pos, ra_ref_base = ref_base, ra_new_base = new_base,
+        .fixed_end = idx + 4L
+      ))
+    }
+    
+    if (type == "MC") {
+      seq_id      <- .normalize_seq_id(f(idx + 0L))
+      start       <- .as_int(f(idx + 1L))
+      end         <- .as_int(f(idx + 2L))
+      start_range <- .as_int(f(idx + 3L))
+      end_range   <- .as_int(f(idx + 4L))
+      return(list(
+        seq_id = seq_id, contig = seq_id,
+        start = start, end = end, mc_start_range = start_range, mc_end_range = end_range,
+        .fixed_end = idx + 4L
+      ))
+    }
+    
+    if (type == "JC") {
+      # JC has 7 fixed scalars; try offsets 0..2 to avoid stray placeholder columns.
+      toks <- if (length(row) >= idx) row[idx:length(row)] else character(0)
+      .is_strand <- function(x) !is.na(x) && x %in% c(-1L, 1L)
+      .valid_pos <- function(x) !is.na(x) && x >= 0L
+      
+      attempt <- function(o) {
+        need <- o + 7L
+        if (length(toks) < need) return(NULL)
+        s1_id <- .normalize_seq_id(toks[o + 1L])
+        s1_po <- .as_int(toks[o + 2L])
+        s1_st <- .as_int(toks[o + 3L])
+        s2_id <- .normalize_seq_id(toks[o + 4L])
+        s2_po <- .as_int(toks[o + 5L])
+        s2_st <- .as_int(toks[o + 6L])
+        ovlp  <- .as_int(toks[o + 7L])
+        
+        ok <- .is_strand(s1_st) && .is_strand(s2_st) &&
+          .valid_pos(s1_po) && .valid_pos(s2_po) &&
+          .valid_pos(ovlp)
+        
+        list(ok = ok,
+             s1_id = s1_id, s1_po = s1_po, s1_st = s1_st,
+             s2_id = s2_id, s2_po = s2_po, s2_st = s2_st,
+             ovlp  = ovlp,
+             used  = need)
+      }
+      
+      cand <- list(attempt(0L), attempt(1L), attempt(2L))
+      pick <- NULL
+      for (c in cand) { if (!is.null(c) && isTRUE(c$ok)) { pick <- c; break } }
+      if (is.null(pick)) {
+        pick <- attempt(0L)
+        if (is.null(pick)) return(list(.fixed_end = idx - 1L))
+      }
+      
+      return(list(
+        side_1_seq_id = pick$s1_id,
+        side_1_position = pick$s1_po,
+        side_1_strand = pick$s1_st,
+        side_2_seq_id = pick$s2_id,
+        side_2_position = pick$s2_po,
+        side_2_strand = pick$s2_st,
+        jc_overlap = pick$ovlp,
+        .fixed_end = (idx - 1L) + pick$used
+      ))
+    }
+    
+    if (type == "UN") {
+      seq_id <- .normalize_seq_id(f(idx + 0L))
+      start  <- .as_int(f(idx + 1L))
+      end    <- .as_int(f(idx + 2L))
+      return(list(
+        seq_id = seq_id, contig = seq_id, start = start, end = end,
+        .fixed_end = idx + 2L
+      ))
+    }
+    
+    stop("Unhandled evidence type: ", type)
+  }
+  
+  .rectify_for_constructor <- function(ev) {
+    # Universal columns the constructor/validator require
+    ev$type      <- ev$type      %||% NA_character_
+    ev$id        <- ev$id        %||% NA_integer_
+    ev$seq_id    <- ev$seq_id    %||% NA_character_
+    ev$position  <- ev$position  %||% NA_integer_
+    ev$contig    <- ev$contig    %||% ev$seq_id
+    ev$tags      <- ev$tags      %||% list()
+    ev$raw_line  <- ev$raw_line  %||% NA_character_
+    ev$hash      <- ev$hash      %||% NA_character_
+    
+    # Legacy col6/7/8
+    ev$col6 <- if (!is.null(ev$col6)) ev$col6 else NA
+    ev$col7 <- if (!is.null(ev$col7)) ev$col7 else NA
+    ev$col8 <- if (!is.null(ev$col8)) ev$col8 else NA
+    
+    # Legacy rank (not in GD spec for mutations)
+    ev$rank <- ev$rank %||% NA_integer_
+    
+    # Evidence flags
+    if (!is.null(ev$kind) && ev$kind == "evidence") {
+      ev$is_evidence    <- TRUE
+      ev$evidence_class <- ev$type
+    } else {
+      ev$is_evidence    <- FALSE
+      ev$evidence_class <- NA_character_
+    }
+    
+    # Descriptors (ensure presence)
+    defaults_chr <- c("snp_alt_base","snp_ref_base","ins_seq","sub_new_seq","mob_repeat_name")
+    defaults_int <- c("del_size","ins_size","sub_size","mob_strand","mob_duplication_size")
+    for (nm in defaults_chr) if (is.null(ev[[nm]])) ev[[nm]] <- NA_character_
+    for (nm in defaults_int) if (is.null(ev[[nm]])) ev[[nm]] <- NA_integer_
+    
+    # Evidence numerics (ensure presence)
+    evid_num <- c("ev_frequency","ev_quality","ev_ref_cov_1","ev_ref_cov_2",
+                  "ev_new_cov_1","ev_new_cov_2","ev_tot_cov_1","ev_tot_cov_2",
+                  "ev_alignment_overlap","ev_cov_minus","ev_cov_plus",
+                  "ev_pos_start","ev_pos_end")
+    for (nm in evid_num) if (is.null(ev[[nm]])) ev[[nm]] <- NA_real_
+    
+    # pos_start/pos_end from tags if present
+    if (is.na(ev$ev_pos_start) && length(ev$tags)) {
+      ev$ev_pos_start <- suppressWarnings(as.integer(ev$tags[["position_start"]][1]))
+    }
+    if (is.na(ev$ev_pos_end) && length(ev$tags)) {
+      ev$ev_pos_end <- suppressWarnings(as.integer(ev$tags[["position_end"]][1]))
+    }
+    
+    # Evidence rows that lack a single canonical (seq_id, position)
+    if (!is.null(ev$kind) && ev$kind == "evidence") {
+      if (ev$type == "MC" || ev$type == "UN") {
+        ev$position <- scalar_coalesce(ev$position, ev$start)
+        ev$contig   <- scalar_coalesce(ev$contig,   ev$seq_id)
+      } else if (ev$type == "JC") {
+        # Choose a representative locus deterministically
+        sid <- first_non_na(c(ev$seq_id, ev$side_1_seq_id, ev$side_2_seq_id))
+        pos <- first_non_na(c(ev$position, ev$side_1_position, ev$side_2_position, ev$start, ev$end))
+        ev$seq_id   <- scalar_coalesce(ev$seq_id,   sid)
+        ev$position <- scalar_coalesce(ev$position, pos)
+        ev$contig   <- scalar_coalesce(ev$contig,   ev$seq_id)
+      }
+    }
+    
+    ev
+  }
+  
+  # ---------- parse body ----------
+  events   <- vector("list", length(body_lines))
+  kind_vec <- character(length(body_lines))
+  
   for (i in seq_along(body_lines)) {
     raw <- body_lines[i]
     row <- strsplit(raw, "\t", fixed = TRUE)[[1]]
-    n   <- length(row)
-    
-    # At minimum we need type,id/rank,seq_id,position (5 cols)
-    if (n < 5L) {
-      msg <- sprintf("Malformed GD line %d: expected ≥5 tab-separated fields, got %d.", i, n)
-      if (strict) stop(msg) else cli::cli_warn(msg)
+    if (length(row) < 2L) {
+      msg <- sprintf("Malformed GD line %d: too few fields.", i)
+      if (strict) stop(msg) else next
     }
     
-    # Rectangular slice: always first 8 fixed columns (pad with NA), rest -> tags
-    fixed <- rep(NA_character_, 8L)
-    upto  <- min(8L, n)
-    fixed[1:upto] <- row[1:upto]
-    tags_raw  <- if (n > 8L) row[(8L + 1L):n] else character(0)
+    type <- row[1]
+    id   <- .as_int(row[2])
     
-    type     <- fixed[1]
-    id       <- suppressWarnings(as.integer(fixed[2]))
-    rank     <- suppressWarnings(as.integer(fixed[3]))
-    seq_id   <- fixed[4]                                   # contig / reference fragment id
-    position <- suppressWarnings(as.integer(fixed[5]))
-    
-    # Parse tag name=value into a list (preserve multiplicity)
-    taglist <- list()
-    if (length(tags_raw)) {
-      for (t in tags_raw) {
-        kv  <- strsplit(t, "=", fixed = TRUE)[[1]]
-        k   <- kv[1]
-        val <- if (length(kv) > 1) kv[2] else NA_character_
-        if (k %in% names(taglist)) taglist[[k]] <- c(taglist[[k]], val) else taglist[[k]] <- val
+    if (type %in% MUT_TYPES) {
+      ev   <- .parse_mut(row, type)
+      kind <- "mutation"
+      if (!is.null(ev$seq_id) && !is.na(ev$seq_id) && !is.null(ev$position) && !is.na(ev$position)) {
+        .bounds_check(i, ev$seq_id, ev$position, strict, contig_lengths)
       }
-    }
-    
-    # Enforce contig identity and bounds vs Mode A (no liftover/remap)
-    contig <- seq_id
-    if (!nzchar(contig)) {
-      msg <- sprintf("Event %d lacks contig (seq_id in column 4). Refusing to infer.", i)
-      if (strict) stop(msg) else cli::cli_warn(msg)
-    } else if (!contig %in% names(contig_lengths)) {
-      msg <- sprintf("GD contig '%s' not found in locked reference; no liftover will be attempted.", contig)
-      if (strict) stop(msg) else cli::cli_warn(msg)
-    }
-    if (!is.na(position) && nzchar(contig) && contig %in% names(contig_lengths)) {
-      ln <- contig_lengths[[contig]]
-      if (position < 1L || position > ln) {
-        msg <- sprintf("Event %d position %d out of bounds for contig %s [1..%d].", i, position, contig, ln)
-        if (strict) stop(msg) else cli::cli_warn(msg)
+      
+    } else if (type %in% EVI_TYPES) {
+      ev   <- .parse_evidence(row, type)
+      kind <- "evidence"
+      
+      # evidence-specific bounds
+      if (type %in% c("RA","UN")) {
+        sid <- ev$seq_id
+        p   <- first_non_na(c(ev$position, ev$start))
+        if (!is.null(sid) && !is.na(sid) && !is.null(p) && !is.na(p)) {
+          .bounds_check(i, sid, p, strict, contig_lengths)
+        }
+      } else if (type == "MC") {
+        sid <- ev$seq_id
+        if (!is.null(sid) && !is.na(sid) && !is.na(ev$start)) .bounds_check(i, sid, ev$start, strict, contig_lengths)
+        if (!is.null(sid) && !is.na(sid) && !is.na(ev$end))   .bounds_check(i, sid, ev$end,   strict, contig_lengths)
+      } else if (type == "JC") {
+        if (!is.na(ev$side_1_seq_id) && !is.na(ev$side_1_position))
+          .bounds_check(i, ev$side_1_seq_id, ev$side_1_position, strict, contig_lengths)
+        if (!is.na(ev$side_2_seq_id) && !is.na(ev$side_2_position))
+          .bounds_check(i, ev$side_2_seq_id, ev$side_2_position, strict, contig_lengths)
       }
+      
+    } else if (type %in% VAL_TYPES) {
+      ev <- list(seq_id = .normalize_seq_id(if (length(row) >= 3L) row[3L] else NA_character_),
+                 .fixed_end = length(row))
+      kind <- "validation"
+      
+    } else {
+      if (strict) stop(sprintf("Unknown GD type '%s' at line %d.", type, i)) else next
     }
     
-    # Raw payloads (rectangular provenance)
-    col6 <- fixed[6]
-    col7 <- fixed[7]
-    col8 <- fixed[8]
+    # Slice trailing tags using sentinel (falls back to row length)
+    fixed_end <- scalar_coalesce(ev$.fixed_end, length(row))
+    tags_raw  <- if (length(row) > fixed_end) row[(fixed_end + 1L):length(row)] else character(0)
+    taglist   <- .parse_tags(tags_raw)
     
-    # ------------------ Descriptive mutation fields (NA by default) ------------------
-    snp_alt_base          <- NA_character_
-    snp_ref_base          <- NA_character_
+    # Envelope
+    ev$type     <- type
+    ev$id       <- id
+    ev$tags     <- taglist
+    ev$raw_line <- raw
+    ev$kind     <- kind
     
-    del_size              <- NA_integer_
-    
-    ins_seq               <- NA_character_
-    ins_size              <- NA_integer_
-    
-    sub_size              <- NA_integer_
-    sub_new_seq           <- NA_character_
-    
-    mob_repeat_name       <- NA_character_
-    mob_strand            <- NA_integer_     # 1 or -1
-    mob_duplication_size  <- NA_integer_
-    
-    # Populate per type (no mutation of provenance)
-    if (identical(type, "SNP")) {
-      snp_alt_base <- col6                                  # GD column 6 is new_seq (ALT)
-      snp_ref_base <- (taglist[["ref_seq"]] %||% NA_character_)[1]  # REF from tag
-    } else if (identical(type, "DEL")) {
-      suppressWarnings({
-        maybe_len <- as.integer(col6)                       # GD column 6 is size
-        if (!is.na(maybe_len)) del_size <- maybe_len
-      })
-    } else if (identical(type, "INS")) {
-      ins_seq  <- col6                                      # GD column 6 is inserted sequence
-      ins_size <- if (!is.na(ins_seq)) nchar(ins_seq) else NA_integer_
-    } else if (identical(type, "SUB")) {
-      suppressWarnings({
-        maybe_len <- as.integer(col6)                       # GD column 6 is size
-        if (!is.na(maybe_len)) sub_size <- maybe_len
-      })
-      sub_new_seq <- col7                                   # GD column 7 is new sequence
-    } else if (identical(type, "MOB")) {
-      mob_repeat_name     <- col6                           # repeat_name
-      suppressWarnings(mob_strand <- as.integer(col7))      # 1 / -1
-      suppressWarnings(mob_duplication_size <- as.integer(col8))
+    # Evidence numerics (if applicable)
+    if (kind == "evidence") {
+      ev$ev_frequency <- .as_num(taglist[["frequency"]])
+      ev$ev_quality   <- .as_num(taglist[["quality"]])
+      ref_pair <- .parse_pair(taglist[["ref_cov"]], sep = "/", as = "int")
+      new_pair <- .parse_pair(taglist[["new_cov"]], sep = "/", as = "int")
+      tot_pair <- .parse_pair(taglist[["tot_cov"]], sep = "/", as = "int")
+      ev$ev_ref_cov_1 <- ref_pair[1]; ev$ev_ref_cov_2 <- ref_pair[2]
+      ev$ev_new_cov_1 <- new_pair[1]; ev$ev_new_cov_2 <- new_pair[2]
+      ev$ev_tot_cov_1 <- tot_pair[1]; ev$ev_tot_cov_2 <- tot_pair[2]
+      ev$ev_alignment_overlap <- .as_int(taglist[["alignment_overlap"]])
+      ev$ev_cov_minus         <- .as_int(taglist[["coverage_minus"]])
+      ev$ev_cov_plus          <- .as_int(taglist[["coverage_plus"]])
     }
     
-    # ------------------ Evidence fields (NA by default) ------------------------------
-    is_evidence    <- nchar(type) == 2L                     # RA/JC/MC/UN are 2 letters
-    evidence_class <- if (is_evidence) type else NA_character_
-    
-    ev_frequency   <- .as_num(taglist[["frequency"]])       # common in RA/JC
-    ev_quality     <- .as_num(taglist[["quality"]])         # RA
-    
-    ref_cov_pair   <- .parse_pair(taglist[["ref_cov"]], sep = "/", as = "int")
-    new_cov_pair   <- .parse_pair(taglist[["new_cov"]], sep = "/", as = "int")
-    tot_cov_pair   <- .parse_pair(taglist[["tot_cov"]], sep = "/", as = "int")
-    
-    ev_ref_cov_1   <- ref_cov_pair[1]
-    ev_ref_cov_2   <- ref_cov_pair[2]
-    ev_new_cov_1   <- new_cov_pair[1]
-    ev_new_cov_2   <- new_cov_pair[2]
-    ev_tot_cov_1   <- tot_cov_pair[1]
-    ev_tot_cov_2   <- tot_cov_pair[2]
-    
-    ev_alignment_overlap <- .as_int(taglist[["alignment_overlap"]])  # JC
-    ev_cov_minus         <- .as_int(taglist[["coverage_minus"]])     # JC
-    ev_cov_plus          <- .as_int(taglist[["coverage_plus"]])      # JC
-    
-    # Some annotated.gd include explicit position_start/position_end tags (DEL/INS etc.)
-    ev_pos_start <- .as_int(taglist[["position_start"]])
-    ev_pos_end   <- .as_int(taglist[["position_end"]])
-    
-    # ------------------ Assemble event ----------------------------------------------
-    ev <- list(
-      # rectangular core
-      type     = type,
-      id       = id,
-      rank     = rank,
-      seq_id   = seq_id,
-      position = position,
-      col6     = col6,
-      col7     = col7,
-      col8     = col8,
-      contig   = contig,
-      
-      # full fidelity
-      tags     = taglist,
-      raw_line = raw,
-      
-      # descriptive mutation fields (NA when not applicable)
-      snp_alt_base         = snp_alt_base,
-      snp_ref_base         = snp_ref_base,
-      del_size             = del_size,
-      ins_seq              = ins_seq,
-      ins_size             = ins_size,
-      sub_size             = sub_size,
-      sub_new_seq          = sub_new_seq,
-      mob_repeat_name      = mob_repeat_name,
-      mob_strand           = mob_strand,
-      mob_duplication_size = mob_duplication_size,
-      
-      # evidence flags + descriptors (NA when not applicable)
-      is_evidence          = is_evidence,
-      evidence_class       = evidence_class,
-      ev_frequency         = ev_frequency,
-      ev_quality           = ev_quality,
-      ev_ref_cov_1         = ev_ref_cov_1,
-      ev_ref_cov_2         = ev_ref_cov_2,
-      ev_new_cov_1         = ev_new_cov_1,
-      ev_new_cov_2         = ev_new_cov_2,
-      ev_tot_cov_1         = ev_tot_cov_1,
-      ev_tot_cov_2         = ev_tot_cov_2,
-      ev_alignment_overlap = ev_alignment_overlap,
-      ev_cov_minus         = ev_cov_minus,
-      ev_cov_plus          = ev_cov_plus,
-      ev_pos_start         = ev_pos_start,
-      ev_pos_end           = ev_pos_end
-    )
-    
-    # Identity hash built from rectangular fixed + tags (ignore descriptive fields)
+    # Hash from raw fixed slice + tags (pre-rectification)
+    row_fixed <- row[seq_len(fixed_end)]
     ev$hash <- canonical_event_hash(
-      fixed_fields = c(ev$type, ev$id, ev$rank, ev$seq_id, ev$position, ev$col6, ev$col7, ev$col8),
-      taglist = ev$tags
+      fixed_fields = row_fixed,
+      taglist      = taglist
     )
     
+    # Drop sentinel and rectify for constructor's rectangle
+    ev$.fixed_end <- NULL
+    ev <- .rectify_for_constructor(ev)
+    
+    # Store
     events[[i]] <- ev
+    kind_vec[i] <- kind
   }
   
+  # Package object
   gd_checksum <- gd_digest(gd_path, file = TRUE)
   
   obj <- new_genome_entity_gd(
-    header     = header,
-    events     = events,
-    file       = list(path = normalizePath(gd_path), checksum = gd_checksum),
-    entity     = entity,
-    reference  = ref_manifest,
-    strict     = strict
+    header    = header,
+    events    = events,
+    file      = list(path = normalizePath(gd_path), checksum = gd_checksum),
+    entity    = entity,
+    reference = ref_manifest,
+    strict    = strict
+  )
+  
+  # Optional: keep kind indices for convenience
+  obj$provenance$by_kind <- list(
+    mutation_idx   = which(kind_vec == "mutation"),
+    evidence_idx   = which(kind_vec == "evidence"),
+    validation_idx = which(kind_vec == "validation")
   )
   
   validate_genome_entity_gd(obj, strict = strict)
 }
-
-
-

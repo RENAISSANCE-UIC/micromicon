@@ -313,3 +313,46 @@ harmonize_gff_seqlevels <- function(genome_obj,
 }
 
 
+
+# Nullish fallback for scalars/length-1 values:
+# Returns `b` iff a is NULL, length-0, or (length-1 AND NA); otherwise returns `a` unchanged.
+scalar_coalesce <- function(a, b) {
+  if (is.null(a))            return(b)
+  if (length(a) == 0L)       return(b)
+  if (length(a) == 1L && is.na(a)) return(b)
+  a
+}
+
+# Fallback that ONLY treats NULL/length-0 as missing. Useful for sentinels that may be 0 or NA.
+null_coalesce <- function(a, b) {
+  if (is.null(a) || length(a) == 0L) b else a
+}
+
+# Element-wise coalesce (vector-safe). Keeps the type of the first non-NULL input.
+# Recycles RHS vectors; ignores NULL args; treats NA as missing.
+vec_coalesce <- function(...) {
+  args <- list(...)
+  # drop NULLs early
+  args <- args[!vapply(args, is.null, logical(1))]
+  if (length(args) == 0L) return(NULL)
+  # target length
+  lens <- vapply(args, length, integer(1))
+  L <- max(lens)
+  # recycle
+  args <- lapply(args, function(x) if (length(x) == 0L) rep(NA, L) else rep_len(x, L))
+  out <- args[[1]]
+  if (length(args) > 1L) {
+    for (k in 2:length(args)) {
+      idx <- is.na(out)
+      out[idx] <- args[[k]][idx]
+    }
+  }
+  out
+}
+
+# Return the first non-NA element (or NA if none). Handy for "representative" choices.
+first_non_na <- function(x) {
+  if (is.null(x) || length(x) == 0L) return(NA)
+  i <- which(!is.na(x))
+  if (length(i)) x[i[1]] else x[1]
+}
