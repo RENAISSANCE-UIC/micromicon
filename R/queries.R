@@ -843,15 +843,26 @@ get_roi_fasta <- function(genome_obj,
   # Calculate actual coordinates with flanking
   actual_start <- max(1, start - flank)
   actual_end <- end + flank
-  
+
   # Get sequence length to validate end coordinate
-  si <- seqinfo(genome_obj$fa)
-  seq_lengths <- seqlengths(si)
-  
+  # Use fa (FaFile) if available, otherwise use fasta (DNAStringSet)
+  if (!is.null(genome_obj$fa)) {
+    si <- GenomeInfoDb::seqinfo(genome_obj$fa)
+    seq_lengths <- GenomeInfoDb::seqlengths(si)
+  } else if (!is.null(genome_obj$fasta)) {
+    seq_lengths <- BiocGenerics::width(genome_obj$fasta)
+    # Ensure names are preserved
+    if (is.null(names(seq_lengths))) {
+      names(seq_lengths) <- names(genome_obj$fasta)
+    }
+  } else {
+    cli::cli_abort("No sequence data available in genome_obj (neither $fa nor $fasta)")
+  }
+
   if (!seqname %in% names(seq_lengths)) {
     cli::cli_abort("Seqname '{seqname}' not found in FASTA. Available: {paste(names(seq_lengths), collapse = ', ')}")
   }
-  
+
   # Adjust end if it exceeds chromosome length
   max_length <- seq_lengths[seqname]
   if (actual_end > max_length) {
@@ -871,35 +882,48 @@ get_roi_fasta <- function(genome_obj,
   }
   
   # Create GRanges object for extraction
-  roi <- GRanges(
+  roi <- GenomicRanges::GRanges(
     seqnames = seqname,
-    ranges = IRanges(start = actual_start, end = actual_end),
+    ranges = IRanges::IRanges(start = actual_start, end = actual_end),
     strand = strand
   )
-  
+
   # Extract sequence
   message(sprintf("Extracting sequence from %s:%d-%d (+/-%d bp, strand: %s)",
                   seqname, start, end, flank, strand))
-  
-  seq <- getSeq(genome_obj$fa, roi)
-  
+
+  # Use fa (FaFile) if available, otherwise use fasta (DNAStringSet)
+  if (!is.null(genome_obj$fa)) {
+    seq <- Biostrings::getSeq(genome_obj$fa, roi)
+  } else {
+    # For DNAStringSet, extract the specific sequence then get subsequence
+    chr_seq <- genome_obj$fasta[[seqname]]
+    if (is.null(chr_seq)) {
+      cli::cli_abort("Sequence '{seqname}' not found in DNAStringSet")
+    }
+    # Extract the region (accounting for strand)
+    seq <- Biostrings::subseq(chr_seq, start = actual_start, end = actual_end)
+    # Convert to DNAStringSet for consistency
+    seq <- Biostrings::DNAStringSet(seq)
+  }
+
   # Apply reverse complement if on minus strand and requested
   if (strand == "-" && reverse_complement) {
     message("Applying reverse complement for minus strand")
-    seq <- reverseComplement(seq)
+    seq <- Biostrings::reverseComplement(seq)
   }
-  
+
   # Set sequence name
   names(seq) <- seq_name
-  
+
   # Report sequence info
   message(sprintf("Extracted %d bp (requested region: %d bp, with flank: %d bp)",
-                  width(seq), end - start + 1, actual_end - actual_start + 1))
+                  BiocGenerics::width(seq), end - start + 1, actual_end - actual_start + 1))
   
   # Write to file if requested
   if (!is.null(output_file)) {
     message("Writing sequence to: ", output_file)
-    writeXStringSet(seq, filepath = output_file, format = "fasta")
+    Biostrings::writeXStringSet(seq, filepath = output_file, format = "fasta")
   }
   
   return(seq)
@@ -1047,10 +1071,24 @@ get_feature_fasta <- function(genome_obj,
   }
   
   # Fix seqnames if needed
-  fa_headers <- genome_obj$seqnames
-  if (length(fa_headers) == 1) {
-    seqlevels(features) <- fa_headers
-    seqnames(features) <- Rle(fa_headers)
+  # Get actual sequence names from the data source
+  if (!is.null(genome_obj$fa)) {
+    actual_seqnames <- names(GenomeInfoDb::seqlengths(GenomeInfoDb::seqinfo(genome_obj$fa)))
+  } else if (!is.null(genome_obj$fasta)) {
+    actual_seqnames <- names(genome_obj$fasta)
+  } else {
+    cli::cli_abort("No sequence data available")
+  }
+
+  # If there's only one sequence and features have different seqnames, fix them
+  if (length(actual_seqnames) == 1) {
+    message(sprintf("Fixing seqnames: '%s' -> '%s'",
+                   as.character(unique(GenomicRanges::seqnames(features)))[1],
+                   actual_seqnames[1]))
+    GenomeInfoDb::seqlevels(features) <- actual_seqnames
+    GenomicRanges::seqnames(features) <- S4Vectors::Rle(rep(actual_seqnames[1], length(features)))
+  } else if (length(actual_seqnames) == 0) {
+    cli::cli_abort("FASTA/DNAStringSet has no sequence names set. This suggests a data structure issue.")
   }
   
   # Prepare extraction regions based on strand
@@ -1058,24 +1096,24 @@ get_feature_fasta <- function(genome_obj,
     feat <- features[i]
     
     # Calculate coordinates accounting for strand
-    if (as.character(strand(feat)) == "-") {
+    if (as.character(GenomicRanges::strand(feat)) == "-") {
       # For minus strand, upstream is actually downstream in coordinates
-      new_start <- start(feat) - flank_downstream
-      new_end <- end(feat) + flank_upstream
+      new_start <- BiocGenerics::start(feat) - flank_downstream
+      new_end <- BiocGenerics::end(feat) + flank_upstream
     } else {
       # For plus strand
-      new_start <- start(feat) - flank_upstream
-      new_end <- end(feat) + flank_downstream
+      new_start <- BiocGenerics::start(feat) - flank_upstream
+      new_end <- BiocGenerics::end(feat) + flank_downstream
     }
     
     # If not including feature, adjust coordinates
     if (!include_feature) {
-      if (as.character(strand(feat)) == "-") {
-        new_start <- end(feat) + 1
-        new_end <- end(feat) + flank_upstream
+      if (as.character(GenomicRanges::strand(feat)) == "-") {
+        new_start <- BiocGenerics::end(feat) + 1
+        new_end <- BiocGenerics::end(feat) + flank_upstream
       } else {
-        new_start <- start(feat) - flank_upstream
-        new_end <- start(feat) - 1
+        new_start <- BiocGenerics::start(feat) - flank_upstream
+        new_end <- BiocGenerics::start(feat) - 1
       }
     }
     
@@ -1083,29 +1121,29 @@ get_feature_fasta <- function(genome_obj,
     feat_name <- if (!is.null(feat$Name)) {
       sprintf("%s_%s:%d-%d_up%d_down%d(%s)",
               feat$Name,
-              as.character(seqnames(feat)),
-              start(feat),
-              end(feat),
+              as.character(GenomicRanges::seqnames(feat)),
+              BiocGenerics::start(feat),
+              BiocGenerics::end(feat),
               flank_upstream,
               flank_downstream,
-              as.character(strand(feat)))
+              as.character(GenomicRanges::strand(feat)))
     } else {
       sprintf("%s:%d-%d_up%d_down%d(%s)",
-              as.character(seqnames(feat)),
-              start(feat),
-              end(feat),
+              as.character(GenomicRanges::seqnames(feat)),
+              BiocGenerics::start(feat),
+              BiocGenerics::end(feat),
               flank_upstream,
               flank_downstream,
-              as.character(strand(feat)))
+              as.character(GenomicRanges::strand(feat)))
     }
     
     # Extract sequence
     seq <- get_roi_fasta(
       genome_obj = genome_obj,
-      seqname = as.character(seqnames(feat)),
+      seqname = as.character(GenomicRanges::seqnames(feat)),
       start = max(1, new_start),
       end = new_end,
-      strand = as.character(strand(feat)),
+      strand = as.character(GenomicRanges::strand(feat)),
       seq_name = feat_name
     )
     
