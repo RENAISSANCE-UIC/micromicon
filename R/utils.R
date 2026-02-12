@@ -357,18 +357,6 @@ first_non_na <- function(x) {
   if (length(i)) x[i[1]] else x[1]
 }
 
-
-#' Convert gd$events to a rectangular table
-#' @param gd genome_entity_gd
-#' @param expand_tags logical; flatten tags list into tag_* columns
-#' @param include_raw logical; include raw_line column
-#' @param include_hash logical; include hash column
-#' @param types optional character vector to keep only these event types (e.g., c("SNP","DEL"))
-#' @param kinds optional character vector to keep only these kinds: "mutation","evidence","validation"
-#' @param n show only first n rows (Inf keeps all)
-#' @param cols optional character vector for preferred column order (others appended)
-#' @return data.frame or tibble
-
 #' Convert genome_entity_gd events to a data frame
 #'
 #' Converts the nested event list from a genome_entity_gd object into a tidy
@@ -555,8 +543,6 @@ gd_events_table <- function(
 .coerce_tbl <- function(df) {
   if (requireNamespace("tibble", quietly = TRUE)) tibble::as_tibble(df) else df
 }
-
-
 
 #' Preview genome_entity_gd events in a compact table
 #'
