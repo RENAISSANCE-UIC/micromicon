@@ -3,14 +3,14 @@
 This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether working with reference genomes (GenBank, GFF3+FASTA) or mutation data (breseq `annotated.gd` files), `micromicon` provides a unified interface for genome navigation and variation analysis. 
 
 The package supports two complementary modes: 
-* **Genome Navigation Mode** (`genome_entity`) for reference sequence exploration
-* **Variation Analysis Mode** (`genome_entity_gd`) for tracking and analyzing mutations from the breseq pipeline.
+* **Genome Navigation Mode** (based around the `genome_entity` object) for reference sequence exploration.
+* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the breseq pipeline.
 
 ## Why micRomicon?
 
 We wanted a free, open-source toolkit that worked naturally for R users and lowered the barrier of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After decades of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so that we could reroute cognitive bandwidth toward doing the actual science. 
 
-`micromicon` ingests and consolidates common genomics file formats into a single, stable representation (`genome_entity`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genomics analysis, with space intentionally reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
+`micromicon` ingests and consolidates common genomics file formats into a single, stable representations (`genome_entity`, `genome_entity_gd`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genomics analysis, with space intentionally reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
 
 ## Installation
 
@@ -22,7 +22,7 @@ devtools::install_github("RENAISSANCE-UIC/micromicon")
 devtools::install_local("/path/to/micromicon")
 ```
 
-### Optional (But Recommended): Bioconductor Integration
+### Optional (But Strongly Recommended): Bioconductor Integration
 
 For advanced features:
 
@@ -39,7 +39,7 @@ BiocManager::install(c("GenomicRanges", "Biostrings", "rtracklayer"))
 
 ### Genome Navigation Mode
 
-Built on the `genome_entity` S3 object for reference navigation: sequences, features, metadata, and indices.
+Built on the `genome_entity` S3 object for reference navigation: sequences, features, metadata, and indices. Here, the user can browse the microbial genomic features, pull and inspect sequences, and mine the genomic complement in context. 
 
 ```r
 library(micromicon)
@@ -65,19 +65,19 @@ get_feature_fasta(entity, "acrB_1",
 get_roi_dna(entity, seqname = "1", start = 1834322, end = 1837471)
 get_roi_fasta(entity, seqname = "1", start = 1834322, end = 1837471)
 
-# Coordinate mapping (genomic ↔ CDS)
+# Coordinate mapping (genomic ↔ CDS coordinates)
 ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
 genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
 
-# BLAST proteins
+# BLAST proteins (PROVISIONAL, requires local database)
 blast_protein(protein, database = "swissprot")
 ```
 
 ### Variation Analysis Mode
 
-Implemented as `genome_entity_gd`, an S3 subclass of `genome_entity` that augments the reference with parsed `annotated.gd` events from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing), provenance, and reference manifest.
+Implemented as `genome_entity_gd`, which inherits from the `genome_entity` object, this allows the reference to be supplemented with genomic variation events documented in the `annotated.gd` output from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing). 
 
-**Key principle**: Legacy `genome_entity` functions operate unchanged on `genome_entity_gd` (inheritance), but the converse is not true—`genome_entity_gd`-specific functions like `predicted_mutations()` require mutation data.
+By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predicted_mutations()` require mutation data.
 
 ```r
 # Parse breseq output with reference genome
@@ -97,7 +97,7 @@ get_roi_fasta(gd, seqname = "1", start = 1834322, end = 1837471)
 map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
-# Variation-specific: Get predicted mutations table
+# Variation-specific: Get predicted mutations data frame
 predicted_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
 ```
 
@@ -112,7 +112,7 @@ write_gff3(genome, "output.gff3")          # Export GFF3 ✓
 write_fasta(genome, "output.fasta")        # Export FASTA ✓
 ```
 
-**ALERT**: This conversion LOSES metadata.
+Note: This conversion LOSES metadata.
 
 #### FORBIDDEN: GFF3+FASTA → GenBank 
 ```r
@@ -142,10 +142,10 @@ genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
 Read genomes (annotations and sequence data) from multiple formats into a unified representation:
 
 ```r
-# GenBank
+# GenBank (contains sequence data, annotation, and metadata)
 genome1 <- read_genome("ecoli.gbk")
 
-# GFF3 + FASTA
+# GFF3 + FASTA (sequence and reference)
 genome2 <- read_genome(gff = "ecoli.gff3", fasta = "ecoli.fna")
 
 # All become genome_entity
@@ -180,20 +180,23 @@ filtered <- feat_filter(features(genome),
 
 ### Extract Sequences
 
-Pull sequences by coordinates or feature names:
+Pull sequences by coordinates or feature names using numerous accessors:
 
 ```r
 # By coordinates
-seq <- extract_by_coords(genome, "chr1", 1000, 2000)
+seqA <- extract_by_coords(genome, "chr1", 1000, 2000)
+seqB <- get_roi_fasta(gd, seqname = "chr1", start = 3000, end = 4000)
 
 # By gene name
-gene_seq <- extract_by_name(genome, "ampC")
+ampC_seq <- extract_by_name(genome, "ampC")
+acrB_seq <- get_gene_dna(genome, "acrB")
 
 # With translation
-protein <- extract_by_name(genome, "ampC",
+ampC_protein <- extract_by_name(genome, "ampC",
   type = "CDS",
   translate = TRUE
 )
+acrB_protein <- get_gene_aa(genome,, gene = "acrB")
 
 # Genomic regions with context
 roi <- roi_coords("chr1", 1000, 2000, "+")
@@ -250,7 +253,7 @@ top_hits <- reduce_hits(hits,
 
 `micromicon` follows some Clean Architecture principles:
 
-- **Entities**: `genome_entity` as the core domain object
+- **Entities**: `genome_entity` and `genome_entity_gd` as the core domain objects
 - **Use Cases**: Pure functions for genome operations
 - **Controllers**: S3 generics for extensibility
 - **Gateways**: Format-specific parsing (GenBank, GFF3, etc.)
@@ -264,7 +267,7 @@ This separation ensures:
 
 ### The Object System Roadmap (S3 → S4/S7)
 
-In this initial release, we employ S3 objects as the primary interface for `genome_entity` and the related operations. This was not (soley) from ideological allegiance, but from pragmatic concinnity: familiarity, low-friction extensibility, and excellent discoverability for most R users. At this stage of development, S3 provides a stalwart, easily inspectable substrate on which to stabilize the core idioms of `micromicon`.
+In this initial release, we employ S3 objects as the primary interface for `genome_entity` all derived and related operations. This was not (soley) from ideological allegiance, but from pragmatic concinnity: familiarity, low-friction extensibility, and excellent discoverability for most R users. At this stage of development, S3 provides a stalwart, easily inspectable substrate on which to stabilize the core idioms of `micromicon`.
 
 As the codebase matures, we plan a gradatim migration toward more constrained and less mutable object systems, likely S4 or S7. Both provide stricter contracts, clearer invariants, and richer introspection, which will become increasingly important as the toolkit grows to support variant-aware workflows, functional consequence inference, and multi-genome comparative operations.
 The precise destination remains open. S7, in particular, offers an appealing blend of rigor and simplicity (orthogonal to S4’s sometimes baroque formalism) while preserving the kind of explicitness that helps prevent accumulation of structural drift. Whatever the final form, the public interface will retain its present ethos: clean, predictable generics and minimal cognitive overhead for downstream analysis.
