@@ -253,48 +253,45 @@ codon_pos <- ((cds_pos - 1) %% 3) + 1
 cat(sprintf("Affects codon %d, position %d\n", codon_num, codon_pos))
 ```
 
-## Working with Mode A (Reference Genomes)
+## Working with Variation Analysis Mode
 
-When working with genome diffs (breseq output), the reference genome is called "Mode A". All the gene utility functions work seamlessly with Mode A genomes:
+All gene utility functions work seamlessly with `genome_entity_gd` objects (breseq output):
 
-```{r mode-a, eval=FALSE}
-# Load reference genome (Mode A)
-ref_genome <- read_genome("reference.gbk")
+```{r variation-mode, eval=FALSE}
+# Load reference genome
+entity <- read_genome("reference.gbk")
 
-# Parse genome diff against reference
-gd <- parse_gd_annotated("annotated.gd", ref_genome)
+# Parse breseq output
+gd <- parse_gd_annotated("annotated.gd", entity)
 
-# Use gene utilities on the reference
-gene_dna <- get_gene_dna(ref_genome, "mutS")
-gene_aa <- get_gene_aa(ref_genome, "mutS")
+# Get predicted mutations
+mutations <- predicted_mutations(gd)
 
-# Validate variants from genome diff
-for (event in gd$events) {
-  if (event$type == "SNP") {
-    # Find which gene this SNP affects
-    affected_genes <- search_features(
-      ref_genome,
-      seqname = event$contig,
-      start = event$position,
-      end = event$position,
-      type = "CDS"
+# Use gene utilities on gd objects (inheritance)
+gene_dna <- get_gene_dna(gd, "mutS")
+gene_aa <- get_gene_aa(gd, "mutS")
+
+# Validate variants from mutation table
+for (i in seq_len(nrow(mutations))) {
+  mut <- mutations[i, ]
+
+  if (mut$type == "SNP" && !is.na(mut$gene)) {
+    # Validate the mutation
+    is_valid <- validate_variant_in_gene(
+      gd,
+      gene = mut$gene,
+      position = mut$position,
+      ref_base = mut$ref
     )
 
-    if (nrow(affected_genes) > 0) {
-      gene <- affected_genes[1, ]
-      is_valid <- validate_variant_in_gene(
-        ref_genome,
-        gene$gene,
-        event$position,
-        event$snp_ref_base
-      )
-      cat(sprintf("SNP in %s: %s\n",
-                  gene$gene,
-                  ifelse(is_valid, "VALID", "INVALID")))
-    }
+    cat(sprintf("SNP in %s: %s\n",
+                mut$gene,
+                ifelse(is_valid, "VALID", "INVALID")))
   }
 }
 ```
+
+For more details on working with breseq data, see `vignette("variation-analysis")`.
 
 ## Performance Notes
 

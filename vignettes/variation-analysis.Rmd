@@ -1,0 +1,328 @@
+---
+title: "Variation Analysis with micromicon"
+author: "William E. Ackerman"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Variation Analysis with micromicon}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = FALSE  # Set to TRUE when example data is available
+)
+```
+
+# Introduction
+
+`micromicon` supports two complementary modes for working with microbial genomes:
+
+1. **Genome Navigation Mode** (`genome_entity`) - For exploring reference genomes
+2. **Variation Analysis Mode** (`genome_entity_gd`) - For tracking mutations from breseq
+
+This vignette focuses on **Variation Analysis Mode**, which integrates mutation data from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) with reference genome navigation.
+
+## Key Principle
+
+`genome_entity_gd` is a **subclass** of `genome_entity`:
+
+- ✅ All `genome_entity` functions work on `genome_entity_gd` (inheritance)
+- ❌ `genome_entity_gd`-specific functions (like `predicted_mutations()`) don't work on plain `genome_entity`
+
+```{r class-hierarchy}
+library(micromicon)
+
+# Read reference genome
+entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
+class(entity)
+# [1] "genome_entity"
+
+# Parse breseq output
+gd <- parse_gd_annotated("annotated.gd", entity)
+class(gd)
+# [1] "genome_entity_gd" "genome_entity"  # Subclass!
+```
+
+# Reading breseq Output
+
+## Prerequisites
+
+Before using `parse_gd_annotated()`, you need:
+
+1. A **reference genome** (GenBank or GFF3+FASTA)
+2. An **annotated.gd** file from breseq
+
+```{r read-reference}
+# Read reference genome
+entity <- read_genome(fasta = "NC_000913.fasta",
+                     gff = "NC_000913.gff3")
+```
+
+## Parsing annotated.gd
+
+The `parse_gd_annotated()` function parses breseq's `annotated.gd` output and links it to your reference genome:
+
+```{r parse-gd}
+# Parse breseq output
+gd <- parse_gd_annotated(
+  gd_path = "output/annotated.gd",
+  entity = entity
+)
+
+# Summary of mutations
+summary(gd)
+```
+
+The resulting `genome_entity_gd` object contains:
+
+- All reference genome data (sequences, features, metadata)
+- Parsed mutation events (SNPs, insertions, deletions, etc.)
+- Provenance information (breseq version, run parameters)
+- Reference manifest (which reference sequences were used)
+
+# Working with Mutation Data
+
+## Predicted Mutations Table
+
+Get a summary table of predicted mutations (reproduces breseq's "Predicted Mutations" table):
+
+```{r predicted-mutations}
+# Get mutations table
+mutations <- predicted_mutations(gd)
+
+# View structure
+head(mutations)
+
+# Filter by type
+snps <- mutations[mutations$type == "SNP", ]
+indels <- mutations[mutations$type %in% c("INS", "DEL"), ]
+```
+
+The table includes:
+
+- **seq_id** - Sequence identifier (chromosome/plasmid)
+- **position** - Genomic position
+- **type** - Mutation type (SNP, INS, DEL, SUB, MOB, etc.)
+- **ref** - Reference allele
+- **new** - Alternate allele
+- **annotation** - Gene/feature annotation
+- **description** - Detailed mutation description
+
+## Mutation Types
+
+breseq reports various mutation types:
+
+- **SNP** - Single nucleotide polymorphism
+- **DEL** - Deletion
+- **INS** - Insertion
+- **SUB** - Substitution (multi-bp)
+- **MOB** - Mobile element insertion
+- **AMP** - Amplification
+- **CON** - Conversion
+- **INV** - Inversion
+
+```{r mutation-types}
+# Count by type
+table(mutations$type)
+
+# Get large deletions
+large_dels <- mutations[mutations$type == "DEL" &
+                       nchar(mutations$ref) > 100, ]
+
+# Get mobile element insertions
+mob_events <- mutations[mutations$type == "MOB", ]
+```
+
+# Genome Navigation with Mutations
+
+All standard genome navigation functions work on `genome_entity_gd` objects:
+
+## Searching Features
+
+```{r search-features}
+# Search for genes (same as genome_entity)
+ampC <- search_features(gd, pattern = "ampC", type = "CDS")
+acrB <- search_features(gd, pattern = "acrB", type = "CDS")
+```
+
+## Extracting Sequences
+
+```{r extract-sequences}
+# Get gene sequences
+protein <- get_gene_aa(gd, gene = "ampC")
+dna <- get_gene_dna(gd, "acrB_1")
+
+# Get regions with flanking
+upstream <- get_feature_fasta(gd, "acrB_1",
+                             flank_upstream = 5000,
+                             flank_downstream = 2000)
+
+# Get regions of interest
+roi_seq <- get_roi_dna(gd, seqname = "1",
+                      start = 1834322, end = 1837471)
+```
+
+## Coordinate Mapping
+
+```{r coordinate-mapping}
+# Map genomic position to CDS position
+cds_pos <- map_genomic_to_cds(gd, gene = "dnaA",
+                              genomic_pos = 3176824)
+
+# Map CDS position to genomic position
+genomic_pos <- map_cds_to_genomic(gd, gene = "dnaA",
+                                  cds_pos = 3)
+```
+
+# Workflow Example
+
+## Complete Analysis Pipeline
+
+Here's a complete workflow for analyzing breseq results:
+
+```{r complete-workflow}
+library(micromicon)
+
+# 1. Read reference genome
+entity <- read_genome(fasta = "reference.fasta",
+                     gff = "reference.gff3")
+
+# 2. Parse breseq output
+gd <- parse_gd_annotated("output/annotated.gd", entity)
+
+# 3. Get mutation summary
+mutations <- predicted_mutations(gd)
+
+# 4. Identify genes with mutations
+mutated_genes <- unique(mutations$gene[!is.na(mutations$gene)])
+cat(sprintf("Found mutations in %d genes\n", length(mutated_genes)))
+
+# 5. Extract sequences for mutated genes
+for (gene in mutated_genes[1:5]) {  # First 5 genes
+  # Get reference sequence
+  ref_seq <- get_gene_dna(gd, gene)
+
+  # Get protein sequence
+  protein <- get_gene_aa(gd, gene)
+
+  # Find mutations in this gene
+  gene_muts <- mutations[mutations$gene == gene, ]
+
+  cat(sprintf("\n%s: %d mutation(s)\n", gene, nrow(gene_muts)))
+  print(gene_muts[, c("position", "type", "description")])
+}
+
+# 6. Export sequences for downstream analysis
+write_fasta(gd, "reference_sequences.fasta")
+write_gff3(gd, "reference_features.gff3")
+```
+
+## Filtering Mutations
+
+```{r filter-mutations}
+# Get high-confidence SNPs (frequency > 0.9)
+high_conf_snps <- mutations[mutations$type == "SNP" &
+                            mutations$frequency > 0.9, ]
+
+# Get coding mutations
+coding_muts <- mutations[!is.na(mutations$gene), ]
+
+# Get intergenic mutations
+intergenic_muts <- mutations[is.na(mutations$gene), ]
+
+# Get nonsynonymous mutations
+nonsyn <- mutations[grepl("nonsynonymous", mutations$description,
+                         ignore.case = TRUE), ]
+```
+
+## Comparing Multiple Samples
+
+```{r multiple-samples}
+# Parse multiple breseq outputs
+samples <- c("sample1", "sample2", "sample3")
+gd_list <- list()
+
+for (sample in samples) {
+  gd_path <- file.path(sample, "output", "annotated.gd")
+  gd_list[[sample]] <- parse_gd_annotated(gd_path, entity)
+}
+
+# Get mutations for each sample
+mut_list <- lapply(gd_list, predicted_mutations)
+
+# Find shared mutations
+shared_genes <- Reduce(intersect,
+                      lapply(mut_list, function(m) unique(m$gene)))
+
+cat(sprintf("Found %d genes mutated in all samples\n",
+           length(shared_genes)))
+```
+
+# Advanced Topics
+
+## Accessing Raw Event Data
+
+The `genome_entity_gd` object contains detailed event information:
+
+```{r raw-events}
+# Access raw events
+str(gd$events, max.level = 1)
+
+# Events are parsed from breseq output
+length(gd$events)
+
+# Each event contains detailed fields
+names(gd$events[[1]])
+```
+
+## Provenance Information
+
+Track breseq run parameters:
+
+```{r provenance}
+# breseq version and parameters
+gd$provenance
+
+# Reference manifest
+gd$reference_manifest
+```
+
+## Integration with Other Tools
+
+Export mutation data for other tools:
+
+```{r export}
+# Export mutations as CSV
+mutations <- predicted_mutations(gd)
+write.csv(mutations, "mutations.csv", row.names = FALSE)
+
+# Export VCF (future feature)
+# write_vcf(gd, "mutations.vcf")
+```
+
+# Summary
+
+**Variation Analysis Mode** (`genome_entity_gd`) provides:
+
+- ✅ Seamless integration of breseq mutation data with reference genomes
+- ✅ All genome navigation functions work unchanged (inheritance)
+- ✅ Mutation-specific functions like `predicted_mutations()`
+- ✅ Provenance tracking for reproducibility
+
+**Next steps**:
+
+- See `vignette("micromicon-intro")` for general genome navigation
+- See `vignette("gene-utilities")` for gene-level operations
+- Check `?parse_gd_annotated` for detailed documentation
+
+# References
+
+- [breseq documentation](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing)
+- [breseq GitHub](https://github.com/barricklab/breseq)
+- Deatherage, D. E., & Barrick, J. E. (2014). Identification of mutations in laboratory-evolved microbes from next-generation sequencing data using breseq. *Methods in Molecular Biology*, 1151, 165-188.

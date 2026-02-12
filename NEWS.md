@@ -1,3 +1,36 @@
+# micromicon 0.2.8
+
+## Bug Fixes: Sequence Extraction Functions
+
+### Fixed Missing Namespace Prefixes
+
+* **Fixed**: Added proper namespace prefixes throughout `get_feature_fasta()` and `get_roi_fasta()`
+  - `GenomicRanges::strand()`, `GenomicRanges::seqnames()`
+  - `BiocGenerics::start()`, `BiocGenerics::end()`, `BiocGenerics::width()`
+  - `GenomeInfoDb::seqinfo()`, `GenomeInfoDb::seqlengths()`, `GenomeInfoDb::seqlevels()`
+  - `Biostrings::getSeq()`, `Biostrings::reverseComplement()`, `Biostrings::writeXStringSet()`
+  - `S4Vectors::Rle()`, `IRanges::IRanges()`
+
+### Enhanced FaFile vs DNAStringSet Support
+
+* **Fixed**: `get_roi_fasta()` now handles both indexed FASTA files (FaFile) and in-memory sequences (DNAStringSet)
+* **Fixed**: Sequence name preservation when using `width()` on DNAStringSet
+* **Fixed**: Proper sequence extraction using `subseq()` for DNAStringSet (since `getSeq()` only works with FaFile)
+* **Fixed**: Automatic seqname matching when single-sequence genomes have mismatched names
+
+### Documentation Updates
+
+* **Added**: Comprehensive README updates introducing two complementary modes:
+  - **Genome Navigation Mode** (`genome_entity`) for reference exploration
+  - **Variation Analysis Mode** (`genome_entity_gd`) for mutation tracking
+* **Added**: New vignette `variation-analysis.Rmd` covering breseq integration and `genome_entity_gd` workflow
+* **Updated**: `gene-utilities.Rmd` to replace "Mode A" terminology with current workflow
+* **Updated**: README examples to show both modes with complete function calls
+
+### Breaking Changes
+
+None - all changes are backward compatible bug fixes and documentation improvements.
+
 # micromicon 0.2.7
 
 ## Major: Genome Difference (GD) Parser and Viewing API

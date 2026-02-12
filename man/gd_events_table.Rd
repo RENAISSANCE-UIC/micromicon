@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{gd_events_table}
 \alias{gd_events_table}
-\title{Convert gd$events to a rectangular table}
+\title{Convert genome_entity_gd events to a data frame}
 \usage{
 gd_events_table(
   gd,
@@ -37,17 +37,12 @@ if FALSE, keep as a list-column}
 \item{stringsAsFactors}{Logical; passed to as.data.frame()}
 }
 \value{
-data.frame or tibble
-Convert genome_entity_gd events to a data frame
-
-Converts the nested event list from a genome_entity_gd object into a tidy
-data frame with one row per event. Tags can either be expanded into individual
-columns (tag_*) or kept as a list-column for programmatic access.
-
 A data frame (or tibble if available) with one row per event
 }
 \description{
-Convert gd$events to a rectangular table
+Converts the nested event list from a genome_entity_gd object into a tidy
+data frame with one row per event. Tags can either be expanded into individual
+columns (tag_*) or kept as a list-column for programmatic access.
 }
 \examples{
 \dontrun{

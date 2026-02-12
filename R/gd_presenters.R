@@ -205,11 +205,12 @@ predicted_mutations_ra <- function(gd, min_freq = 0) {
 #'
 #' Columns: evidence, seq id, position, mutation, freq, annotation, gene, description
 #'
-#' @param gd genome_entity_gd parsed by your v0.2.7 parser
-#' @param min_freq numeric in [0,1], applied to RA evidence (e.g., 0.20 for >20%)
+#' @param gd genome_entity_gd parsed by parse_gd_annotated()
+#' @param min_freq numeric between 0 and 1, applied to RA evidence (e.g., 0.20 for >20%)
 #' @param include_structural logical; include MC/JC-backed structural predictions
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations
+#' @export
 predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   

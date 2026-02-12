@@ -1,6 +1,6 @@
 # micRomicon: An Ostensibly Format-Agnostic Microbial Genomics Toolkit for R
 
-This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether the genome sequence and annotation arrives through GenBank, GFF3+FASTA, or another representation (such as annotated breseq genome difference files, variant calls, curated mutation tables, or other analyses that encode sequence change), `micromicon` will resolve each into a unified `genome_entity` object for downstream interrogation, including future support for transcriptomics and assessing the functional consequences of observed mutations.
+This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether working with reference genomes (GenBank, GFF3+FASTA) or mutation data (breseq `annotated.gd` files), `micromicon` provides a unified interface for genome navigation and variation analysis. The package supports two complementary modes: **Genome Navigation Mode** (`genome_entity`) for reference sequence exploration, and **Variation Analysis Mode** (`genome_entity_gd`) for tracking and analyzing mutations from the breseq pipeline.
 
 ## Why micRomicon?
 
@@ -29,30 +29,72 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install(c("GenomicRanges", "Biostrings", "rtracklayer"))
 ```
 
-## Quick Start
+## Two Complementary Modes
+
+`micromicon` supports two complementary modes that share a common reference backbone but diverge in purpose:
+
+### Genome Navigation Mode
+
+Built on the `genome_entity` S3 object for reference navigation: sequences, features, metadata, and indices.
 
 ```r
 library(micromicon)
 
-# Read any GenBank or GFF3+FASTA
-path <- system.file("extdata", "test_ampC.gbk", package = "micromicon")
-genome <- read_genome(path) 
+# Read reference genome (GenBank or GFF3+FASTA)
+entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
+# or: entity <- read_genome("reference.gbk")
 
-# Explore
-features(genome, type = "CDS")
-sequences(genome)
-genome_metadata(genome)
+# Search and query features
+ampC <- search_features(entity, pattern = "ampC", type = "CDS")
+acrB <- search_features(entity, pattern = "acrB", type = "CDS")
 
-# Query
-ampC <- search_features(genome, pattern = "ampC", type = "CDS")
+# Extract sequences
+protein <- get_gene_aa(entity, gene = "ampC")
+dna <- get_gene_dna(entity, "acrB_1")
 
-# Extract
-protein <- ampC$translation
-dna <- extract_by_coords(genome, ampC$seqname, ampC$start, ampC$end)
+# Get features with flanking regions
+get_feature_fasta(entity, "acrB_1",
+                  flank_upstream = 5000,
+                  flank_downstream = 2000)
 
-# Export
-write_gff3(genome, "output.gff3")
-write_fasta(genome, "output.fasta")
+# Extract regions of interest
+get_roi_dna(entity, seqname = "1", start = 1834322, end = 1837471)
+get_roi_fasta(entity, seqname = "1", start = 1834322, end = 1837471)
+
+# Coordinate mapping (genomic ↔ CDS)
+ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
+genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
+
+# BLAST proteins
+blast_protein(protein, database = "swissprot")
+```
+
+### Variation Analysis Mode
+
+Implemented as `genome_entity_gd`, an S3 subclass of `genome_entity` that augments the reference with parsed `annotated.gd` events from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing), provenance, and reference manifest.
+
+**Key principle**: Legacy `genome_entity` functions operate unchanged on `genome_entity_gd` (inheritance), but the converse is not true—`genome_entity_gd`-specific functions like `predicted_mutations()` require mutation data.
+
+```r
+# Parse breseq output with reference genome
+gd <- parse_gd_annotated(
+  gd_path = "annotated.gd",
+  entity = entity
+)
+
+# Summary of mutations
+summary(gd)
+
+# All genome navigation functions work on gd objects
+get_gene_aa(gd, gene = "ampC")
+get_gene_dna(gd, "acrB_1")
+get_roi_dna(gd, seqname = "1", start = 1834322, end = 1837471)
+get_roi_fasta(gd, seqname = "1", start = 1834322, end = 1837471)
+map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
+map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
+
+# Variation-specific: Get predicted mutations table
+predicted_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
 ```
 
 ### Format Conversion Rules
@@ -252,11 +294,30 @@ We have borrowed the excellent design idioms familiar in other ecosystems (clean
 
 ## Extensibility
 
-`micromicon` is designed to be extended. 
+`micromicon` is designed to be extended through S3 subclassing.
+
+### Subclassing Example: `genome_entity_gd`
+
+The `genome_entity_gd` subclass demonstrates extensibility:
+
+```r
+# genome_entity_gd extends genome_entity with mutation data
+gd <- parse_gd_annotated("annotated.gd", entity)
+
+class(gd)
+# [1] "genome_entity_gd" "genome_entity"
+
+# All base methods work (inheritance)
+features(gd)           # Works
+get_gene_aa(gd, "ampC")  # Works
+
+# New methods for subclass
+predicted_mutations(gd)  # gd-specific function
+```
 
 ### Custom Genome Sources
 
-Implement methods for new `genome_entity` subclasses:
+You can implement your own subclasses:
 
 ```r
 # Define a remote genome class
@@ -274,13 +335,21 @@ features.genome_entity_remote <- function(x, ...) {
 features(remote_genome)  # Dispatches to your method
 ```
 
+### Current Capabilities
+
+`micromicon` currently supports:
+- ✅ **Variant-aware workflows**: Track mutations via `genome_entity_gd`
+- ✅ **breseq integration**: Parse `annotated.gd` files with `parse_gd_annotated()`
+- ✅ **Mutation tables**: Generate predicted mutations summaries
+- ✅ **Unified interface**: All navigation functions work on both modes
+
 ### Future Directions
 
-`micromicon` is built to enable support:
-- **Variant-aware workflows**: Track mutations across genomes
-- **Functional consequence prediction**: Assess mutation impacts
-- **breseq integration**: Import mutation calls
-- **Comparative genomics**: Multi-genome operations
+Planned features:
+- **Functional consequence prediction**: Assess mutation impacts on protein function
+- **Comparative genomics**: Multi-genome operations and phylogenetic integration
+- **VCF support**: Import variant calls from other pipelines
+- **Time-series analysis**: Track evolutionary dynamics across multiple samples
 
 ## Dependencies
 
