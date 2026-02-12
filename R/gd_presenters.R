@@ -214,11 +214,8 @@ predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   
   join <- match.arg(join)
-  
-  # ---------------------------
+
   # Unborked scalar/tag helpers
-  # ---------------------------
-  
   scalar_or <- function(a, b) {
      # If it's a list, do NOT truncate—either return the whole list or fallback
      if (is.list(a)) return(if (is.null(a)) b else a)
@@ -256,9 +253,7 @@ predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
   fmt_pos  <- function(x) formatC(x, big.mark = ",", format = "d")
   fmt_freq <- function(x) ifelse(is.na(x), NA, sprintf("%.1f%%", 100 * as.numeric(x)))
   
-  # ======================================
   # Phase A — RA (polymorphism) predictions
-  # ======================================
   ev <- gd_events_table(gd, kinds = "evidence", expand_tags = FALSE)
   ra <- subset(ev, type == "RA")
   n_ra <- nrow(ra)
@@ -387,11 +382,9 @@ predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
       stringsAsFactors = FALSE
     )
   }
-  
-  # ======================================
+
   # Phase B — MC/JC structural predictions
   # (read directly from gd$events; aggregate tags from evidence parents)
-  # ======================================
   struct_out <- data.frame()
   if (isTRUE(include_structural)) {
     ev_list <- gd$events
@@ -579,9 +572,7 @@ predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
     }
   }
   
-  # ==========================
   # Merge, order, and return
-  # ==========================
   out <- rbind(ra_out, struct_out)
   if (nrow(out) == 0L) return(out)
   
