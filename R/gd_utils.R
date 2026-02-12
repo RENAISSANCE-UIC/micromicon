@@ -128,18 +128,15 @@ gd_arrowize <- function(x) {
   trimws(x)
 }
 
+# ---- class guard 
 
+#' Assert that x is a genome_entity_gd
+#' @keywords internal
+gd_assert <- function(x, arg = "x") {
+  if (!inherits(x, "genome_entity_gd")) {
+    stop(sprintf("%s must be a 'genome_entity_gd' (got class: %s)",
+                 arg, paste(class(x), collapse = "/")), call. = FALSE)
+  }
+  invisible(x)
+}
 
-# # strand-aware base to apply in CDS space
-# new_base_cds <- if (strand == "+") new_base else gd_complement_base(new_base)
-# 
-# # splice into CDS
-# gene_dna_mut <- gd_replace_substring1(gene_dna_ref, cds_pos, new_base_cds)
-# 
-# # codon/AA bookkeeping
-# w <- gd_codon_window(cds_pos)
-# codon_ref <- substr(gene_dna_ref, w$codon_start, w$codon_start + 2L)
-# codon_new <- substr(gene_dna_mut, w$codon_start, w$codon_start + 2L)
-# gene_aa_mut <- gd_translate_cds(gene_dna_mut)
-# aa_ref_i <- substr(gene_aa_ref, w$aa_index, w$aa_index)
-# aa_new_i <- substr(gene_aa_mut, w$aa_index, w$aa_index)
