@@ -32,8 +32,8 @@ This vignette focuses on **Variation Analysis Mode**, which integrates mutation 
 
 `genome_entity_gd` is a **subclass** of `genome_entity`:
 
-- ✅ All `genome_entity` functions work on `genome_entity_gd` (inheritance)
-- ❌ `genome_entity_gd`-specific functions (like `predicted_mutations()`) don't work on plain `genome_entity`
+- All `genome_entity` functions work on `genome_entity_gd` (inheritance)
+- `genome_entity_gd`-specific functions (like `predicted_mutations()`) **don't work** on plain `genome_entity`
 
 ```{r class-hierarchy}
 library(micromicon)
@@ -310,10 +310,10 @@ write.csv(mutations, "mutations.csv", row.names = FALSE)
 
 **Variation Analysis Mode** (`genome_entity_gd`) provides:
 
-- ✅ Seamless integration of breseq mutation data with reference genomes
-- ✅ All genome navigation functions work unchanged (inheritance)
-- ✅ Mutation-specific functions like `predicted_mutations()`
-- ✅ Provenance tracking for reproducibility
+- Seamless integration of breseq mutation data with reference genomes
+- All genome navigation functions work unchanged (inheritance)
+- Mutation-specific functions like `predicted_mutations()`
+- Provenance tracking for reproducibility
 
 **Next steps**:
 
