@@ -86,6 +86,8 @@ gd <- parse_gd_annotated(
   entity = entity
 )
 
+class(gd) # [1] "genome_entity_gd" "genome_entity"   
+
 # Summary of mutations
 summary(gd)
 
@@ -255,7 +257,7 @@ top_hits <- reduce_hits(hits,
 
 - **Entities**: `genome_entity` and `genome_entity_gd` as the core domain objects
 - **Use Cases**: Pure functions for genome operations
-- **Controllers**: S3 generics for extensibility
+- **Controllers**: S3 generics for extensibility and dispatching
 - **Gateways**: Format-specific parsing (GenBank, GFF3, etc.)
 
 This separation ensures:
