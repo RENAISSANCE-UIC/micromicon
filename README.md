@@ -10,7 +10,11 @@ The package supports two complementary modes:
 
 We wanted a free, open-source toolkit that worked naturally for R users and lowered the barrier of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After decades of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so that we could reroute cognitive bandwidth toward doing the actual science. 
 
+<<<<<<< HEAD
 `micromicon` ingests and consolidates common genomics file formats into stable representations (`genome_entity`, `genome_entity_gd`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genomics analysis, with space intentionally reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
+=======
+`micromicon` ingests and consolidates common genomics file formats into a single, stable representations (`genome_entity`, `genome_entity_gd`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genomics analysis, with space intentionally reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
+>>>>>>> 46bb4fe (clarification of expected bug; was not a bug)
 
 ## Installation
 
@@ -179,6 +183,8 @@ filtered <- feat_filter(features(genome),
   name = "lac"
 )
 ```
+
+**Note on feature types**: Available feature types vary by annotation source. Bacterial genome annotations (especially from Prokka, breseq, or similar tools) typically contain only `CDS` features without separate `gene` features. GenBank files from NCBI may include both. Use `unique(entity$features$type)` to see what's available in your data.
 
 ### Extract Sequences
 

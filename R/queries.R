@@ -727,7 +727,7 @@ analyze_roi <- function(genome_obj,
 }
 
 
-#' Search Genome-wide for Features
+#' Search Genome-wide for Features (Legacy Internal)
 #'
 #' @param genome_obj Genome object from init_genome()
 #' @param pattern Regex pattern to search in Name or Note fields
@@ -735,8 +735,8 @@ analyze_roi <- function(genome_obj,
 #' @param feature_type Feature type filter (default = "CDS")
 #' @param tidy Return tidy data frame (default = TRUE)
 #' @return GRanges or tibble with matching features
-#' @export
-#' 
+#' @keywords internal
+#'
 search_features_legacy_internal <- function(genome_obj,
                             pattern,
                             field = "Note",

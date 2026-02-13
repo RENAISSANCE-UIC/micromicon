@@ -14,7 +14,11 @@ search_features(x, ...)
 
 \item{...}{Additional arguments}
 
-\item{type}{Character; filter by feature type (e.g., "gene", "CDS")}
+\item{type}{Character; filter by feature type (e.g., "CDS", "gene").
+Case-insensitive. Note: Available types vary by annotation source.
+Bacterial annotations (Prokka, breseq) typically contain only "CDS"
+features without separate "gene" features. Use \code{unique(x$features$type)}
+to see what's available in your data.}
 
 \item{pattern}{Character string to search for in feature annotations.
 Searches across ID, Name, Alias, gene, locus_tag, and product fields
@@ -39,13 +43,16 @@ Search for features matching criteria (type, name, coordinates).
 \dontrun{
 genome <- read_genome("data.gbk")
 
-# Find all genes
-genes <- search_features(genome, type = "gene")
+# Check what feature types are available
+unique(genome$features$type)
+
+# Find all CDS features (most common in bacterial genomes)
+cds <- search_features(genome, type = "CDS")
 
 # Find CDS on chr1
 cds_chr1 <- search_features(genome, type = "CDS", seqname = "chr1")
 
-# Find features matching pattern
+# Find features matching pattern (searches gene names, products, etc.)
 dna_features <- search_features(genome, pattern = "dna")
 }
 }

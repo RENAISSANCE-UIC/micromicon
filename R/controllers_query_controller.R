@@ -126,7 +126,11 @@ extract_sequences_by_coords <- function(x, seqname, start, end,
 #' Search for features matching criteria (type, name, coordinates).
 #'
 #' @param x A genome_entity object
-#' @param type Character; filter by feature type (e.g., "gene", "CDS")
+#' @param type Character; filter by feature type (e.g., "CDS", "gene").
+#'   Case-insensitive. Note: Available types vary by annotation source.
+#'   Bacterial annotations (Prokka, breseq) typically contain only "CDS"
+#'   features without separate "gene" features. Use `unique(x$features$type)`
+#'   to see what's available in your data.
 #' @param pattern Character string to search for in feature annotations.
 #'   Searches across ID, Name, Alias, gene, locus_tag, and product fields
 #'   (case-insensitive). Compatible with various GFF3 annotation sources
@@ -144,13 +148,16 @@ extract_sequences_by_coords <- function(x, seqname, start, end,
 #' \dontrun{
 #' genome <- read_genome("data.gbk")
 #'
-#' # Find all genes
-#' genes <- search_features(genome, type = "gene")
+#' # Check what feature types are available
+#' unique(genome$features$type)
+#'
+#' # Find all CDS features (most common in bacterial genomes)
+#' cds <- search_features(genome, type = "CDS")
 #'
 #' # Find CDS on chr1
 #' cds_chr1 <- search_features(genome, type = "CDS", seqname = "chr1")
 #'
-#' # Find features matching pattern
+#' # Find features matching pattern (searches gene names, products, etc.)
 #' dna_features <- search_features(genome, pattern = "dna")
 #' }
 search_features <- function(x, type = NULL, pattern = NULL,
@@ -168,7 +175,7 @@ search_features <- function(x, type = NULL, pattern = NULL,
 
   # Apply filters
   if (!is.null(type) && "type" %in% names(feats)) {
-    feats <- feats[feats$type == type, ]
+    feats <- feats[tolower(feats$type) == tolower(type), ]
   }
 
   if (!is.null(pattern)) {

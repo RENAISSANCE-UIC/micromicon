@@ -16,7 +16,7 @@ search_features.genome_entity <- function(x, type = NULL, pattern = NULL,
   feats <- x$features
 
   if (!is.null(type) && "type" %in% names(feats)) {
-    feats <- feats[feats$type == type, ]
+    feats <- feats[tolower(feats$type) == tolower(type), ]
   }
 
   if (!is.null(pattern)) {

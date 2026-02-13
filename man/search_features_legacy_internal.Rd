@@ -2,7 +2,7 @@
 % Please edit documentation in R/queries.R
 \name{search_features_legacy_internal}
 \alias{search_features_legacy_internal}
-\title{Search Genome-wide for Features}
+\title{Search Genome-wide for Features (Legacy Internal)}
 \usage{
 search_features_legacy_internal(
   genome_obj,
@@ -27,5 +27,6 @@ search_features_legacy_internal(
 GRanges or tibble with matching features
 }
 \description{
-Search Genome-wide for Features
+Search Genome-wide for Features (Legacy Internal)
 }
+\keyword{internal}
