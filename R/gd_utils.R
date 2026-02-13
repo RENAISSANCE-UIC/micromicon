@@ -238,7 +238,7 @@ gd_compute_snp_effect <- function(gd, seq_id, position, gene) {
   )
 }
 
-
+# printer for gd_compute_snp_effect()
 gd_snp_effect_row <- function(gd, seq_id, position, gene) {
   r <- gd_compute_snp_effect(gd, seq_id, position, gene)
   if (!isTRUE(r$ok)) {
@@ -265,5 +265,174 @@ gd_snp_effect_row <- function(gd, seq_id, position, gene) {
   )
 }
 
+# Prefer CDS exact symbol; fall back to gene exact symbol.
+gd_resolve_feature <- function(gd, symbol) {
+  gd_assert(gd, "gd")
+  # First try CDS exact match
+  cds <- try(search_features(gd, type = "CDS", pattern = paste0("^", symbol, "$")), silent = TRUE)
+  if (!inherits(cds, "try-error") && !is.null(cds) && nrow(cds) >= 1L) {
+    return(cds[1L, , drop = FALSE])
+  }
+  # Fall back to gene exact match
+  gen <- try(search_features(gd, type = "gene", pattern = paste0("^", symbol, "$")), silent = TRUE)
+  if (!inherits(gen, "try-error") && !is.null(gen) && nrow(gen) >= 1L) {
+    return(gen[1L, , drop = FALSE])
+  }
+  stop("gd_resolve_feature: could not resolve feature for symbol: ", symbol, call. = FALSE)
+}
 
+
+gd_classify_snp <- function(gd, seq_id, position, gene) {
+  v <- gd_verify_snp(gd, seq_id, position, gene)
+  if (!isTRUE(v$ok)) {
+    return(c(v, consequence = NA_character_))
+  }
+  cons <- if (identical(v$aa_ref, v$aa_new)) "synonymous" else if (identical(v$aa_new, "*")) "nonsense" else "missense"
+  c(v, consequence = cons)
+}
+
+
+#' Verify a single SNP by editing the CDS and re-translating
+#'
+#' @param gd genome_entity_gd
+#' @param seq_id character or integer contig id (as used in GD)
+#' @param position integer 1-based genomic position
+#' @param gene feature symbol to verify against (prefer CDS symbol)
+#' @return tibble-like list/data.frame with fields:
+#'   ok, reason, seq_id, position, gene, strand, cds_pos, aa_index,
+#'   codon_ref, codon_new, aa_ref, aa_new, consequence
+#' @export
+gd_verify_snp <- function(gd, seq_id, position, gene) {
+  gd_assert(gd, "gd")
+  
+  # Evidence table – we still key off RA to get ref/alt bases
+  ev_tbl <- gd_events_table(gd, kinds = "evidence", expand_tags = FALSE)
+  
+  # Normalize inputs
+  seq_id_chr <- as.character(seq_id)
+  pos_int    <- suppressWarnings(as.integer(gsub(",", "", position)))
+  
+  # Find the single RA evidence at (seq_id, position)
+  ra <- subset(ev_tbl, type == "RA" & seq_id == seq_id_chr & position == pos_int)
+  if (nrow(ra) != 1L) {
+    return(tibble::tibble(
+      ok = FALSE, reason = sprintf("expected 1 RA at %s:%s; found %d", seq_id_chr, pos_int, nrow(ra)),
+      seq_id = seq_id_chr, position = pos_int, gene = gene,
+      strand = NA_character_,
+      cds_pos = NA_integer_, aa_index = NA_integer_,
+      codon_ref = NA_character_, codon_new = NA_character_,
+      aa_ref = NA_character_, aa_new = NA_character_,
+      consequence = NA_character_
+    ))
+  }
+  
+  ref <- ra$ra_ref_base
+  alt <- ra$ra_new_base
+  
+  # Resolve feature, mapping, and sequences
+  feat   <- gd_resolve_feature(gd, gene)
+  strand <- feat$strand[1L]
+  
+  cds_pos <- map_genomic_to_cds(gd, gene, pos_int)
+  cds_pos <- if (is.list(cds_pos)) scalar_or(cds_pos$cds_pos, NA_integer_) else cds_pos
+  if (is.na(cds_pos)) {
+    return(tibble::tibble(
+      ok = FALSE, reason = "noncoding_or_intergenic",
+      seq_id = seq_id_chr, position = pos_int, gene = gene,
+      strand = strand,
+      cds_pos = NA_integer_, aa_index = NA_integer_,
+      codon_ref = NA_character_, codon_new = NA_character_,
+      aa_ref = NA_character_, aa_new = NA_character_,
+      consequence = NA_character_
+    ))
+  }
+  
+  dna_ref <- get_gene_dna(gd, gene)
+  aa_ref  <- get_gene_aa(gd, gene)
+  
+  # Strand discipline: complement allele for minus strand
+  alt_cds <- if (identical(strand, "+")) alt else gd_revcomp(alt)
+  
+  # Edit the CDS at cds_pos (1-based)
+  dna_mut <- gd_replace_substring1(dna_ref, cds_pos, alt_cds)
+  
+  # Compute codon window and translate
+  w <- gd_codon_window(cds_pos)
+  codon_ref <- toupper(substr(dna_ref, w$codon_start, w$codon_start + 2L))
+  codon_new <- toupper(substr(dna_mut, w$codon_start, w$codon_start + 2L))
+  
+  aa_mut <- gd_translate_cds(dna_mut)
+  aa_r   <- substr(aa_ref, w$aa_index, w$aa_index)
+  aa_n   <- substr(aa_mut, w$aa_index, w$aa_index)
+  
+  consequence <- if (identical(aa_r, aa_n)) {
+    "synonymous"
+  } else if (identical(aa_n, "*")) {
+    "nonsense"
+  } else {
+    "missense"
+  }
+  
+  tibble::tibble(
+    ok = TRUE, reason = NA_character_,
+    seq_id = seq_id_chr, position = pos_int, gene = gene, strand = strand,
+    cds_pos = as.integer(cds_pos), aa_index = as.integer(w$aa_index),
+    codon_ref = codon_ref, codon_new = codon_new,
+    aa_ref = aa_r, aa_new = aa_n,
+    consequence = consequence
+  )
+}
+
+
+# Return all CDS overlapping pos; if none, return nearest upstream/downstream CDS with distances
+gd_features_at <- function(gd, seq_id, pos, feature_type = "CDS", 
+                           max_candidates = 10L) {
+  gd_assert(gd, "gd")
+  # Pull CDS catalogue once (assumes you have a cached feature table accessor)
+  # If you already have a function to list features, use that; otherwise:
+  feats <- search_features(gd, type = feature_type, pattern = ".*")  # all CDS
+  if (!nrow(feats)) return(list(overlap = feats[0,], upstream = NULL, downstream = NULL))
+  
+  # Restrict to contig
+  f <- feats[feats$seq_id == as.character(seq_id), , drop = FALSE]
+  if (!nrow(f)) return(list(overlap = f[0,], upstream = NULL, downstream = NULL))
+  
+  # Normalize coordinates: start <= end; get overlaps
+  s <- pmin(f$start, f$end); e <- pmax(f$start, f$end)
+  overlaps <- (pos >= s) & (pos <= e)
+  
+  if (any(overlaps)) {
+    return(list(
+      overlap   = f[overlaps, , drop = FALSE],
+      upstream  = NULL,
+      downstream= NULL
+    ))
+  }
+  
+  # No overlap: compute signed distances to interval edges
+  # distance is min(|pos - s|, |pos - e|) but signed by direction w.r.t. feature
+  # We'll also retain which side (upstream/downstream) in genomic order.
+  d_left  <- pos - e   # negative if feature end is to the right of pos
+  d_right <- s - pos   # positive if feature start is to the right of pos
+  
+  # Upstream candidate: features entirely before pos => e < pos (so d_left < 0); pick max e (closest)
+  upstream_idx   <- which(e < pos)
+  downstream_idx <- which(s > pos)
+  
+  upstream <- if (length(upstream_idx)) {
+    j <- upstream_idx[which.max(e[upstream_idx])]
+    uf <- f[j, , drop = FALSE]
+    uf$distance <- pos - e[j]  # positive distance to the left edge (in bp)
+    uf
+  } else NULL
+  
+  downstream <- if (length(downstream_idx)) {
+    j <- downstream_idx[which.min(s[downstream_idx])]
+    df <- f[j, , drop = FALSE]
+    df$distance <- s[j] - pos  # positive distance to the right edge (in bp)
+    df
+  } else NULL
+  
+  list(overlap = f[0, , drop = FALSE], upstream = upstream, downstream = downstream)
+}
 
