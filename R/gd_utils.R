@@ -166,72 +166,104 @@ v_pos_gt0 <- function(x) {
 # ---- New tooling
 
 
-
-
-gd_classify_snp <- function(gd, seq_id, position, gene) {
-  v <- gd_verify_ra(gd, seq_id = seq_id, position = position, gene = gene)
-  if (!isTRUE(v$ok)) {
-    return(list(ok = FALSE, reason = v$reason %||% "verify_failed",
-                consequence = NA_character_, aa_change = NA_character_, codon_change = NA_character_))
-  }
-  cons <- if (identical(v$aa_ref, v$aa_new)) "synonymous"
-  else if (identical(v$aa_new, "*")) "nonsense"
-  else "missense"
+# Compute the codon/AA effect of a single-base substitution at a locus for a given gene
+# Evidence-agnostic: will look up RA to get ref/alt; for future extension, allow passing ref/alt.
+gd_compute_snp_effect <- function(gd, seq_id, position, gene) {
+  gd_assert(gd, "gd")
+  # Normalize inputs
+  seq_id   <- as.character(seq_id)
+  position <- as.integer(gsub("[^0-9]", "", position))
   
-  aa_change    <- paste0(v$aa_ref, v$aa_index, v$aa_new)
-  codon_change <- paste0(v$codon_ref, "→", v$codon_new)
+  # 1) Find the RA evidence at this locus to obtain alleles
+  ev_tbl <- gd_events_table(gd, kinds = "evidence", expand_tags = FALSE)
+  ra <- ev_tbl[ev_tbl$type == "RA" & ev_tbl$seq_id == seq_id & ev_tbl$position == position, , drop = FALSE]
+  if (nrow(ra) != 1L) {
+    return(list(
+      ok = FALSE, reason = sprintf("expected 1 RA at %s:%d; found %d", seq_id, position, nrow(ra))
+    ))
+  }
+  ref <- ra$ra_ref_base
+  alt <- ra$ra_new_base
+  if (is.na(ref) || is.na(alt) || nchar(ref) != 1L || nchar(alt) != 1L) {
+    return(list(ok = FALSE, reason = "non-single-base alleles or missing ref/alt"))
+  }
+  
+  # 2) Resolve feature/gene and map genomic -> CDS
+  feat <- gd_resolve_feature(gd, gene)  # prefers CDS; falls back to gene
+  strand <- feat$strand[1L]
+  
+  cds_pos <- map_genomic_to_cds(gd, gene, position)
+  cds_pos <- if (is.list(cds_pos)) scalar_or(cds_pos$cds_pos, NA_integer_) else cds_pos
+  if (is.na(cds_pos)) {
+    return(list(ok = FALSE, reason = "position_not_in_CDS"))
+  }
+  
+  # 3) Retrieve reference CDS and AA strings
+  dna_ref <- get_gene_dna(gd, gene)
+  aa_ref  <- get_gene_aa(gd, gene)
+  if (is.na(dna_ref) || nchar(dna_ref) < 3L) {
+    return(list(ok = FALSE, reason = "invalid_reference_CDS"))
+  }
+  
+  # 4) Strand-aware allele to splice into CDS
+  # For minus-strand genes, the CDS is oriented 5'->3' in gene direction, so complement the ALT.
+  alt_cds <- if (identical(strand, "+")) alt else gd_complement_base(alt)
+  
+  # 5) Edit the CDS at that CDS position
+  dna_mut <- gd_replace_substring1(dna_ref, cds_pos, alt_cds)
+  
+  # 6) Identify codon window and translate
+  w <- gd_codon_window(cds_pos)
+  codon_ref <- toupper(substr(dna_ref, w$codon_start, w$codon_start + 2L))
+  codon_new <- toupper(substr(dna_mut, w$codon_start, w$codon_start + 2L))
+  
+  aa_mut <- gd_translate_cds(dna_mut)
+  aa_ref_i <- substr(aa_ref, w$aa_index, w$aa_index)
+  aa_new_i <- substr(aa_mut, w$aa_index, w$aa_index)
+  
+  consequence <- if (identical(aa_ref_i, aa_new_i)) "synonymous" else if (identical(aa_new_i, "*")) "nonsense" else "missense"
   
   list(
-    ok = TRUE, reason = NA_character_,
-    consequence = cons,
-    aa_change = aa_change,
-    codon_change = codon_change,
-    aa_index = v$aa_index,
-    cds_pos = v$cds_pos
+    ok         = TRUE,
+    gene       = gene,
+    strand     = strand,
+    genomic    = list(seq_id = seq_id, position = position, ref = ref, alt = alt),
+    cds_pos    = as.integer(cds_pos),
+    aa_index   = as.integer(w$aa_index),
+    codon_ref  = codon_ref,
+    codon_new  = codon_new,
+    aa_ref     = aa_ref_i,
+    aa_new     = aa_new_i,
+    consequence = consequence
   )
 }
 
 
-pm_annotate_snp_consequence <- function(gd, mut_table) {
-  # Work on a copy
-  mt <- mut_table
-  
-  # Ensure we have normalized programmatic columns
-  if (!("seq_id" %in% names(mt)) && ("seq id" %in% names(mt))) {
-    mt$seq_id <- mt[["seq id"]]
+gd_snp_effect_row <- function(gd, seq_id, position, gene) {
+  r <- gd_compute_snp_effect(gd, seq_id, position, gene)
+  if (!isTRUE(r$ok)) {
+    return(data.frame(
+      seq_id = as.character(seq_id),
+      position_num = as.integer(gsub("[^0-9]", "", position)),
+      gene   = as.character(gene),
+      verified = FALSE,
+      consequence = NA_character_,
+      aa_change  = NA_character_,
+      codon_change = NA_character_,
+      stringsAsFactors = FALSE
+    ))
   }
-  
-  # Pre-allocate result columns
-  n <- nrow(mt)
-  mt$consequence  <- NA_character_
-  mt$aa_change    <- NA_character_
-  mt$codon_change <- NA_character_
-  
-  # Vector of SNP rows (within CDS if gene is non-empty)
-  is_snp <- mt$type == "SNP"
-  has_gene <- gd_nzchar(mt$gene)
-  rows <- which(is_snp & has_gene)
-  
-  if (!length(rows)) return(mt)
-  
-  # Loop (base R; no dependencies)
-  for (k in rows) {
-    seq_id_chr <- mt$seq_id[k]
-    pos_num    <- as.integer(gsub("[^0-9]", "", mt$position[k]))
-    gene_sym   <- sub("\\s*[←→].*$", "", mt$gene[k])  # drop arrows if present
-    
-    cl <- gd_classify_snp(gd, seq_id = seq_id_chr, position = pos_num, gene = gene_sym)
-    
-    if (isTRUE(cl$ok)) {
-      mt$consequence[k]  <- cl$consequence
-      mt$aa_change[k]    <- cl$aa_change
-      mt$codon_change[k] <- cl$codon_change
-    } else {
-      # Leave NA; optionally stash reason into tags/logs if you want visibility
-      # mt$notes[k] <- cl$reason
-      next
-    }
-  }
-  
-  mt
+  data.frame(
+    seq_id = r$genomic$seq_id,
+    position_num = r$genomic$position,
+    gene   = r$gene,
+    verified = TRUE,
+    consequence = r$consequence,
+    aa_change   = paste0(r$aa_ref, r$aa_index, r$aa_new),
+    codon_change= paste0(r$codon_ref, "→", r$codon_new),
+    stringsAsFactors = FALSE
+  )
 }
+
+
+
