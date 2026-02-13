@@ -5,8 +5,10 @@
 
 gd_fingerprint <- function(x, file = FALSE, algo = "md5") {
   if (!identical(tolower(algo), "md5")) {
-    warning("Only 'md5' is supported without external dependencies; ignoring algo = '", algo, "'.",
-            call. = FALSE, immediate. = TRUE)
+    cli::cli_warn(c(
+      "Only 'md5' is supported without external dependencies",
+      "i" = "Ignoring algo = '{algo}'"
+    ))
   }
   
   if (isTRUE(file)) {

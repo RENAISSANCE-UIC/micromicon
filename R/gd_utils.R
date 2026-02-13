@@ -134,8 +134,7 @@ gd_arrowize <- function(x) {
 #' @keywords internal
 gd_assert <- function(x, arg = "x") {
   if (!inherits(x, "genome_entity_gd")) {
-    stop(sprintf("%s must be a 'genome_entity_gd' (got class: %s)",
-                 arg, paste(class(x), collapse = "/")), call. = FALSE)
+    cli::cli_abort("{arg} must be a 'genome_entity_gd' (got class: {paste(class(x), collapse = '/')})")
   }
   invisible(x)
 }

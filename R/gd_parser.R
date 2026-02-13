@@ -25,7 +25,7 @@
 parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
                                fasta_path = NULL, gff3_path = NULL, 
                                gbk_path = NULL) {
-  if (!file.exists(gd_path)) stop("File does not exist: ", gd_path)
+  if (!file.exists(gd_path)) cli::cli_abort("File does not exist: {gd_path}")
   stopifnot(inherits(entity, "genome_entity"))
   
   # ---- local scalar helpers 
@@ -76,12 +76,12 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     if (is.null(contig) || is.na(contig)) return(invisible(TRUE))  # skip
     if (!contig %in% names(contig_lengths)) {
       msg <- sprintf("GD contig '%s' not found in locked reference; no liftover attempted.", contig)
-      if (strict) stop(msg) else return(invisible(NULL))
+      if (strict) cli::cli_abort(msg) else return(invisible(NULL))
     }
     ln <- contig_lengths[[contig]]
     if (!is.null(pos) && !is.na(pos) && (pos < 1L || pos > ln)) {
       msg <- sprintf("Event %d position %s out of bounds for contig %s [1..%d].", i, pos, contig, ln)
-      if (strict) stop(msg)
+      if (strict) cli::cli_abort(msg)
     }
     invisible(TRUE)
   }
@@ -91,10 +91,10 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
   lines <- lines[nzchar(lines)]
   
   if (!is_annotated_gd(lines)) {
-    stop(
-      "This appears to be a raw breseq output.gd (annotation tags not detected).\n",
-      "Supply an annotated.gd produced by gdtools ANNOTATE together with the reference."
-    )
+    cli::cli_abort(c(
+      "This appears to be a raw breseq output.gd (annotation tags not detected).",
+      "i" = "Supply an annotated.gd produced by gdtools ANNOTATE together with the reference."
+    ))
   }
   
   header_idx   <- grep("^#", lines)
@@ -242,7 +242,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       ))
     }
     
-    stop("Unhandled mutation type: ", type)
+    cli::cli_abort("Unhandled mutation type: {type}")
   }
   
   .parse_evidence <- function(row, type) {
@@ -376,7 +376,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       ))
     }
     
-    stop("Unhandled evidence type: ", type)
+    cli::cli_abort("Unhandled evidence type: {type}")
   }
   
   .rectify_for_constructor <- function(ev) {
@@ -456,7 +456,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     row <- strsplit(raw, "\t", fixed = TRUE)[[1]]
     if (length(row) < 2L) {
       msg <- sprintf("Malformed GD line %d: too few fields.", i)
-      if (strict) stop(msg) else next
+      if (strict) cli::cli_abort(msg) else next
     }
     
     type <- row[1]
@@ -497,7 +497,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       kind <- "validation"
       
     } else {
-      if (strict) stop(sprintf("Unknown GD type '%s' at line %d.", type, i)) else next
+      if (strict) cli::cli_abort("Unknown GD type '{type}' at line {i}") else next
     }
     
     # Slice trailing tags using sentinel (falls back to row length)

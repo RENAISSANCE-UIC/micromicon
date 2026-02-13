@@ -555,8 +555,7 @@ get_genomic_context <- function(genome_obj,
     ctx_feats <- ctx_feats[grepl(feature_filter, ctx_feats$Name, ignore.case = TRUE)]
   }
   
-  message(sprintf("Found %d features in %d bp flanking region(s)", 
-                  length(ctx_feats), flank_size))
+  cli::cli_inform("Found {length(ctx_feats)} feature{?s} in {flank_size} bp flanking region{?s}")
   
   return(ctx_feats)
 }
@@ -772,8 +771,7 @@ search_features_legacy_internal <- function(genome_obj,
   
   result <- gff[matches]
   
-  message(sprintf("Found %d feature(s) matching '%s' in %s field(s)", 
-                  length(result), pattern, field))
+  cli::cli_inform("Found {length(result)} feature{?s} matching '{pattern}' in {field} field{?s}")
   
   if (!tidy) {
     return(result)
@@ -889,8 +887,7 @@ get_roi_fasta <- function(genome_obj,
   )
 
   # Extract sequence
-  message(sprintf("Extracting sequence from %s:%d-%d (+/-%d bp, strand: %s)",
-                  seqname, start, end, flank, strand))
+  cli::cli_inform("Extracting sequence from {seqname}:{start}-{end} (+/-{flank} bp, strand: {strand})")
 
   # Use fa (FaFile) if available, otherwise use fasta (DNAStringSet)
   if (!is.null(genome_obj$fa)) {
@@ -909,7 +906,7 @@ get_roi_fasta <- function(genome_obj,
 
   # Apply reverse complement if on minus strand and requested
   if (strand == "-" && reverse_complement) {
-    message("Applying reverse complement for minus strand")
+    cli::cli_inform("Applying reverse complement for minus strand")
     seq <- Biostrings::reverseComplement(seq)
   }
 
@@ -917,12 +914,11 @@ get_roi_fasta <- function(genome_obj,
   names(seq) <- seq_name
 
   # Report sequence info
-  message(sprintf("Extracted %d bp (requested region: %d bp, with flank: %d bp)",
-                  BiocGenerics::width(seq), end - start + 1, actual_end - actual_start + 1))
+  cli::cli_inform("Extracted {BiocGenerics::width(seq)} bp (requested region: {end - start + 1} bp, with flank: {actual_end - actual_start + 1} bp)")
   
   # Write to file if requested
   if (!is.null(output_file)) {
-    message("Writing sequence to: ", output_file)
+    cli::cli_inform("Writing sequence to: {output_file}")
     Biostrings::writeXStringSet(seq, filepath = output_file, format = "fasta")
   }
   
@@ -973,7 +969,7 @@ get_roi_fasta_batch <- function(genome_obj,
     cli::cli_abort("roi_table must contain columns: {paste(required_cols, collapse = ', ')}")
   }
   
-  message(sprintf("Extracting %d ROI sequences...", nrow(roi_table)))
+  cli::cli_inform("Extracting {nrow(roi_table)} ROI sequence{?s}...")
   
   # Extract sequences for each ROI
   seq_list <- lapply(seq_len(nrow(roi_table)), function(i) {
@@ -1010,11 +1006,11 @@ get_roi_fasta_batch <- function(genome_obj,
   # Combine all sequences
   all_seqs <- do.call(c, seq_list)
   
-  message(sprintf("Successfully extracted %d sequences", length(all_seqs)))
+  cli::cli_inform("Successfully extracted {length(all_seqs)} sequence{?s}")
   
   # Write to file if requested
   if (!is.null(output_file)) {
-    message("Writing all sequences to: ", output_file)
+    cli::cli_inform("Writing all sequences to: {output_file}")
     writeXStringSet(all_seqs, filepath = output_file, format = "fasta")
   }
   
@@ -1067,7 +1063,7 @@ get_feature_fasta <- function(genome_obj,
       cli::cli_abort("No features found matching pattern: {pattern}")
     }
     
-    message(sprintf("Found %d feature(s) matching '%s'", length(features), pattern))
+    cli::cli_inform("Found {length(features)} feature{?s} matching '{pattern}'")
   }
   
   # Fix seqnames if needed
@@ -1082,9 +1078,7 @@ get_feature_fasta <- function(genome_obj,
 
   # If there's only one sequence and features have different seqnames, fix them
   if (length(actual_seqnames) == 1) {
-    message(sprintf("Fixing seqnames: '%s' -> '%s'",
-                   as.character(unique(GenomicRanges::seqnames(features)))[1],
-                   actual_seqnames[1]))
+    cli::cli_inform("Fixing seqnames: '{as.character(unique(GenomicRanges::seqnames(features)))[1]}' -> '{actual_seqnames[1]}'")
     GenomeInfoDb::seqlevels(features) <- actual_seqnames
     GenomicRanges::seqnames(features) <- S4Vectors::Rle(rep(actual_seqnames[1], length(features)))
   } else if (length(actual_seqnames) == 0) {
@@ -1155,7 +1149,7 @@ get_feature_fasta <- function(genome_obj,
   
   # Write to file if requested
   if (!is.null(output_file)) {
-    message("Writing all feature sequences to: ", output_file)
+    cli::cli_inform("Writing all feature sequences to: {output_file}")
     writeXStringSet(all_seqs, filepath = output_file, format = "fasta")
   }
   
@@ -1193,7 +1187,7 @@ extract_roi_complete <- function(genome_obj,
   
   # Extract sequence if requested
   if (get_sequence) {
-    message("\n=== Extracting sequence ===")
+    cli::cli_alert_info("Extracting sequence")
     result$sequence <- get_roi_fasta(
       genome_obj = genome_obj,
       seqname = seqname,
@@ -1206,7 +1200,7 @@ extract_roi_complete <- function(genome_obj,
   
   # Get features if requested
   if (get_features) {
-    message("\n=== Finding overlapping features ===")
+    cli::cli_alert_info("Finding overlapping features")
     result$features <- analyze_roi(
       genome_obj = genome_obj,
       seqname = seqname,
@@ -1216,7 +1210,7 @@ extract_roi_complete <- function(genome_obj,
     )
   }
   
-  message("\n=== Extraction complete ===")
+  cli::cli_alert_success("Extraction complete")
   return(result)
 }
 
@@ -1380,7 +1374,7 @@ parse_blast_xml <- function(xml_text, top_n = 10) {
   hits <- xml_find_all(doc, "//Hit")
   
   if (length(hits) == 0) {
-    message("No BLAST hits found")
+    cli::cli_alert_warning("No BLAST hits found")
     return(tibble())
   }
   
@@ -1470,7 +1464,7 @@ compare_sequences <- function(seq1, seq2, type = "global") {
   aln <- pwalign::pairwiseAlignment(seq1, seq2, type = type)
   pid <- pwalign::pid(aln)
   
-  message(sprintf("Percent identity: %.2f%%", pid))
+  cli::cli_inform("Percent identity: {round(pid, 2)}%")
   
   list(
     percent_identity = pid,
@@ -1517,23 +1511,23 @@ analyze_gene <- function(genome_obj,
     genome_obj <- entity_to_legacy_genome_obj(genome_obj)
   }
 
-  message("=== Gene Analysis Pipeline ===\n")
+  cli::cli_h1("Gene Analysis Pipeline")
 
   # 1. Extract sequences
   dna_seqs <- extract_sequences_by_name(genome_obj, gene_pattern, translate = FALSE)
   aa_seqs <- extract_sequences_by_name(genome_obj, gene_pattern, translate = TRUE)
   
-  message("\nSequence lengths:")
+  cli::cli_alert_info("Sequence lengths:")
   print(BiocGenerics::width(aa_seqs))
   
   # 2. Get genomic context
-  message("\n--- Genomic Context ---")
+  cli::cli_h2("Genomic Context")
   context <- get_genomic_context(genome_obj, gene_pattern, flank_size)
   
   # 3. Compare sequences if multiple found
   comparisons <- NULL
   if (length(aa_seqs) > 1) {
-    message("\n--- Sequence Comparisons ---")
+    cli::cli_h2("Sequence Comparisons")
     comparisons <- list()
     for (i in 1:(length(aa_seqs) - 1)) {
       for (j in (i + 1):length(aa_seqs)) {
@@ -1546,9 +1540,9 @@ analyze_gene <- function(genome_obj,
   # 4. Optional BLAST
   blast_results <- NULL
   if (blast && length(aa_seqs) > 0) {
-    message("\n--- BLAST Analysis ---")
+    cli::cli_h2("BLAST Analysis")
     blast_results <- lapply(seq_along(aa_seqs), function(i) {
-      message(sprintf("\nBLASTing %s...", names(aa_seqs)[i]))
+      cli::cli_inform("BLASTing {names(aa_seqs)[i]}...")
       blast_protein(aa_seqs[[i]])
     })
     names(blast_results) <- names(aa_seqs)

@@ -99,11 +99,11 @@ check_bioc_versions <- function(min_versions = list()) {
 #' @param feature Character string describing the feature that requires Bioconductor
 #' @export
 suggest_bioconductor <- function(feature = "this feature") {
-  message(
-    "Bioconductor packages are required for ", feature, ".\n",
-    "To install Bioconductor packages, run:\n\n",
-    '  if (!require("BiocManager", quietly = TRUE))\n',
-    '      install.packages("BiocManager")\n',
-    '  BiocManager::install(c("GenomicRanges", "Biostrings", "rtracklayer", "Rsamtools"))\n'
-  )
+  cli::cli_inform(c(
+    "Bioconductor packages are required for {feature}.",
+    "i" = "To install Bioconductor packages, run:",
+    " " = '  if (!require("BiocManager", quietly = TRUE))',
+    " " = '      install.packages("BiocManager")',
+    " " = '  BiocManager::install(c("GenomicRanges", "Biostrings", "rtracklayer", "Rsamtools"))'
+  ))
 }

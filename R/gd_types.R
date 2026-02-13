@@ -32,7 +32,7 @@ new_genome_entity_gd <- function(header, events, file,
   events <- lapply(events, function(ev) {
     missing <- setdiff(req, names(ev))
     if (length(missing)) {
-      stop("Event missing fields: ", paste(missing, collapse = ", "))
+      cli::cli_abort("Event missing fields: {paste(missing, collapse = ', ')}")
     }
     ev
   })
@@ -106,10 +106,10 @@ validate_genome_entity_gd <- function(x, strict = x$strict) {
   }
   
   if (identical(status, "error") && strict) {
-    stop(paste(c("Validation failed (strict mode).", msgs), collapse = "\n- "))
+    cli::cli_abort(c("Validation failed (strict mode).", msgs))
   } else if (identical(status, "warn") ||
              (identical(status, "error") && !strict)) {
-    cli::cli_warn(paste(c("Validation warnings:", msgs), collapse = "\n- "))
+    cli::cli_warn(c("Validation warnings:", msgs))
   }
   
   x$provenance$validation$status   <- if (strict && identical(status, "ok")) "ok_strict" else status

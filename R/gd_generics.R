@@ -7,7 +7,7 @@
 print.genome_entity_gd <- function(x, ...) {
   # 1) Safety checks
   if (!inherits(x, "genome_entity_gd")) {
-    stop("print.genome_entity_gd: object is not a 'genome_entity_gd'")
+    cli::cli_abort("print.genome_entity_gd: object is not a 'genome_entity_gd'")
   }
 
   # 2) Print the parent genome_entity view using hoisted fields

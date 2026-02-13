@@ -41,7 +41,7 @@
 
 ### Code Quality
 - [ ] Review use of `@keywords internal` throughout codebase
-- [ ] Standardize error messages using cli package
+- [x] Standardize error messages using cli package
 - [ ] Consider deprecation strategy for legacy functions
 - [ ] Review and consolidate duplicate functionality (if any)
 

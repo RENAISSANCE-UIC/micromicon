@@ -5,7 +5,7 @@ gd_create_reference_gateway <- function(entity, logger = NULL) {
   has_revcomp_ex <- exists("reverse_complement", mode = "function")
   
   nt_window <- function(seq_id, start, end, strict = TRUE) {
-    if (start > end) stop("nt_window: start > end")
+    if (start > end) cli::cli_abort("nt_window: start > end")
     get_roi_dna(entity, seq_id, start, end, strand = "+")
   }
   
