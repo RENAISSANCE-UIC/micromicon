@@ -168,6 +168,7 @@ v_pos_gt0 <- function(x) {
 
 # Compute the codon/AA effect of a single-base substitution at a locus for a given gene
 # Evidence-agnostic: will look up RA to get ref/alt; for future extension, allow passing ref/alt.
+#' @keywords internal
 gd_compute_snp_effect <- function(gd, seq_id, position, gene) {
   gd_assert(gd, "gd")
   # Normalize inputs
@@ -239,6 +240,7 @@ gd_compute_snp_effect <- function(gd, seq_id, position, gene) {
 }
 
 # printer for gd_compute_snp_effect()
+#' @keywords internal
 gd_snp_effect_row <- function(gd, seq_id, position, gene) {
   r <- gd_compute_snp_effect(gd, seq_id, position, gene)
   if (!isTRUE(r$ok)) {
@@ -266,6 +268,7 @@ gd_snp_effect_row <- function(gd, seq_id, position, gene) {
 }
 
 # Prefer CDS exact symbol; fall back to gene exact symbol.
+#' @keywords internal
 gd_resolve_feature <- function(gd, symbol) {
   gd_assert(gd, "gd")
   # First try CDS exact match
@@ -281,7 +284,7 @@ gd_resolve_feature <- function(gd, symbol) {
   stop("gd_resolve_feature: could not resolve feature for symbol: ", symbol, call. = FALSE)
 }
 
-
+#' @keywords internal
 gd_classify_snp <- function(gd, seq_id, position, gene) {
   v <- gd_verify_snp(gd, seq_id, position, gene)
   if (!isTRUE(v$ok)) {
@@ -301,7 +304,7 @@ gd_classify_snp <- function(gd, seq_id, position, gene) {
 #' @return tibble-like list/data.frame with fields:
 #'   ok, reason, seq_id, position, gene, strand, cds_pos, aa_index,
 #'   codon_ref, codon_new, aa_ref, aa_new, consequence
-#' @export
+#' @keywords internal
 gd_verify_snp <- function(gd, seq_id, position, gene) {
   gd_assert(gd, "gd")
   
@@ -385,6 +388,8 @@ gd_verify_snp <- function(gd, seq_id, position, gene) {
 
 
 # Return all CDS overlapping pos; if none, return nearest upstream/downstream CDS with distances
+# GENOME coordinate geometry
+#' @keywords internal
 gd_features_at <- function(gd, seq_id, pos, feature_type = "CDS", 
                            max_candidates = 10L) {
   gd_assert(gd, "gd")
@@ -436,3 +441,79 @@ gd_features_at <- function(gd, seq_id, pos, feature_type = "CDS",
   list(overlap = f[0, , drop = FALSE], upstream = upstream, downstream = downstream)
 }
 
+
+# Classify a genomic position as coding/intergenic and emit a breseq-like label
+#' @keywords internal
+gd_locate <- function(gd, seq_id, pos) {
+  gd_assert(gd, "gd")
+  
+  hit <- gd_features_at(gd, seq_id, pos, feature_type = "CDS")
+  
+  # If overlapping one or more CDS: report coding with per-CDS local coords
+  if (nrow(hit$overlap)) {
+    # For each overlapping CDS, compute CDS-relative position (1-based)
+    ann <- character(nrow(hit$overlap))
+    genes <- character(nrow(hit$overlap))
+    
+    for (i in seq_len(nrow(hit$overlap))) {
+      gene <- hit$overlap$gene[i] %||% hit$overlap$locus_tag[i]
+      strd <- hit$overlap$strand[i]
+      gstart <- hit$overlap$start[i]; gend <- hit$overlap$end[i]
+      # Normalize to CDS order (strand-aware)
+      if (identical(strd, "+") || isTRUE(strd == 1L)) {
+        cds_pos <- pos - min(gstart, gend) + 1L
+      } else {
+        cds_pos <- max(gstart, gend) - pos + 1L
+      }
+      cds_len <- abs(gend - gstart) + 1L
+      ann[i] <- sprintf("coding (%d/%d nt)", cds_pos, cds_len)
+      genes[i] <- gene
+    }
+    
+    return(list(
+      region = "coding",
+      label  = paste(ann, collapse = " | "),
+      genes  = paste(genes, collapse = " | ")
+    ))
+  }
+  
+  # Intergenic: compute signed distances to nearest upstream & downstream genes
+  up <- hit$upstream
+  dn <- hit$downstream
+  
+  # If no CDS on either side (weird contig ends), degrade gracefully
+  if (is.null(up) && is.null(dn)) {
+    return(list(region = "intergenic", label = "intergenic (NA/NA)", genes = NA_character_))
+  }
+  
+  # Strand-aware sign convention:
+  # If nearest gene is '+' strand and mutation is downstream of its end -> '+<dist>'
+  # If nearest gene is '-' strand and mutation is downstream of its start w.r.t. transcription -> '+<dist>'
+  # For a succinct approximation, we’ll sign by *genomic* left/right, and append arrows to gene names.
+  # This keeps display consistent with what you’re already emitting (gene arrows via strand).
+  
+  up_label <- NA_character_; dn_label <- NA_character_
+  up_gene  <- NA_character_; dn_gene  <- NA_character_
+  
+  if (!is.null(up)) {
+    # pos is to the right of 'up' gene; distance stored as positive
+    up_label <- paste0("+", up$distance[1])
+    up_gene  <- up$gene[1] %||% up$locus_tag[1]
+    if (!is.null(up$strand[1]) && up$strand[1] %in% c("-", -1L)) up_gene <- paste0(up_gene, " \u2190") else up_gene <- paste0(up_gene, " \u2192")
+  }
+  if (!is.null(dn)) {
+    # pos is to the left of 'dn' gene; distance stored as positive
+    dn_label <- paste0("+", dn$distance[1])
+    dn_gene  <- dn$gene[1] %||% dn$locus_tag[1]
+    if (!is.null(dn$strand[1]) && dn$strand[1] %in% c("-", -1L)) dn_gene <- paste0(dn_gene, " \u2190") else dn_gene <- paste0(dn_gene, " \u2192")
+  }
+  
+  # Compose breseq-like “intergenic (+a/+b)” and gene pair “Gleft / Gright”
+  label <- sprintf("intergenic (%s/%s)",
+                   ifelse(is.na(up_label), "NA", up_label),
+                   ifelse(is.na(dn_label), "NA", dn_label))
+  genes <- paste(na.omit(c(up_gene, dn_gene)), collapse = " / ")
+  if (!nzchar(genes)) genes <- NA_character_
+  
+  list(region = "intergenic", label = label, genes = genes)
+}

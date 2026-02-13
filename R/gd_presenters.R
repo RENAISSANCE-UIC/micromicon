@@ -5,7 +5,7 @@
 #' @param include_structural logical; include MC/JC-backed structural predictions
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations
-#' @export
+#' @keywords internal
 predicted_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   
@@ -388,8 +388,8 @@ predicted_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE
 #' @param include_structural logical; include MC/JC-backed structural predictions
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations (now with 3-letter `type`)
-#' @export
-predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
+#' @keywords internal
+predicted_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   join <- match.arg(join)
   
@@ -735,5 +735,402 @@ predicted_mutations <- function(gd, min_freq = 0, include_structural = TRUE,
   out[o, , drop = FALSE]
 }
 
+
+
+
+
+#' Public wrapper: predicted mutations (opinionated defaults; args pass-through)
+#'
+#' Calls predicted_mutations_int(), announces row count, and prints a preview:
+#' - If dplyr is installed: prints tibble (contract unaffected).
+#' - If dplyr is not installed: prints base data.frame.
+#' Any preview/logging errors are swallowed; the table is still returned.
+#'
+#' @param gd genome_entity_gd
+#' @param ... reserved for future options passed to *_int (kept for forward-compat)
+#' @param min_freq numeric scalar, keep rows with freq >= min_freq (default 0)
+#' @param include_structural logical, include JC/MC/etc. (default TRUE)
+#' @param join one of c("slash","pipe","newline") for multi-item fields (default "slash")
+#' @return data.frame/tibble with predicted mutations (superset schema)
+#' @export
+predicted_mutations <- function(gd, ...,
+                                min_freq = 0,
+                                include_structural = TRUE,
+                                join = c("slash", "pipe", "newline")) {
+  gd_assert(gd)
+  join <- match.arg(join)
+  
+  # Build once via internal, regardless of downstream printing path
+  tbl <- predicted_mutations_int(
+    gd,
+    min_freq = min_freq,
+    include_structural = include_structural,
+    join = join,
+    ...
+  )
+  
+  # Announce + print a friendly preview, but never fail the call if printing goes sideways
+  tryCatch(
+    {
+      n <- NROW(tbl)
+      # row count announcement
+      cli::cli_inform(c(
+        "i" = sprintf("predicted_mutations: %d row%s.", n, if (n == 1L) "" else "s")
+      ))
+      
+      # choose printing strategy
+      has_dplyr <- requireNamespace("dplyr", quietly = TRUE)
+      n_show <- min(n, 25L)
+      
+      if (has_dplyr) {
+        # tibble path (do not modify tbl; only coerce for printing)
+        cli::cli_inform(c(
+          "i" = sprintf("Showing top %d as a tibble.", n_show)
+        ))
+        print(utils::head(dplyr::as_tibble(tbl), n_show))
+        tbl <- dplyr::as_tibble(tbl)
+      } else {
+        cli::cli_inform(c(
+          "!" = "{.pkg dplyr} not detected; showing a base data.frame preview.",
+          "i" = "Install with: {.code install.packages('dplyr')} to prefer tibble display."
+        ))
+        print(utils::head(tbl, n_show))
+      }
+    },
+    error = function(e) {
+      # Stay serene; log and proceed to return the table
+      cli::cli_warn(c(
+        "!" = "Non-fatal issue while printing the preview.",
+        ">" = conditionMessage(e)
+      ))
+    }
+  )
+  
+  # Always return the fully built table (but quietly)
+  invisible(tbl)
+}
+
+#' Fallback enrichment for predicted_mutations() output using hoisted features
+#'
+#' This function does *not* change existing, non-missing fields. It only
+#' fills gaps using the reference features in `gd$features`.
+#'
+#' @param gd          genome_entity_gd
+#' @param tbl         data.frame from predicted_mutations(gd)
+#' @param want_distance logical; compute intergenic distance when gene is NA
+#' @return data.frame with enriched columns (type/gene/annotation/distance if missing)
+#' @keywords internal
+pm_fallback_enrich <- function(gd, tbl, want_distance = TRUE) {
+  stopifnot(inherits(gd, "genome_entity_gd"))
+  if (!is.data.frame(tbl) || !nrow(tbl)) return(tbl)
+  
+  # Defensive column presence
+  need <- c("evidence","seq_id","position","mutation","freq","annotation","gene","description")
+  miss <- setdiff(need, names(tbl))
+  if (length(miss)) {
+    stop("pm_fallback_enrich(): tbl is missing required columns: ",
+         paste(miss, collapse = ", "))
+  }
+  
+  # 0) Extract numeric position (left of ":" if present; strip commas)
+  pos_num <- suppressWarnings(
+    as.integer(gsub("[:,].*$", "", gsub(",", "", tbl$position)))
+  )
+  seq_id  <- as.character(tbl$seq_id)
+  
+  # 1) Fallback 'type' if absent (or NA) by reading the human 'mutation' label
+  if (!"type" %in% names(tbl)) {
+    tbl$type <- NA_character_
+  }
+  fallback_type <- function(mut_string) {
+    if (is.na(mut_string) || !nzchar(mut_string)) return(NA_character_)
+    s <- trimws(mut_string)
+    if (grepl("^Δ\\s*\\d+\\s*bp\\s*$", s)) return("DEL")
+    if (grepl("^\\+\\s*\\d+\\s*bp\\s*$", s)) return("INS")
+    if (grepl("→", s, fixed = TRUE)) {
+      parts <- strsplit(s, "→", fixed = TRUE)[[1]]
+      lhs <- gsub("[^ACGTN]", "", parts[1], perl = TRUE)
+      rhs <- gsub("[^ACGTN\\*]", "", parts[2], perl = TRUE)
+      if (nchar(lhs) == 1L && nchar(rhs) == 1L) return("SNP")
+      return("SUB")
+    }
+    # Last resort: leave NA (e.g., AMP/INV without explicit tokens)
+    NA_character_
+  }
+  # Only fill where type is missing/NA
+  for (i in seq_len(nrow(tbl))) {
+    if (is.na(tbl$type[i]) || !nzchar(tbl$type[i])) {
+      tbl$type[i] <- fallback_type(tbl$mutation[i])
+    }
+  }
+  
+  # 2) Feature lookup (overlaps and nearest)
+  # We will use gd$features (GFF3-like) where type=="CDS" or "gene"
+  feats <- gd$features
+  if (!is.data.frame(feats) || !nrow(feats)) return(tbl)  # nothing to do
+  
+  # Normalize feature columns we will use
+  f_seq   <- as.character(feats$seqname)
+  f_start <- as.integer(feats$start)
+  f_end   <- as.integer(feats$end)
+  f_strand<- as.character(feats$strand)
+  f_type  <- as.character(feats$type)
+  f_name  <- as.character(feats$Name)
+  f_id    <- as.character(feats$ID)
+  
+  # We'll prefer CDS names; fall back to gene name or ID
+  is_gene_like <- f_type %in% c("gene","CDS")
+  # Pre-filter to speed up
+  idx_keep <- which(is_gene_like & gd_not_na(f_start) & gd_not_na(f_end))
+  if (!length(idx_keep)) return(tbl)
+  
+  f_seq   <- f_seq[idx_keep]
+  f_start <- f_start[idx_keep]
+  f_end   <- f_end[idx_keep]
+  f_strand<- f_strand[idx_keep]
+  f_type  <- f_type[idx_keep]
+  f_name  <- f_name[idx_keep]
+  f_id    <- f_id[idx_keep]
+  
+  # Helper: choose display symbol
+  feat_symbol <- function(i) {
+    nm <- f_name[i]
+    if (!is.na(nm) && nzchar(nm)) return(nm)
+    id <- f_id[i]
+    if (!is.na(id) && nzchar(id)) return(id)
+    return(NA_character_)
+  }
+  
+  # For each row with missing gene and/or annotation, fill from overlap;
+  # if intergenic and want_distance=TRUE, fill distance as "intergenic (+d/-d)"
+  if (!"distance" %in% names(tbl)) {
+    tbl$distance <- NA_character_
+  }
+  
+  for (i in seq_len(nrow(tbl))) {
+    # Skip rows that already have a gene + annotation
+    need_gene <- !(gd_nzchar(tbl$gene[i]))
+    need_ann  <- !(gd_nzchar(tbl$annotation[i]))
+    
+    if (!need_gene && !need_ann && (!want_distance || gd_nzchar(tbl$distance[i]))) next
+    
+    sid <- seq_id[i]
+    pos <- pos_num[i]
+    if (is.na(sid) || is.na(pos)) next
+    
+    # Candidate features on same contig
+    hit_idx <- which(f_seq == sid & f_start <= pos & f_end >= pos)
+    
+    if (length(hit_idx)) {
+      # Prefer CDS if available at this locus
+      cds_idx <- hit_idx[f_type[hit_idx] == "CDS"]
+      pick <- if (length(cds_idx)) cds_idx[1L] else hit_idx[1L]
+      
+      if (need_gene) {
+        sym <- feat_symbol(pick)
+        # Append arrow if strand available
+        if (!is.na(f_strand[pick]) && f_strand[pick] %in% c("+","-")) {
+          arrow <- if (f_strand[pick] == "+") " \u2192" else " \u2190"
+          sym <- paste0(sym, arrow)
+        }
+        tbl$gene[i] <- sym
+      }
+      
+      if (need_ann) {
+        # Create a coarse position string "coding (x/y nt)" is not trivial here,
+        # so fall back to "within <symbol>" to be explicit.
+        sym <- feat_symbol(pick)
+        tbl$annotation[i] <- if (!is.na(sym) && nzchar(sym)) {
+          paste0("within ", sym)
+        } else {
+          "within feature"
+        }
+      }
+      
+      # distance for overlapping case is 0 (optional)
+      if (want_distance) {
+        tbl$distance[i] <- "0"
+      }
+      
+    } else if (isTRUE(want_distance)) {
+      # Intergenic: find nearest upstream and downstream gene-like features
+      same_seq <- which(f_seq == sid)
+      if (!length(same_seq)) next
+      
+      # distances to feature intervals
+      # If pos < start: distance = start - pos (upstream feature)
+      # If pos > end  : distance = pos - end  (downstream feature)
+      d <- rep(NA_integer_, length(same_seq))
+      for (k in seq_along(same_seq)) {
+        j <- same_seq[k]
+        if (pos < f_start[j]) d[k] <- f_start[j] - pos
+        else if (pos > f_end[j]) d[k] <- pos - f_end[j]
+        else d[k] <- 0L
+      }
+      
+      # nearest feature by distance
+      finite_idx <- which(!is.na(d))
+      if (length(finite_idx)) {
+        kmin <- finite_idx[ which.min(d[finite_idx]) ]
+        j    <- same_seq[kmin]
+        dist <- d[kmin]
+        
+        # Sign: negative if upstream (pos < start), positive if downstream (pos > end)
+        sign_ch <- if (pos < f_start[j]) "-" else if (pos > f_end[j]) "+" else "0"
+        if (need_ann) {
+          sym <- feat_symbol(j)
+          tbl$annotation[i] <- if (!is.na(sym) && nzchar(sym)) {
+            paste0("intergenic (", sign_ch, dist, ") near ", sym)
+          } else {
+            paste0("intergenic (", sign_ch, dist, ")")
+          }
+        }
+        if (gd_not_na(dist)) {
+          tbl$distance[i] <- paste0(sign_ch, dist)
+        }
+        
+        # If gene is completely missing, provide the nearest symbol (without implying overlap)
+        if (need_gene) {
+          sym <- feat_symbol(j)
+          if (!is.na(sym) && nzchar(sym)) {
+            tbl$gene[i] <- sym
+          }
+        }
+      }
+    }
+  }
+  
+  # 3) Final hygiene: ensure columns in preferred order
+  # evidence, type, seq_id, position, mutation, freq, annotation, gene, description, (optional) distance
+  keep <- c("evidence","type","seq_id","position","mutation","freq","annotation","gene","description",
+            intersect("distance", names(tbl)))
+  extra <- setdiff(names(tbl), keep)
+  tbl <- tbl[c(keep, extra)]
+  
+  tbl
+}
+
+
+#' Return the standardized predicted mutations tibble
+#' Contract: (type, evidence, seq_id, position, end, ref, alt, freq,
+#'            gene, locus_tag, strand, annotation, product, distance, tags, row_id)
+#' @keywords internal
+pm_tbl <- function(gd) {
+  gd_assert(gd)
+  
+  # Require dplyr for tibble return type
+  if (!requireNamespace("dplyr", quietly = TRUE)) {
+    cli::cli_abort(
+      c(
+        "x" = "The {.pkg dplyr} package is required to return a tibble.",
+        "i" = "Install with: {.code install.packages('dplyr')}"
+      )
+    )
+  }
+  
+  tb <- predicted_mutations_int(gd)
+  
+  # Enforce your pared-down column contract
+  required_cols <- c("evidence","type","seq_id","position","mutation","freq","annotation","gene")
+  missing <- setdiff(required_cols, names(tb))
+  if (length(missing)) {
+    cli::cli_abort(
+      c(
+        "x" = "pm_tbl: required column(s) missing.",
+        "!" = paste("Missing:", paste(missing, collapse = ", ")),
+        "i" = "Confirm that {.fn predicted_mutations} produces these fields upstream."
+      )
+    )
+  }
+  
+  # Return a tibble (explicitly, via dplyr)
+  dplyr::as_tibble(tb[, required_cols, drop = FALSE])
+}
+
+
+#' Quick human scan (top-n). Does not alter data, just prints.
+#' Use cli for a little context; return the tibble (invisibly) for piping.
+#' @keywords internal
+pm_view <- function(gd, n = 25) {
+  gd_assert(gd)
+  n <- as.integer(`%||%`(n, 25L))
+  
+  has_dplyr <- requireNamespace("dplyr", quietly = TRUE)
+  
+  if (has_dplyr) {
+    # Contracted tibble path
+    tb <- pm_tbl(gd)  # will cli_abort if something else is wrong
+    cli::cli_inform(c(
+      "i" = sprintf("predicted_mutations (contracted tibble): %d rows; showing top %d.", nrow(tb), n)
+    ))
+    print(utils::head(tb, n))
+    return(invisible(tb))
+  }
+  
+  # Fallback: no dplyr installed — show something useful, don’t crash.
+  cli::cli_inform(c(
+    "!" = "{.pkg dplyr} not detected; showing a base preview from {.fn predicted_mutations}.",
+    "i" = "Install with: {.code install.packages('dplyr')} to enable tibble output and focused columns."
+  ))
+  df <- predicted_mutations(gd)
+  # Be defensive: if the object is huge, head() keeps it polite.
+  print(utils::head(df, n))
+  invisible(df)
+}
+
+#' Focus by exact gene symbol (case-sensitive, exact match).
+#' Returns a tibble (0+ rows). Logs counts.
+#' @keywords internal
+pm_focus_gene <- function(gd, gene) {
+  gd_assert(gd)
+  tb <- pm_tbl(gd)
+  out <- tb[!is.na(tb$gene) & tb$gene == gene, , drop = FALSE]
+  cli::cli_inform(c("i" = paste0("pm_focus_gene: '", gene, "' → ", nrow(out), " row(s).")))
+  out
+}
+
+#' Focus by genomic range (inclusive) on a specific seq_id, using the *contracted* table.
+#' Behavior: position-only filtering (no 'end' dependence), exact seq_id match.
+#' @keywords internal
+pm_focus_roi <- function(gd, seq_id, start, end) {
+  gd_assert(gd)
+  stopifnot(!missing(seq_id), !missing(start), !missing(end))
+  
+  # Contracted 8-col view from your wrapper path
+  tb <- pm_tbl(gd)
+  
+  # Normalize and validate inputs
+  start <- suppressWarnings(as.integer(start))
+  end   <- suppressWarnings(as.integer(end))
+  if (is.na(start) || is.na(end)) {
+    cli::cli_abort(c(
+      "x" = "pm_focus_roi: start/end must be coercible to integer.",
+      "i" = sprintf("Got start=%s, end=%s.", as.character(substitute(start)), as.character(substitute(end)))
+    ))
+  }
+  if (start > end) { tmp <- start; start <- end; end <- tmp }
+  
+  # Coerce table fields defensively (position may be character/factor)
+  pos <- suppressWarnings(as.integer(as.character(tb$position)))
+  sid <- as.character(tb$seq_id)
+  target_sid <- as.character(seq_id)
+  
+  # Build mask; treat NA position as non-hit
+  hit <- (!is.na(pos)) & (sid == target_sid) & (pos >= start) & (pos <= end)
+  if (length(hit) == 0L) hit <- rep(FALSE, nrow(tb))  # 0-row safety
+  
+  out <- tb[hit, , drop = FALSE]
+  
+  cli::cli_inform(c(
+    "i" = paste0("pm_focus_roi: seq_id=", target_sid, " [", start, ", ", end, "] → ",
+                 nrow(out), " row(s).")
+  ))
+  
+  # Preserve return type preference
+  if (requireNamespace("dplyr", quietly = TRUE)) {
+    return(dplyr::as_tibble(out))
+  }
+  out
+}
 
 
