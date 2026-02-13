@@ -542,7 +542,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     events[[i]] <- ev
     kind_vec[i] <- kind
   }
-  
+
   # Package object
   gd_checksum <- gd_digest(gd_path, file = TRUE)
   
@@ -564,3 +564,9 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
   
   validate_genome_entity_gd(obj, strict = strict)
 }
+
+
+
+
+
+

@@ -139,3 +139,99 @@ gd_assert <- function(x, arg = "x") {
   invisible(x)
 }
 
+
+# ---- Vector-safe predicates for presenters/assemblers
+
+#' TRUE for every element that is not NA
+#' @keywords internal
+v_not_na <- function(x) {
+  !is.na(x)
+}
+
+#' TRUE for every element that is non-NA and non-empty string
+#' @keywords internal
+v_nzchar <- function(x) {
+  x <- as.character(x)
+  !is.na(x) & nzchar(x)
+}
+
+#' TRUE for every element that is numeric and greater than zero
+#' @keywords internal
+v_pos_gt0 <- function(x) {
+  x <- suppressWarnings(as.numeric(x))
+  !is.na(x) & (x > 0)
+}
+
+
+# ---- New tooling
+
+
+
+
+gd_classify_snp <- function(gd, seq_id, position, gene) {
+  v <- gd_verify_ra(gd, seq_id = seq_id, position = position, gene = gene)
+  if (!isTRUE(v$ok)) {
+    return(list(ok = FALSE, reason = v$reason %||% "verify_failed",
+                consequence = NA_character_, aa_change = NA_character_, codon_change = NA_character_))
+  }
+  cons <- if (identical(v$aa_ref, v$aa_new)) "synonymous"
+  else if (identical(v$aa_new, "*")) "nonsense"
+  else "missense"
+  
+  aa_change    <- paste0(v$aa_ref, v$aa_index, v$aa_new)
+  codon_change <- paste0(v$codon_ref, "→", v$codon_new)
+  
+  list(
+    ok = TRUE, reason = NA_character_,
+    consequence = cons,
+    aa_change = aa_change,
+    codon_change = codon_change,
+    aa_index = v$aa_index,
+    cds_pos = v$cds_pos
+  )
+}
+
+
+pm_annotate_snp_consequence <- function(gd, mut_table) {
+  # Work on a copy
+  mt <- mut_table
+  
+  # Ensure we have normalized programmatic columns
+  if (!("seq_id" %in% names(mt)) && ("seq id" %in% names(mt))) {
+    mt$seq_id <- mt[["seq id"]]
+  }
+  
+  # Pre-allocate result columns
+  n <- nrow(mt)
+  mt$consequence  <- NA_character_
+  mt$aa_change    <- NA_character_
+  mt$codon_change <- NA_character_
+  
+  # Vector of SNP rows (within CDS if gene is non-empty)
+  is_snp <- mt$type == "SNP"
+  has_gene <- gd_nzchar(mt$gene)
+  rows <- which(is_snp & has_gene)
+  
+  if (!length(rows)) return(mt)
+  
+  # Loop (base R; no dependencies)
+  for (k in rows) {
+    seq_id_chr <- mt$seq_id[k]
+    pos_num    <- as.integer(gsub("[^0-9]", "", mt$position[k]))
+    gene_sym   <- sub("\\s*[←→].*$", "", mt$gene[k])  # drop arrows if present
+    
+    cl <- gd_classify_snp(gd, seq_id = seq_id_chr, position = pos_num, gene = gene_sym)
+    
+    if (isTRUE(cl$ok)) {
+      mt$consequence[k]  <- cl$consequence
+      mt$aa_change[k]    <- cl$aa_change
+      mt$codon_change[k] <- cl$codon_change
+    } else {
+      # Leave NA; optionally stash reason into tags/logs if you want visibility
+      # mt$notes[k] <- cl$reason
+      next
+    }
+  }
+  
+  mt
+}
