@@ -1092,30 +1092,38 @@ pm_focus_gene <- function(gd, gene) {
 #' Focus by genomic range (inclusive) on a specific seq_id, using the *contracted* table.
 #' Behavior: position-only filtering (no 'end' dependence), exact seq_id match.
 #' @keywords internal
+
 pm_focus_roi <- function(gd, seq_id, start, end) {
   gd_assert(gd)
   stopifnot(!missing(seq_id), !missing(start), !missing(end))
   
-  # Contracted 8-col view from your wrapper path
-  tb <- pm_tbl(gd)
+  tb <- pm_tbl(gd)  # 8-col contracted view
   
-  # Normalize and validate inputs
+  # Normalize inputs (allow arithmetic like 106356 - 100)
   start <- suppressWarnings(as.integer(start))
   end   <- suppressWarnings(as.integer(end))
   if (is.na(start) || is.na(end)) {
     cli::cli_abort(c(
       "x" = "pm_focus_roi: start/end must be coercible to integer.",
-      "i" = sprintf("Got start=%s, end=%s.", as.character(substitute(start)), as.character(substitute(end)))
+      "i" = sprintf("Got start=%s, end=%s.", deparse(substitute(start)), deparse(substitute(end)))
     ))
   }
   if (start > end) { tmp <- start; start <- end; end <- tmp }
   
-  # Coerce table fields defensively (position may be character/factor)
-  pos <- suppressWarnings(as.integer(as.character(tb$position)))
+  # --- Defensive coercion helpers -------------------------------------------
+  # Strip everything except digits and leading minus signs
+  .parse_int <- function(x) {
+    if (is.numeric(x)) return(as.integer(x))
+    x <- as.character(x)
+    x <- gsub("[^0-9-]", "", x, perl = TRUE)
+    suppressWarnings(as.integer(x))
+  }
+  # --------------------------------------------------------------------------
+  
+  pos <- .parse_int(tb$position)
   sid <- as.character(tb$seq_id)
   target_sid <- as.character(seq_id)
   
-  # Build mask; treat NA position as non-hit
   hit <- (!is.na(pos)) & (sid == target_sid) & (pos >= start) & (pos <= end)
   if (length(hit) == 0L) hit <- rep(FALSE, nrow(tb))  # 0-row safety
   
@@ -1132,5 +1140,6 @@ pm_focus_roi <- function(gd, seq_id, start, end) {
   }
   out
 }
+
 
 
