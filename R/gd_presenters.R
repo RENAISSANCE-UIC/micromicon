@@ -1092,7 +1092,6 @@ pm_focus_gene <- function(gd, gene) {
 #' Focus by genomic range (inclusive) on a specific seq_id, using the *contracted* table.
 #' Behavior: position-only filtering (no 'end' dependence), exact seq_id match.
 #' @keywords internal
-
 pm_focus_roi <- function(gd, seq_id, start, end) {
   gd_assert(gd)
   stopifnot(!missing(seq_id), !missing(start), !missing(end))
