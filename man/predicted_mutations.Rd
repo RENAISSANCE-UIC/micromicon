@@ -2,27 +2,35 @@
 % Please edit documentation in R/gd_presenters.R
 \name{predicted_mutations}
 \alias{predicted_mutations}
-\title{Build a breseq-style "Predicted mutations" table from genome_entity_gd.}
+\title{Public wrapper: predicted mutations (opinionated defaults; args pass-through)}
 \usage{
 predicted_mutations(
   gd,
+  ...,
   min_freq = 0,
   include_structural = TRUE,
   join = c("slash", "pipe", "newline")
 )
 }
 \arguments{
-\item{gd}{genome_entity_gd parsed by parse_gd_annotated()}
+\item{gd}{genome_entity_gd}
 
-\item{min_freq}{numeric between 0 and 1, applied to RA evidence (e.g., 0.20 for >20\%)}
+\item{...}{reserved for future options passed to *_int (kept for forward-compat)}
 
-\item{include_structural}{logical; include MC/JC-backed structural predictions}
+\item{min_freq}{numeric scalar, keep rows with freq >= min_freq (default 0)}
 
-\item{join}{how to present multi-valued tags: "slash" (default), "pipe", or "newline"}
+\item{include_structural}{logical, include JC/MC/etc. (default TRUE)}
+
+\item{join}{one of c("slash","pipe","newline") for multi-item fields (default "slash")}
 }
 \value{
-data.frame with breseq-like predicted mutations
+data.frame/tibble with predicted mutations (superset schema)
 }
 \description{
-Columns: evidence, seq id, position, mutation, freq, annotation, gene, description
+Calls predicted_mutations_int(), announces row count, and prints a preview:
+\itemize{
+\item If dplyr is installed: prints tibble (contract unaffected).
+\item If dplyr is not installed: prints base data.frame.
+Any preview/logging errors are swallowed; the table is still returned.
+}
 }

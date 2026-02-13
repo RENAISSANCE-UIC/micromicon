@@ -1,8 +1,11 @@
 # GD HELPERS
 
+#' Null coalescing operator
+#' @keywords internal
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
-
+#' Compute MD5 checksum for file or object
+#' @keywords internal
 gd_fingerprint <- function(x, file = FALSE, algo = "md5") {
   if (!identical(tolower(algo), "md5")) {
     cli::cli_warn(c(
@@ -29,7 +32,8 @@ gd_digest <- function(x, file = FALSE, algo = "xxhash64") {
   gd_fingerprint(x, file = file, algo = "md5")
 }
 
-# Conservative heuristic: annotated.gd should have gene-level tags somewhere
+#' Check if GD file is annotated
+#' @keywords internal
 is_annotated_gd <- function(lines) {
   if (!length(lines)) return(FALSE)
   header <- grep("^#", lines, value = TRUE)
@@ -41,6 +45,8 @@ is_annotated_gd <- function(lines) {
   any(grepl(rx, body, perl = TRUE))
 }
 
+#' Compute canonical hash for GD event
+#' @keywords internal
 canonical_event_hash <- function(fixed_fields, taglist) {
   fixed_str <- paste(fixed_fields, collapse = "\t")
   if (length(taglist)) {
@@ -57,6 +63,8 @@ canonical_event_hash <- function(fixed_fields, taglist) {
   gd_digest(basis)
 }
 
+#' Create reference manifest from genome entity
+#' @keywords internal
 reference_manifest_from_genome_entity <- function(entity, fasta_path = NULL,
                                                   gff3_path = NULL, gbk_path = NULL) {
   stopifnot(inherits(entity, "genome_entity"))
@@ -87,6 +95,8 @@ reference_manifest_from_genome_entity <- function(entity, fasta_path = NULL,
   list(contigs = contigs, checksums = checksums)
 }
 
+#' Parse pair of values
+#' @keywords internal
 .parse_pair <- function(x, sep = "/", as = c("int","num")) {
   if (is.null(x) || !length(x) || is.na(x[1])) return(c(NA, NA))
   as <- match.arg(as)
@@ -99,23 +109,35 @@ reference_manifest_from_genome_entity <- function(entity, fasta_path = NULL,
   }
 }
 
+#' Coerce to numeric
+#' @keywords internal
 .as_num <- function(x) {
   if (is.null(x) || !length(x)) return(NA_real_)
   suppressWarnings(as.numeric(x[1]))
 }
 
+#' Coerce to integer
+#' @keywords internal
 .as_int <- function(x) {
   if (is.null(x) || !length(x)) return(NA_integer_)
   suppressWarnings(as.integer(x[1]))
 }
 
 
+#' Check if column has non-NA values
+#' @keywords internal
 gd_col_has <- function(row, nm) !is.null(row[[nm]]) && !all(is.na(row[[nm]]))
 
+#' Get first value from row column
+#' @keywords internal
 gd_get1    <- function(row, nm) as.character(row[[nm]][1])
 
+#' Check if row has qualifiers
+#' @keywords internal
 gd_qual_has <- function(row) gd_col_has(row, "qualifiers") && length(row$qualifiers[[1]]) > 0
 
+#' Get qualifier value from row
+#' @keywords internal
 gd_get_qual <- function(row, key, default = NA_character_) {
   if (!gd_qual_has(row)) return(default)
   q <- row$qualifiers[[1]]
@@ -125,6 +147,8 @@ gd_get_qual <- function(row, key, default = NA_character_) {
   as.character(val[[1]])
 }
 
+#' Check if position is within CDS row
+#' @keywords internal
 gd_pos_in_row <- function(cds_row, pos) {
   # Fast path: single contiguous CDS
   if (!gd_col_has(cds_row, "location_type") || identical(as.character(cds_row$location_type[1]), "single")) {
@@ -169,10 +193,33 @@ gd_pos_in_row <- function(cds_row, pos) {
   !is.na(s) && !is.na(e) && pos >= s && pos <= e
 }
 
+#' Filter CDS features covering position
+#' @keywords internal
 gd_filter_cds_covering <- function(feat, seq_id, pos) {
   cand <- feat[feat$seqname == seq_id & feat$type == "CDS", , drop = FALSE]
   keep <- vapply(seq_len(nrow(cand)), function(i) gd_pos_in_row(cand[i, , drop = FALSE], pos), logical(1))
   cand[keep, , drop = FALSE]
+}
+
+#' Check if value is not NA
+#' @keywords internal
+gd_not_na <- function(x) {
+  !is.na(x)
+}
+
+#' Check if character value is non-NA and non-empty
+#' @keywords internal
+gd_nzchar <- function(x) {
+  !is.na(x) & nzchar(x)
+}
+
+#' Parse integer from string, stripping non-numeric characters
+#' @keywords internal
+gd_parse_int <- function(x) {
+  if (is.numeric(x)) return(as.integer(x))
+  x <- as.character(x)
+  x <- gsub("[^0-9-]", "", x, perl = TRUE)
+  suppressWarnings(as.integer(x))
 }
 
 
