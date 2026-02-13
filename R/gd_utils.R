@@ -140,7 +140,7 @@ gd_assert <- function(x, arg = "x") {
 }
 
 
-# ---- Vector-safe predicates for presenters/assemblers
+# ---- Vector-safe predicates for presenters/assemblers ----
 
 #' TRUE for every element that is not NA
 #' @keywords internal
@@ -163,7 +163,7 @@ v_pos_gt0 <- function(x) {
 }
 
 
-# ---- New tooling
+# ---- New tooling ----
 
 
 # Compute the codon/AA effect of a single-base substitution at a locus for a given gene
@@ -516,4 +516,27 @@ gd_locate <- function(gd, seq_id, pos) {
   if (!nzchar(genes)) genes <- NA_character_
   
   list(region = "intergenic", label = label, genes = genes)
+}
+
+
+# Robust integer parse for positions that may contain commas
+#' @keywords internal
+.pm_parse_pos1 <- function(x) {
+  if (is.numeric(x)) return(as.integer(x))
+  x <- as.character(x)
+  x <- gsub("[^0-9-]", "", x, perl = TRUE)
+  suppressWarnings(as.integer(x))
+}
+
+
+# Defensive RA allele accessor: handles column name variants you saw in practice
+#' @keywords internal
+gd_ra_alleles <- function(ra_row) {
+  cols <- names(ra_row)
+  pick <- function(primary, alt) {
+    if (primary %in% cols) ra_row[[primary]] else if (alt %in% cols) ra_row[[alt]] else NA_character_
+  }
+  ref <- pick("ra_ref_base",  "snp_ref_base")
+  alt <- pick("ra_new_base",  "snp_alt_base")
+  list(ref = as.character(ref)[1], alt = as.character(alt)[1])
 }
