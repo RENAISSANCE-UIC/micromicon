@@ -6,7 +6,7 @@
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations
 #' @keywords internal
-predicted_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
+predict_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   
   join <- match.arg(join)
@@ -389,7 +389,7 @@ predicted_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations (now with 3-letter `type`)
 #' @keywords internal
-predicted_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
+predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   join <- match.arg(join)
   
@@ -739,9 +739,9 @@ predicted_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
 
 
 
-#' Public wrapper: predicted mutations (opinionated defaults; args pass-through)
+#' Public wrapper: predict mutations (opinionated defaults; args pass-through)
 #'
-#' Calls predicted_mutations_int(), announces row count, and prints a preview:
+#' Calls predict_mutations_int(), announces row count, and prints a preview:
 #' - If dplyr is installed: prints tibble (contract unaffected).
 #' - If dplyr is not installed: prints base data.frame.
 #' Any preview/logging errors are swallowed; the table is still returned.
@@ -753,7 +753,7 @@ predicted_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
 #' @param join one of c("slash","pipe","newline") for multi-item fields (default "slash")
 #' @return data.frame/tibble with predicted mutations (superset schema)
 #' @export
-predicted_mutations <- function(gd, ...,
+predict_mutations <- function(gd, ...,
                                 min_freq = 0,
                                 include_structural = TRUE,
                                 join = c("slash", "pipe", "newline")) {
@@ -761,7 +761,7 @@ predicted_mutations <- function(gd, ...,
   join <- match.arg(join)
   
   # Build once via internal, regardless of downstream printing path
-  tbl <- predicted_mutations_int(
+  tbl <- predict_mutations_int(
     gd,
     min_freq = min_freq,
     include_structural = include_structural,
@@ -775,7 +775,7 @@ predicted_mutations <- function(gd, ...,
       n <- NROW(tbl)
       # row count announcement
       cli::cli_inform(c(
-        "i" = sprintf("predicted_mutations: %d row%s.", n, if (n == 1L) "" else "s")
+        "i" = sprintf("predict_mutations: %d row%s.", n, if (n == 1L) "" else "s")
       ))
       
       # choose printing strategy
@@ -810,13 +810,13 @@ predicted_mutations <- function(gd, ...,
   invisible(tbl)
 }
 
-#' Fallback enrichment for predicted_mutations() output using hoisted features
+#' Fallback enrichment for predict_mutations() output using hoisted features
 #'
 #' This function does *not* change existing, non-missing fields. It only
 #' fills gaps using the reference features in `gd$features`.
 #'
 #' @param gd          genome_entity_gd
-#' @param tbl         data.frame from predicted_mutations(gd)
+#' @param tbl         data.frame from predict_mutations(gd)
 #' @param want_distance logical; compute intergenic distance when gene is NA
 #' @return data.frame with enriched columns (type/gene/annotation/distance if missing)
 #' @keywords internal
@@ -1028,8 +1028,8 @@ pm_tbl <- function(gd) {
     )
   }
   
-  tb <- predicted_mutations_int(gd)
-  
+  tb <- predict_mutations_int(gd)
+
   # Enforce your pared-down column contract
   required_cols <- c("evidence","type","seq_id","position","mutation","freq","annotation","gene")
   missing <- setdiff(required_cols, names(tb))
@@ -1038,7 +1038,7 @@ pm_tbl <- function(gd) {
       c(
         "x" = "pm_tbl: required column(s) missing.",
         "!" = paste("Missing:", paste(missing, collapse = ", ")),
-        "i" = "Confirm that {.fn predicted_mutations} produces these fields upstream."
+        "i" = "Confirm that {.fn predict_mutations} produces these fields upstream."
       )
     )
   }
@@ -1061,18 +1061,18 @@ pm_view <- function(gd, n = 25) {
     # Contracted tibble path
     tb <- pm_tbl(gd)  # will cli_abort if something else is wrong
     cli::cli_inform(c(
-      "i" = sprintf("predicted_mutations (contracted tibble): %d rows; showing top %d.", nrow(tb), n)
+      "i" = sprintf("predict_mutations (contracted tibble): %d rows; showing top %d.", nrow(tb), n)
     ))
     print(utils::head(tb, n))
     return(invisible(tb))
   }
   
-  # Fallback: no dplyr installed — show something useful, don’t crash.
+  # Fallback: no dplyr installed — show something useful, don't crash.
   cli::cli_inform(c(
-    "!" = "{.pkg dplyr} not detected; showing a base preview from {.fn predicted_mutations}.",
+    "!" = "{.pkg dplyr} not detected; showing a base preview from {.fn predict_mutations}.",
     "i" = "Install with: {.code install.packages('dplyr')} to enable tibble output and focused columns."
   ))
-  df <- predicted_mutations(gd)
+  df <- predict_mutations(gd)
   # Be defensive: if the object is huge, head() keeps it polite.
   print(utils::head(df, n))
   invisible(df)

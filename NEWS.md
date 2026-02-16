@@ -1,3 +1,15 @@
+# micromicon 0.2.9
+
+## Breaking Changes
+
+### Function Renaming: predicted_mutations → predict_mutations
+
+* **BREAKING**: Renamed `predicted_mutations()` to `predict_mutations()` to use verb form
+* **BREAKING**: Renamed `predicted_mutations_int()` to `predict_mutations_int()` (internal function)
+* **BREAKING**: Renamed `predicted_mutations_orig()` to `predict_mutations_orig()` (internal function)
+* Updated all documentation, README, and vignettes to use new function names
+* Users must update their code: change `predicted_mutations(gd)` to `predict_mutations(gd)`
+
 # micromicon 0.2.8
 
 ## Bug Fixes: Sequence Extraction Functions

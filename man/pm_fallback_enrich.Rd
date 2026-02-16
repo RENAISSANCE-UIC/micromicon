@@ -2,14 +2,14 @@
 % Please edit documentation in R/gd_presenters.R
 \name{pm_fallback_enrich}
 \alias{pm_fallback_enrich}
-\title{Fallback enrichment for predicted_mutations() output using hoisted features}
+\title{Fallback enrichment for predict_mutations() output using hoisted features}
 \usage{
 pm_fallback_enrich(gd, tbl, want_distance = TRUE)
 }
 \arguments{
 \item{gd}{genome_entity_gd}
 
-\item{tbl}{data.frame from predicted_mutations(gd)}
+\item{tbl}{data.frame from predict_mutations(gd)}
 
 \item{want_distance}{logical; compute intergenic distance when gene is NA}
 }

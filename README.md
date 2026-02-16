@@ -88,7 +88,7 @@ blast_protein(protein, database = "swissprot")
 
 Implemented as `genome_entity_gd`, which inherits from the `genome_entity` object, this allows the reference to be supplemented with genomic variation events documented in the `annotated.gd` output from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing). 
 
-By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predicted_mutations()` require mutation data.
+By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predict_mutations()` require mutation data.
 
 ```r
 # Parse breseq output with reference genome
@@ -111,7 +111,7 @@ map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
 # Variation-specific: Get predicted mutations data frame
-predicted_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
+predict_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
 ```
 
 ### Format Conversion Rules
@@ -332,7 +332,7 @@ features(gd)           # Works
 get_gene_aa(gd, "ampC")  # Works
 
 # New methods for subclass
-predicted_mutations(gd)  # gd-specific function
+predict_mutations(gd)  # gd-specific function
 ```
 
 ### Custom Genome Sources

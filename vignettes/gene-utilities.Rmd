@@ -265,7 +265,7 @@ entity <- read_genome("reference.gbk")
 gd <- parse_gd_annotated("annotated.gd", entity)
 
 # Get predicted mutations
-mutations <- predicted_mutations(gd)
+mutations <- predict_mutations(gd)
 
 # Use gene utilities on gd objects (inheritance)
 gene_dna <- get_gene_dna(gd, "mutS")
