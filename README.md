@@ -12,7 +12,7 @@ We wanted a free, open-source toolkit that worked naturally for R users and lowe
 
 `micromicon` ingests and consolidates common genomics file formats into stable representations (`genome_entity`, `genome_entity_gd`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a format-agnostic foundation for routine bacterial genomics analysis, with space intentionally reserved for future tooling, including variant-aware workflows and functional consequence interpretation.
 
-<a href="https://doi.org/10.5281/zenodo.18500345"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg" alt="DOI"></a>
+[<a href="https://doi.org/10.5281/zenodo.18500345"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg)
 
 
 ## Installation
