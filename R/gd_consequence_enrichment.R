@@ -169,15 +169,23 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     return(list(region = NA_character_, coding_pos = NA_integer_, coding_len = NA_integer_))
   }
 
-  # Pattern: "coding (45/1200 nt)" or "coding (45/?? nt)" or "coding (45/ nt)"
+  # Pattern: "coding (45/1200 nt)" for SNPs or "coding (152-278 / 435 nt)" for DEL
+  # The position part can be: single number OR a range (e.g., 152-278)
   # The length part can be: digits, ??, or missing entirely
-  # Use a more flexible pattern that captures any non-space characters or nothing
-  coding_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*/\\s*([^\\s)]*?)\\s*nt\\s*\\)", annotation)
+  coding_match <- regexec("coding\\s*\\(\\s*([0-9\\-]+)\\s*/\\s*([0-9?]*)\\s*nt\\s*\\)", annotation)
   matches <- regmatches(annotation, coding_match)[[1]]
 
   if (length(matches) >= 2) {
-    # We have at least "coding" and position
-    coding_pos <- as.integer(matches[2])
+    # We have at least "coding" and position (may be range like "152-278")
+    # For ranges, take the first number
+    pos_str <- matches[2]
+    if (grepl("-", pos_str)) {
+      # Range format: extract first number
+      coding_pos <- as.integer(strsplit(pos_str, "-")[[1]][1])
+    } else {
+      # Single position
+      coding_pos <- as.integer(pos_str)
+    }
     # Try to parse length (may be NA if it's "??" or empty)
     coding_len <- if (length(matches) >= 3 && nzchar(matches[3]) && !grepl("\\?", matches[3])) {
       as.integer(matches[3])
