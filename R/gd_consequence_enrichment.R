@@ -96,6 +96,15 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   for (i in seq_len(nrow(out))) {
     row_type <- toupper(as.character(out$type[i]))
 
+    # Handle NA or unrecognized types
+    if (is.na(row_type) || !row_type %in% c("SNP", "DEL", "INS", "SUB")) {
+      if (!quiet) {
+        cli::cli_warn("Row {i}: Skipping unrecognized mutation type '{out$type[i]}'")
+      }
+      out$qc_note[i] <- paste0("Unsupported mutation type: ", out$type[i])
+      next
+    }
+
     if (row_type == "SNP") {
       enriched_row <- .pm_enrich_snp(gd, out[i, , drop = FALSE], flank, quiet)
       # Copy enriched fields back
