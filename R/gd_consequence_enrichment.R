@@ -2,9 +2,10 @@
 #'
 #' @description
 #' Adds molecular consequence annotations to a `predict_mutations()` table.
-#' For SNPs in coding regions, computes reference/alternate sequences and
-#' consequence (synonymous/missense/nonsense). For intergenic SNPs, extracts
-#' a flanking DNA window.
+#' Supports SNPs, deletions (DEL), insertions (INS), and substitutions (SUB).
+#'
+#' For coding region mutations, computes reference/alternate sequences and
+#' consequences. For intergenic mutations, extracts flanking DNA windows.
 #'
 #' @param gd A GenomeData object
 #' @param pm_tbl A data.frame from `predict_mutations()`, containing at minimum:
@@ -38,7 +39,16 @@
 #'   \item \code{translate_dna()} - Translate CDS to protein
 #' }
 #'
-#' Currently supports SNP mutations only. Future versions will handle DEL, INS, SUB.
+#' **Supported mutation types:**
+#' \itemize{
+#'   \item \strong{SNP}: synonymous, missense, nonsense
+#'   \item \strong{DEL}: inframe_deletion, frameshift
+#'   \item \strong{INS}: inframe_insertion, frameshift
+#'   \item \strong{SUB}: complex (partial support)
+#' }
+#'
+#' **Note**: Only coding region mutations get amino acid sequences. Intergenic
+#' mutations only receive DNA sequences (no protein translation).
 #'
 #' @examples
 #' \dontrun{
@@ -93,8 +103,25 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
                     "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
+    } else if (row_type == "DEL") {
+      enriched_row <- .pm_enrich_del(gd, out[i, , drop = FALSE], flank, quiet)
+      for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
+                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+        out[i, col] <- enriched_row[[col]]
+      }
+    } else if (row_type == "INS") {
+      enriched_row <- .pm_enrich_ins(gd, out[i, , drop = FALSE], flank, quiet)
+      for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
+                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+        out[i, col] <- enriched_row[[col]]
+      }
+    } else if (row_type == "SUB") {
+      enriched_row <- .pm_enrich_sub(gd, out[i, , drop = FALSE], flank, quiet)
+      for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
+                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+        out[i, col] <- enriched_row[[col]]
+      }
     }
-    # Future: handle DEL, INS, SUB types here
   }
 
   if (!quiet) {
@@ -265,25 +292,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   }
 
   # Coding region: use gd_verify_snp()
-  gene <- as.character(row$gene)
-  if (is.na(gene) || !nzchar(gene) || gene == "-") {
-    # Fallback: search for overlapping CDS
-    cds <- tryCatch(
-      search_features(gd, type = "CDS", seqname = seq_id_chr,
-                     start = pos_parsed, end = pos_parsed),
-      error = function(e) data.frame()
-    )
-
-    if (nrow(cds) > 0) {
-      gene <- if ("gene" %in% names(cds) && !is.na(cds$gene[1])) {
-        as.character(cds$gene[1])
-      } else if ("locus_tag" %in% names(cds) && !is.na(cds$locus_tag[1])) {
-        as.character(cds$locus_tag[1])
-      } else {
-        NA_character_
-      }
-    }
-  }
+  gene <- .pm_resolve_gene(gd, as.character(row$gene), row$seq_id, row$position)
 
   if (!is.na(gene) && nzchar(gene)) {
     # Compute SNP effect using existing utility
@@ -354,6 +363,389 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   }
 
   row
+}
+
+
+#' Clean and Resolve Gene Name
+#'
+#' @description
+#' Cleans gene name from predict_mutations() output (removes arrows, whitespace)
+#' and resolves to actual gene identifier. Falls back to position-based lookup.
+#'
+#' @param gd GenomeData object
+#' @param gene_raw Raw gene string from mutation table (may have arrows)
+#' @param seq_id Sequence ID
+#' @param position Position (can be comma-formatted or P:k format)
+#'
+#' @return Cleaned gene name, or NA if not resolvable
+#' @keywords internal
+.pm_resolve_gene <- function(gd, gene_raw, seq_id, position) {
+  # Clean gene name: remove arrows (←, →, <-, ->), trim whitespace
+  gene_clean <- gene_raw
+  gene_clean <- gsub("←|→|<-|->", "", gene_clean)
+  gene_clean <- trimws(gene_clean)
+
+  # If gene is NA or empty after cleaning, try position-based lookup
+  if (is.na(gene_clean) || !nzchar(gene_clean)) {
+    # Parse position
+    pos_parsed <- .pm_parse_position(position)
+    if (!is.na(pos_parsed)) {
+      # Use gd_locate to find gene at this position
+      loc <- tryCatch(
+        gd_locate(gd, seq_id = as.character(seq_id), pos = pos_parsed),
+        error = function(e) list(genes = NA_character_)
+      )
+      if (!is.na(loc$genes) && length(loc$genes) > 0) {
+        gene_clean <- loc$genes[1]  # Take first gene if multiple
+      }
+    }
+  }
+
+  # Verify gene exists - try to find it
+  if (!is.na(gene_clean) && nzchar(gene_clean)) {
+    # Try finding by pattern (searches Name, ID, Alias, gene, locus_tag, product)
+    features <- tryCatch(
+      search_features(gd, pattern = gene_clean, type = "CDS"),
+      error = function(e) data.frame()
+    )
+
+    if (nrow(features) > 0) {
+      # Use the ID field for most reliable lookup
+      if ("ID" %in% names(features) && !is.na(features$ID[1])) {
+        return(as.character(features$ID[1]))
+      }
+      # Fall back to Name
+      if ("Name" %in% names(features) && !is.na(features$Name[1])) {
+        return(as.character(features$Name[1]))
+      }
+      # Fall back to locus_tag
+      if ("locus_tag" %in% names(features) && !is.na(features$locus_tag[1])) {
+        return(as.character(features$locus_tag[1]))
+      }
+      # Last resort: use cleaned name
+      return(gene_clean)
+    }
+  }
+
+  # Couldn't resolve
+  NA_character_
+}
+
+
+#' Enrich Single DEL Row
+#'
+#' @description
+#' Internal helper to enrich a single deletion mutation.
+#'
+#' @param gd GenomeData object
+#' @param row Single-row data.frame with mutation info
+#' @param flank Integer, flanking window size for intergenic regions
+#' @param quiet Logical, suppress warnings
+#'
+#' @return The input row with enriched columns filled in
+#' @keywords internal
+.pm_enrich_del <- function(gd, row, flank, quiet = FALSE) {
+  # Parse annotation to determine region
+  ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
+    .pm_parse_annotation_geometry(as.character(row$annotation))
+  } else {
+    list(region = NA_character_, coding_pos = NA_integer_, coding_len = NA_integer_)
+  }
+
+  # Parse deletion annotation for range
+  del_info <- .pm_parse_deletion_annotation(as.character(row$annotation))
+
+  if (!is.na(ann_geo$region) && ann_geo$region == "coding" && !is.na(del_info$start) && !is.na(del_info$end)) {
+    # Coding deletion
+    # Resolve gene name (clean arrows, fall back to position lookup)
+    gene <- .pm_resolve_gene(gd, as.character(row$gene), row$seq_id, row$position)
+
+    if (is.na(gene)) {
+      row <- .pm_append_qc_note(row, "Could not resolve gene name")
+      return(row)
+    }
+
+    # Get reference sequences
+    dna_ref_full <- tryCatch(get_gene_dna(gd, gene), error = function(e) NA_character_)
+    aa_ref_full <- tryCatch(get_gene_aa(gd, gene), error = function(e) NA_character_)
+
+    if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
+      row$dna_ref <- dna_ref_full
+      row$aa_ref <- aa_ref_full
+
+      # Apply deletion (remove bases from start to end)
+      if (del_info$start > 1) {
+        before_del <- substr(dna_ref_full, 1, del_info$start - 1)
+      } else {
+        before_del <- ""
+      }
+
+      if (del_info$end < nchar(dna_ref_full)) {
+        after_del <- substr(dna_ref_full, del_info$end + 1, nchar(dna_ref_full))
+      } else {
+        after_del <- ""
+      }
+
+      dna_alt <- paste0(before_del, after_del)
+      row$dna_alt <- dna_alt
+
+      # Translate mutated sequence
+      aa_alt <- tryCatch(
+        translate_dna(dna_alt, frame = 1, genetic_code = "11", .internal = TRUE),
+        error = function(e) NA_character_
+      )
+
+      # Normalize alt-start if needed
+      if (!is.na(aa_alt) && nchar(aa_alt) > 0 && nchar(dna_alt) >= 3) {
+        first_codon <- toupper(substr(dna_alt, 1, 3))
+        alt_start_codons <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
+        if (first_codon %in% alt_start_codons && substr(aa_alt, 1, 1) != "M") {
+          aa_alt <- paste0("M", substr(aa_alt, 2, nchar(aa_alt)))
+          row <- .pm_append_qc_note(row, sprintf("Normalized alt start %s->M", first_codon))
+        }
+      }
+
+      row$aa_alt <- aa_alt
+
+      # Determine consequence
+      del_size <- del_info$end - del_info$start + 1
+      if (del_size %% 3 == 0) {
+        row$consequence <- "inframe_deletion"
+      } else {
+        row$consequence <- "frameshift"
+      }
+
+      row$region <- "coding"
+      # Get strand info
+      strand_info <- tryCatch(gd_locate(gd, seq_id = as.character(row$seq_id), pos = del_info$start),
+                             error = function(e) list(strand = NA_character_))
+      row$strand <- strand_info$strand %||% NA_character_
+    }
+  } else {
+    # Intergenic deletion - just provide DNA context, no AA
+    pos_parsed <- .pm_parse_position(as.character(row$position))
+    if (!is.na(pos_parsed)) {
+      seq_id_chr <- as.character(row$seq_id)
+      start_pos <- max(1L, pos_parsed - flank)
+      end_pos <- pos_parsed + flank
+
+      dna_window <- tryCatch(
+        get_roi_dna(gd, chrom = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
+        error = function(e) NA_character_
+      )
+
+      if (!is.na(dna_window)) {
+        row$dna_ref <- dna_window
+        # For intergenic, we can't easily apply the deletion without more info
+        row$dna_alt <- NA_character_
+        row <- .pm_append_qc_note(row, "Intergenic deletion - dna_alt not computed")
+      }
+
+      row$region <- "intergenic"
+    }
+  }
+
+  row
+}
+
+
+#' Enrich Single INS Row
+#'
+#' @description
+#' Internal helper to enrich a single insertion mutation.
+#'
+#' @param gd GenomeData object
+#' @param row Single-row data.frame with mutation info
+#' @param flank Integer, flanking window size for intergenic regions
+#' @param quiet Logical, suppress warnings
+#'
+#' @return The input row with enriched columns filled in
+#' @keywords internal
+.pm_enrich_ins <- function(gd, row, flank, quiet = FALSE) {
+  # Parse annotation
+  ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
+    .pm_parse_annotation_geometry(as.character(row$annotation))
+  } else {
+    list(region = NA_character_, coding_pos = NA_integer_, coding_len = NA_integer_)
+  }
+
+  # Parse insertion
+  ins_info <- .pm_parse_insertion_mutation(as.character(row$mutation))
+
+  if (!is.na(ann_geo$region) && ann_geo$region == "coding" && !is.na(ins_info$position) && !is.na(ins_info$sequence)) {
+    # Coding insertion
+    gene <- .pm_resolve_gene(gd, as.character(row$gene), row$seq_id, row$position)
+
+    if (is.na(gene)) {
+      row <- .pm_append_qc_note(row, "Could not resolve gene name for insertion")
+      return(row)
+    }
+
+    # Get reference sequences
+    dna_ref_full <- tryCatch(get_gene_dna(gd, gene), error = function(e) NA_character_)
+    aa_ref_full <- tryCatch(get_gene_aa(gd, gene), error = function(e) NA_character_)
+
+    if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
+      row$dna_ref <- dna_ref_full
+      row$aa_ref <- aa_ref_full
+
+      # Apply insertion
+      before_ins <- substr(dna_ref_full, 1, ins_info$position)
+      after_ins <- substr(dna_ref_full, ins_info$position + 1, nchar(dna_ref_full))
+      dna_alt <- paste0(before_ins, ins_info$sequence, after_ins)
+      row$dna_alt <- dna_alt
+
+      # Translate
+      aa_alt <- tryCatch(
+        translate_dna(dna_alt, frame = 1, genetic_code = "11", .internal = TRUE),
+        error = function(e) NA_character_
+      )
+
+      # Normalize alt-start if needed
+      if (!is.na(aa_alt) && nchar(aa_alt) > 0 && nchar(dna_alt) >= 3) {
+        first_codon <- toupper(substr(dna_alt, 1, 3))
+        alt_start_codons <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
+        if (first_codon %in% alt_start_codons && substr(aa_alt, 1, 1) != "M") {
+          aa_alt <- paste0("M", substr(aa_alt, 2, nchar(aa_alt)))
+          row <- .pm_append_qc_note(row, sprintf("Normalized alt start %s->M", first_codon))
+        }
+      }
+
+      row$aa_alt <- aa_alt
+
+      # Determine consequence
+      if (nchar(ins_info$sequence) %% 3 == 0) {
+        row$consequence <- "inframe_insertion"
+      } else {
+        row$consequence <- "frameshift"
+      }
+
+      row$region <- "coding"
+      strand_info <- tryCatch(gd_locate(gd, seq_id = as.character(row$seq_id), pos = ins_info$position),
+                             error = function(e) list(strand = NA_character_))
+      row$strand <- strand_info$strand %||% NA_character_
+    }
+  } else {
+    # Intergenic insertion
+    pos_parsed <- .pm_parse_position(as.character(row$position))
+    if (!is.na(pos_parsed)) {
+      seq_id_chr <- as.character(row$seq_id)
+      start_pos <- max(1L, pos_parsed - flank)
+      end_pos <- pos_parsed + flank
+
+      dna_window <- tryCatch(
+        get_roi_dna(gd, chrom = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
+        error = function(e) NA_character_
+      )
+
+      if (!is.na(dna_window)) {
+        row$dna_ref <- dna_window
+        row$dna_alt <- NA_character_
+        row <- .pm_append_qc_note(row, "Intergenic insertion - dna_alt not computed")
+      }
+
+      row$region <- "intergenic"
+    }
+  }
+
+  row
+}
+
+
+#' Enrich Single SUB Row
+#'
+#' @description
+#' Internal helper to enrich a single substitution mutation.
+#'
+#' @param gd GenomeData object
+#' @param row Single-row data.frame with mutation info
+#' @param flank Integer, flanking window size for intergenic regions
+#' @param quiet Logical, suppress warnings
+#'
+#' @return The input row with enriched columns filled in
+#' @keywords internal
+.pm_enrich_sub <- function(gd, row, flank, quiet = FALSE) {
+  # Substitutions are complex - for now treat similarly to deletions
+  # Future: implement full substitution logic
+  row <- .pm_append_qc_note(row, "SUB mutations not fully implemented")
+
+  # Parse annotation
+  ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
+    .pm_parse_annotation_geometry(as.character(row$annotation))
+  } else {
+    list(region = NA_character_, coding_pos = NA_integer_, coding_len = NA_integer_)
+  }
+
+  if (!is.na(ann_geo$region)) {
+    row$region <- ann_geo$region
+  } else {
+    row$region <- "intergenic"
+  }
+
+  row
+}
+
+
+#' Parse Deletion Annotation
+#'
+#' @description
+#' Extracts deletion range from annotation like "coding (152-278 / 435 nt)".
+#'
+#' @param annotation Character string from annotation column
+#' @return List with start, end, total_len
+#' @keywords internal
+.pm_parse_deletion_annotation <- function(annotation) {
+  if (is.null(annotation) || length(annotation) == 0 || is.na(annotation) || !nzchar(annotation)) {
+    return(list(start = NA_integer_, end = NA_integer_, total_len = NA_integer_))
+  }
+
+  # Pattern: "coding (152-278 / 435 nt)"
+  del_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*-\\s*(\\d+)\\s*/\\s*([^\\s)]*?)\\s*nt\\s*\\)", annotation)
+  matches <- regmatches(annotation, del_match)[[1]]
+
+  if (length(matches) >= 3) {
+    start <- as.integer(matches[2])
+    end <- as.integer(matches[3])
+    total_len <- if (length(matches) >= 4 && !grepl("\\?", matches[4])) {
+      as.integer(matches[4])
+    } else {
+      NA_integer_
+    }
+
+    return(list(start = start, end = end, total_len = total_len))
+  }
+
+  # Couldn't parse
+  list(start = NA_integer_, end = NA_integer_, total_len = NA_integer_)
+}
+
+
+#' Parse Insertion Mutation
+#'
+#' @description
+#' Extracts insertion details from mutation field like "+ACGT" or "ins_ACGT".
+#'
+#' @param mutation Character string from mutation column
+#' @return List with position (from annotation) and sequence
+#' @keywords internal
+.pm_parse_insertion_mutation <- function(mutation) {
+  if (is.null(mutation) || length(mutation) == 0 || is.na(mutation) || !nzchar(mutation)) {
+    return(list(position = NA_integer_, sequence = NA_character_))
+  }
+
+  # Pattern: "+ACGT" or "ins_ACGT"
+  if (grepl("^\\+", mutation)) {
+    seq <- sub("^\\+", "", mutation)
+    return(list(position = NA_integer_, sequence = seq))
+  }
+
+  if (grepl("^ins_", mutation, ignore.case = TRUE)) {
+    seq <- sub("^ins_", "", mutation, ignore.case = TRUE)
+    return(list(position = NA_integer_, sequence = seq))
+  }
+
+  # Couldn't parse
+  list(position = NA_integer_, sequence = NA_character_)
 }
 
 

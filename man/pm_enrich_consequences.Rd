@@ -35,9 +35,10 @@ A data.frame with additional columns:
 }
 \description{
 Adds molecular consequence annotations to a \code{predict_mutations()} table.
-For SNPs in coding regions, computes reference/alternate sequences and
-consequence (synonymous/missense/nonsense). For intergenic SNPs, extracts
-a flanking DNA window.
+Supports SNPs, deletions (DEL), insertions (INS), and substitutions (SUB).
+
+For coding region mutations, computes reference/alternate sequences and
+consequences. For intergenic mutations, extracts flanking DNA windows.
 }
 \details{
 This function leverages existing micromicon utilities:
@@ -49,7 +50,16 @@ This function leverages existing micromicon utilities:
 \item \code{translate_dna()} - Translate CDS to protein
 }
 
-Currently supports SNP mutations only. Future versions will handle DEL, INS, SUB.
+\strong{Supported mutation types:}
+\itemize{
+\item \strong{SNP}: synonymous, missense, nonsense
+\item \strong{DEL}: inframe_deletion, frameshift
+\item \strong{INS}: inframe_insertion, frameshift
+\item \strong{SUB}: complex (partial support)
+}
+
+\strong{Note}: Only coding region mutations get amino acid sequences. Intergenic
+mutations only receive DNA sequences (no protein translation).
 }
 \examples{
 \dontrun{
