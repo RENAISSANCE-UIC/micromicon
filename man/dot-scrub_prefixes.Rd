@@ -2,7 +2,7 @@
 % Please edit documentation in R/frameworks_utils_string_utils.R
 \name{.scrub_prefixes}
 \alias{.scrub_prefixes}
-\title{Scrub common sequence name prefixes}
+\title{String Utility Functions}
 \usage{
 .scrub_prefixes(x)
 }
@@ -13,6 +13,8 @@
 Character vector with prefixes removed
 }
 \description{
+Low-level string manipulation utilities used across the framework.
+
 Removes common prefixes from sequence names like "lcl|" and "chr".
 Extend as your corpus dictates.
 }
@@ -22,4 +24,14 @@ Extend as your corpus dictates.
 # Returns: c("seq1", "1", "2")
 }
 }
+\keyword{Infix}
+\keyword{Scrub}
+\keyword{common}
+\keyword{default}
+\keyword{for}
 \keyword{internal}
+\keyword{name}
+\keyword{operator}
+\keyword{prefixes}
+\keyword{sequence}
+\keyword{values}

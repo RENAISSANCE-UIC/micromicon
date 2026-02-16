@@ -105,5 +105,4 @@ normalize_gbk_record <- function(record) {
   )
 }
 
-# Helper: %||% operator (like rlang)
-`%||%` <- function(x, y) if (is.null(x)) y else x
+# Note: %||% operator is defined in R/operators.R

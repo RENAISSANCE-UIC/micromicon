@@ -200,5 +200,4 @@ harmonize_seqnames_simple <- function(gff_seqnames, fasta_seqnames, verbose = TR
   NULL
 }
 
-# Helper: %||% operator (like rlang)
-`%||%` <- function(x, y) if (is.null(x)) y else x
+# Note: %||% operator is defined in R/operators.R

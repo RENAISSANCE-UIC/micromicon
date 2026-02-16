@@ -28,9 +28,9 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
   if (!file.exists(gd_path)) cli::cli_abort("File does not exist: {gd_path}")
   stopifnot(inherits(entity, "genome_entity"))
   
-  # ---- local scalar helpers 
-  `%||%` <- function(x, y) if (is.null(x)) y else x
-  
+  # ---- local scalar helpers
+  # Note: %||% is defined globally in R/operators.R
+
   first_non_na <- function(x) {
     if (is.null(x) || length(x) == 0L) return(NA)
     i <- which(!is.na(x))

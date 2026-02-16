@@ -1,8 +1,6 @@
 # GD HELPERS
 
-#' Null coalescing operator
-#' @keywords internal
-`%||%` <- function(a, b) if (!is.null(a)) a else b
+# Note: %||% operator is defined in R/operators.R
 
 #' Compute MD5 checksum for file or object
 #' @keywords internal

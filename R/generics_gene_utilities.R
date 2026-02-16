@@ -737,5 +737,4 @@ reverse_complement <- function(seq) {
 }
 
 
-# Helper: %||% operator
-`%||%` <- function(x, y) if (is.null(x)) y else x
+# Note: %||% operator is defined in R/operators.R

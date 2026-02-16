@@ -18,8 +18,7 @@
 #' @return List with 'names' and 'lengths' components
 #' @keywords internal
 .get_fasta_index <- function(fa_obj) {
-  # Require string utils for %||%
-  `%||%` <- function(x, y) if (is.null(x)) y else x
+  # Note: %||% is defined in R/operators.R
 
   if (inherits(fa_obj, "DNAStringSet")) {
     nm <- names(fa_obj) %||% character(length(fa_obj))

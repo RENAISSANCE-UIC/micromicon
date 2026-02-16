@@ -96,4 +96,4 @@ print.roi_spec <- function(x, ...) {
   invisible(x)
 }
 
-`%||%` <- function(a, b) if (!is.null(a)) a else b
+# Note: %||% operator is defined in R/operators.R

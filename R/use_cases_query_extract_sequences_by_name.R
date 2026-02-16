@@ -119,5 +119,4 @@ execute_extract_sequences_by_name <- function(entity, pattern,
   sequences
 }
 
-# Helper: %||% operator
-`%||%` <- function(x, y) if (is.null(x)) y else x
+# Note: %||% operator is defined in R/operators.R

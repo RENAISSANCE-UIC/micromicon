@@ -12,10 +12,10 @@
 #' @keywords internal
 NULL
 
-# Setup and Data Loading Functions 
+# Setup and Data Loading Functions
 
-# A tiny infix helper to mirror rlang's %||%, avoiding hard dependency.
-`%||%` <- function(x, y) if (is.null(x)) y else x
+# Note: %||% operator is defined in R/operators.R
+
 # Helpers
 
 # Scrubber for common prefixes. Extend as your corpus dictates.

@@ -7,18 +7,7 @@
 
 
 #' Infix operator for default values
-#'
-#' @description
-#' A tiny infix helper to mirror rlang's %||%, avoiding hard dependency.
-#' Returns y if x is NULL, otherwise returns x.
-#'
-#' @param x First value to check
-#' @param y Default value if x is NULL
-#' @return x if x is not NULL, otherwise y
-#' @keywords internal
-`%||%` <- function(x, y) {
-  if (is.null(x)) y else x
-}
+# Note: %||% operator is now defined and exported in R/operators.R
 
 
 #' Scrub common sequence name prefixes
