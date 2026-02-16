@@ -6,6 +6,8 @@ The package supports two complementary modes:
 * **Genome Navigation Mode** (based around the `genome_entity` object) for reference sequence exploration.
 * **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the breseq pipeline.
 
+[<a href="https://doi.org/10.5281/zenodo.18500345"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg)
+
 ## Why micRomicon?
 
 We wanted a free, open-source toolkit that worked naturally for R users and lowered the barrier of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After decades of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so that we could reroute cognitive bandwidth toward doing the actual science. 
