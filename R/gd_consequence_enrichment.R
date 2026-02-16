@@ -142,15 +142,26 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     return(list(region = NA_character_, coding_pos = NA_integer_, coding_len = NA_integer_))
   }
 
-  # Pattern: "coding (45/1200 nt)" or "coding ( 45 / 1200 nt )"
-  coding_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*/\\s*(\\d+)\\s*nt\\s*\\)", annotation)
+  # Pattern: "coding (45/1200 nt)" or "coding (45/?? nt)" or "coding (45/ nt)"
+  # The length part can be: digits, ??, or missing entirely
+  # Use a more flexible pattern that captures any non-space characters or nothing
+  coding_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*/\\s*([^\\s)]*?)\\s*nt\\s*\\)", annotation)
   matches <- regmatches(annotation, coding_match)[[1]]
 
-  if (length(matches) == 3) {
+  if (length(matches) >= 2) {
+    # We have at least "coding" and position
+    coding_pos <- as.integer(matches[2])
+    # Try to parse length (may be NA if it's "??" or empty)
+    coding_len <- if (length(matches) >= 3 && nzchar(matches[3]) && !grepl("\\?", matches[3])) {
+      as.integer(matches[3])
+    } else {
+      NA_integer_
+    }
+
     return(list(
       region = "coding",
-      coding_pos = as.integer(matches[2]),
-      coding_len = as.integer(matches[3])
+      coding_pos = coding_pos,
+      coding_len = coding_len
     ))
   }
 
