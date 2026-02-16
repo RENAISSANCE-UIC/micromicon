@@ -47,7 +47,7 @@ BiocManager::install(c(
 
 ## Two Complementary Modes
 
-`micromicon` supports two complementary modes that share a common reference backbone but diverge in purpose:
+`micromicon` supports *two complementary modes* that share a common reference backbone but diverge in purpose:
 
 ### Genome Navigation Mode
 
@@ -123,7 +123,7 @@ enriched <- pm_enrich_consequences(gd, mutations)
 
 ### Format Conversion Rules
 
-**IMPORTANT**: Format conversion in micromicon is inentionally one-way.
+**IMPORTANT**: Format conversion in micromicon is intentionally one-way.
 
 #### ALLOWED: GenBank → GFF3+FASTA
 ```r
@@ -152,8 +152,6 @@ genome <- read_genome(gff = "anno.gff3", fasta = "seq.fasta")
 - Accession numbers and version history
 - Database cross-references (taxonomy IDs, etc.)
 - Sequence topology (circular vs. linear)
-
-**Best practice**: Always keep original GenBank files. Export to GFF3+FASTA only when required by downstream tools (genome browsers, annotation pipelines).
 
 ## Core Features
 
