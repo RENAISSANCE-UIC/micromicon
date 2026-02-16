@@ -8,7 +8,7 @@ The package supports two complementary modes:
 
 * **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) pipeline.
 
-[<a href="https://doi.org/10.5281/zenodo.18500345"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg)
+[[<a href="https://doi.org/10.5281/zenodo.18500345"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg)](https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg)
 
 ## Why micRomicon?
 
