@@ -3,8 +3,10 @@
 This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether working with reference genomes (GenBank, GFF3+FASTA) or mutation data (breseq `annotated.gd` files), `micromicon` provides a unified interface for genome navigation and variation analysis. 
 
 The package supports two complementary modes: 
+
 * **Genome Navigation Mode** (based around the `genome_entity` object) for reference sequence exploration.
-* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the breseq pipeline.
+
+* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) pipeline.
 
 [<a href="https://doi.org/10.5281/zenodo.18500345"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18500345.svg)
 
@@ -110,7 +112,13 @@ map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
 # Variation-specific: Get predicted mutations data frame
-predict_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
+mutations <- predict_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
+
+# Enrich mutations with molecular consequences
+enriched <- pm_enrich_consequences(gd, mutations)
+# Returns: DNA sequences, amino acid changes, consequence classification
+# Supports: SNP, DEL, INS, SUB mutation types (TESTING STILL IN PROGRESS, SO SOME FEATURES MAY BE BUGGY)
+# Consequences: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion
 ```
 
 ### Format Conversion Rules
@@ -357,15 +365,16 @@ features(remote_genome)  # Dispatches to your method
 ### Current Capabilities
 
 `micromicon` currently supports:
-- ✅ **Variant-aware workflows**: Track mutations via `genome_entity_gd`
-- ✅ **breseq integration**: Parse `annotated.gd` files with `parse_gd_annotated()`
-- ✅ **Mutation tables**: Generate predicted mutations summaries
-- ✅ **Unified interface**: All navigation functions work on both modes
+- **Variant-aware workflows**: Track mutations via `genome_entity_gd`
+- **breseq integration**: Parse `annotated.gd` files with `parse_gd_annotated()`
+- **Mutation tables**: Generate predicted mutations summaries
+- **Consequence enrichment**: Molecular impact analysis with `pm_enrich_consequences()` for SNP/DEL/INS/SUB
+- **Unified interface**: All navigation functions work on both modes
 
 ### Future Directions
 
 Planned features:
-- **Functional consequence prediction**: Assess mutation impacts on protein function
+- **Enhanced consequence analysis**: Protein domain mapping and functional impact scoring
 - **Comparative genomics**: Multi-genome operations and phylogenetic integration
 - **VCF support**: Import variant calls from other pipelines
 - **Time-series analysis**: Track evolutionary dynamics across multiple samples
