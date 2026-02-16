@@ -136,6 +136,34 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 }
 
 
+#' Truncate Protein at First Stop Codon
+#'
+#' @description
+#' Helper to truncate protein sequence at first stop codon (*), mirroring
+#' biological translation termination. Only used in pm_enrich_consequences(),
+#' not in general translate_dna().
+#'
+#' @param aa_seq Amino acid sequence (may contain multiple *)
+#' @return Truncated sequence up to and including first *, or original if no *
+#' @keywords internal
+.pm_truncate_at_stop <- function(aa_seq) {
+  if (is.na(aa_seq) || !nzchar(aa_seq)) {
+    return(aa_seq)
+  }
+
+  # Find first stop codon
+  stop_pos <- regexpr("\\*", aa_seq, fixed = FALSE)
+
+  if (stop_pos > 0) {
+    # Truncate at first stop (inclusive)
+    return(substr(aa_seq, 1, stop_pos))
+  }
+
+  # No stop codon found - return as is
+  aa_seq
+}
+
+
 #' Append QC Note to Row
 #'
 #' @description
@@ -358,6 +386,9 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
           }
         }
 
+        # Truncate at first stop codon (biological translation termination)
+        aa_alt_full <- .pm_truncate_at_stop(aa_alt_full)
+
         row$aa_ref <- aa_ref_full
         row$aa_alt <- aa_alt_full
         row$codon_ref <- effect$codon_ref
@@ -513,6 +544,9 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
         }
       }
 
+      # Truncate at first stop codon (biological translation termination)
+      aa_alt <- .pm_truncate_at_stop(aa_alt)
+
       row$aa_alt <- aa_alt
 
       # Determine consequence
@@ -618,6 +652,9 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
           row <- .pm_append_qc_note(row, sprintf("Normalized alt start %s->M", first_codon))
         }
       }
+
+      # Truncate at first stop codon (biological translation termination)
+      aa_alt <- .pm_truncate_at_stop(aa_alt)
 
       row$aa_alt <- aa_alt
 

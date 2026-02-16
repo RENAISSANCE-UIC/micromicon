@@ -1,3 +1,29 @@
+# micromicon 0.3.0
+
+## Major: Mutation Consequence Enrichment System
+
+### New Function: pm_enrich_consequences()
+
+* **NEW**: `pm_enrich_consequences()` enriches `predict_mutations()` output with molecular consequences
+* Supports all mutation types: SNP, DEL, INS, SUB
+* Provides DNA sequences (reference and mutant), amino acid sequences, and consequence classification
+* Consequence types: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion, complex
+* Works directly with `predict_mutations()` output (handles arrows in gene names, position-based fallback)
+* Includes QC tracking system with `qc_note` column for validation
+
+### Production Hardening
+
+* **Fixed**: Annotation parser now handles deletion ranges like "coding (152-278 / 435 nt)"
+* **Added**: Stop codon truncation - mutant proteins terminate at first `*` (biological accuracy)
+* **Added**: Gene resolver cleans arrows (←, →) and falls back to position-based lookup
+* **Added**: Alternative start codon normalization (GTG/TTG/CTG → M)
+* **Added**: QC note tracking for resolution issues and warnings
+
+### Infrastructure
+
+* **NEW**: Consolidated `%||%` operator into single exported definition in `R/operators.R`
+* **Removed**: 10 duplicate `%||%` definitions across package files
+
 # micromicon 0.2.9
 
 ## Breaking Changes
