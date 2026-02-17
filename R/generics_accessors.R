@@ -93,10 +93,31 @@ genome_metadata.default <- function(x, ...) {
 }
 
 
-#' Get Sequence Names
+#' Get Sequence Names (Scaffolds/Contigs/Chromosomes/Plasmids)
 #'
-#' @param x Object to extract sequence names from
-#' @param ... Additional arguments
+#' @description
+#' Convenience function to quickly retrieve the names of all sequences
+#' (scaffolds, contigs, chromosomes, plasmids) in a genome object.
+#'
+#' This is equivalent to `unique(genome$features$seqname)` but more convenient
+#' and standardized across genome objects.
+#'
+#' @param x A genome object (e.g., genome_entity)
+#' @param ... Additional arguments passed to methods
+#'
+#' @return Character vector of unique sequence names
+#'
+#' @examples
+#' \dontrun{
+#' gd <- read_genome("genome.gbk")
+#'
+#' # Full function name
+#' genome_seqnames(gd)
+#'
+#' # Short alias
+#' seqnames(gd)
+#' }
+#'
 #' @export
 genome_seqnames <- function(x, ...) {
   UseMethod("genome_seqnames")

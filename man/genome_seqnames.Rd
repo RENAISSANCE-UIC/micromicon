@@ -2,15 +2,34 @@
 % Please edit documentation in R/generics_accessors.R
 \name{genome_seqnames}
 \alias{genome_seqnames}
-\title{Get Sequence Names}
+\title{Get Sequence Names (Scaffolds/Contigs/Chromosomes/Plasmids)}
 \usage{
 genome_seqnames(x, ...)
 }
 \arguments{
-\item{x}{Object to extract sequence names from}
+\item{x}{A genome object (e.g., genome_entity)}
 
-\item{...}{Additional arguments}
+\item{...}{Additional arguments passed to methods}
+}
+\value{
+Character vector of unique sequence names
 }
 \description{
-Get Sequence Names
+Convenience function to quickly retrieve the names of all sequences
+(scaffolds, contigs, chromosomes, plasmids) in a genome object.
+
+This is equivalent to \code{unique(genome$features$seqname)} but more convenient
+and standardized across genome objects.
+}
+\examples{
+\dontrun{
+gd <- read_genome("genome.gbk")
+
+# Full function name
+genome_seqnames(gd)
+
+# Short alias
+seqnames(gd)
+}
+
 }

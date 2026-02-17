@@ -60,6 +60,10 @@ library(micromicon)
 entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
 # or: entity <- read_genome("reference.gbk")
 
+# Inspect genome structure
+seqnames(entity)  # Get scaffold/contig/chromosome/plasmid names
+genome_metadata(entity)  # View genome-level metadata
+
 # Search and query features
 ampC <- search_features(entity, pattern = "ampC", type = "CDS")
 acrB <- search_features(entity, pattern = "acrB", type = "CDS")
@@ -112,13 +116,15 @@ map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
 # Variation-specific: Get predicted mutations data frame
-mutations <- predict_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
+mutation_table <- predict_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
 
 # Enrich mutations with molecular consequences
-enriched <- pm_enrich_consequences(gd, mutations)
-# Returns: DNA sequences, amino acid changes, consequence classification
-# Supports: SNP, DEL, INS, SUB mutation types (TESTING STILL IN PROGRESS, SO SOME FEATURES MAY BE BUGGY)
+consequence_table <- compute_effects(gd, mutation_table)
+# Returns: DNA sequences (dna_ref, dna_alt), amino acid changes (aa_ref, aa_alt),
+#          codon changes, and consequence classification
+# Supports: SNP, DEL, INS, SUB mutation types (coding and intergenic)
 # Consequences: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion
+# Auto-detects OS: uses parallel processing on Linux/macOS, serial on Windows
 ```
 
 ### Format Conversion Rules
@@ -365,8 +371,9 @@ features(remote_genome)  # Dispatches to your method
 `micromicon` currently supports:
 - **Variant-aware workflows**: Track mutations via `genome_entity_gd`
 - **breseq integration**: Parse `annotated.gd` files with `parse_gd_annotated()`
-- **Mutation tables**: Generate predicted mutations summaries
-- **Consequence enrichment**: Molecular impact analysis with `pm_enrich_consequences()` for SNP/DEL/INS/SUB
+- **Mutation tables**: Generate predicted mutations summaries with `predict_mutations()`
+- **Consequence enrichment**: Molecular impact analysis with `compute_effects()` for SNP/DEL/INS/SUB
+- **Cross-platform optimization**: Auto-detects OS for parallel (Linux/macOS) or serial (Windows) processing
 - **Unified interface**: All navigation functions work on both modes
 
 ### Future Directions

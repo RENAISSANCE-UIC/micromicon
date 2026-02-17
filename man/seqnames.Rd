@@ -2,7 +2,7 @@
 % Please edit documentation in R/controllers_accessor_controller.R
 \name{seqnames}
 \alias{seqnames}
-\title{Get Sequence Names from genome_entity}
+\title{Get Sequence Names (Scaffolds/Contigs/Chromosomes/Plasmids)}
 \usage{
 seqnames(x, ...)
 }
@@ -12,14 +12,23 @@ seqnames(x, ...)
 \item{...}{Additional arguments (currently unused)}
 }
 \value{
-Character vector of sequence names
+Character vector of unique sequence names
 }
 \description{
-Extract the unique sequence names from a genome_entity object.
+Convenience function to quickly retrieve the names of all sequences
+(scaffolds, contigs, chromosomes, plasmids) in a genome object.
+
+This is a short alias for \code{genome_seqnames()} and is equivalent to
+\code{unique(genome$features$seqname)} but more convenient.
 }
 \examples{
 \dontrun{
-genome <- read_genome("data.gbk")
-seqnames(genome)
+gd <- read_genome("genome.gbk")
+
+# Get all sequence names
+seqnames(gd)  # e.g., c("NC_000913.3", "plasmid_pXYZ")
+
+# Also available as genome_seqnames()
+genome_seqnames(gd)
 }
 }
