@@ -323,7 +323,8 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       toks <- if (length(row) >= idx) row[idx:length(row)] else character(0)
       .is_strand <- function(x) !is.na(x) && x %in% c(-1L, 1L)
       .valid_pos <- function(x) !is.na(x) && x >= 0L
-      
+      .valid_int <- function(x) !is.na(x) && is.integer(x)
+
       attempt <- function(o) {
         need <- o + 7L
         if (length(toks) < need) return(NULL)
@@ -334,10 +335,10 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         s2_po <- .as_int(toks[o + 5L])
         s2_st <- .as_int(toks[o + 6L])
         ovlp  <- .as_int(toks[o + 7L])
-        
+
         ok <- .is_strand(s1_st) && .is_strand(s2_st) &&
           .valid_pos(s1_po) && .valid_pos(s2_po) &&
-          .valid_pos(ovlp)
+          .valid_int(ovlp)
         
         list(ok = ok,
              s1_id = s1_id, s1_po = s1_po, s1_st = s1_st,
