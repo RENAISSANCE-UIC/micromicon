@@ -86,7 +86,8 @@ predict_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
       for (j in seq_along(gd$events)) {
         e <- gd$events[[j]]
         if (!identical(e$kind, "mutation")) next
-        parents <- scalar_or(e$parent_ids, integer(0))
+        parents <- e$parent_ids
+        if (is.null(parents) || length(parents) == 0) parents <- integer(0)
         if (length(parents) && rid %in% parents) { hit <- j; break }
       }
       hit
@@ -466,7 +467,8 @@ predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
       for (j in seq_along(gd$events)) {
         e <- gd$events[[j]]
         if (!identical(e$kind, "mutation")) next
-        parents <- scalar_or(e$parent_ids, integer(0))
+        parents <- e$parent_ids
+        if (is.null(parents) || length(parents) == 0) parents <- integer(0)
         if (length(parents) && rid %in% parents) { hit <- j; break }
       }
       hit
@@ -542,10 +544,23 @@ predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
     pos_str <- fmt_pos(ra$position)
     ins_pos <- ra$ra_insert_position
     pos_str <- ifelse(v_pos_gt0(ins_pos), paste0(pos_str, ":", ins_pos), pos_str)
-    
+
     keep_ra <- rep(TRUE, n_ra)
+    # Deduplicate RAs that map to the same parent mutation
+    # For each mutation, keep only the first RA that references it
+    seen_mut <- integer(0)
+    for (i in seq_len(n_ra)) {
+      mut_idx <- map_mut_i[i]
+      if (!is.na(mut_idx)) {
+        if (mut_idx %in% seen_mut) {
+          keep_ra[i] <- FALSE  # Duplicate - skip this RA
+        } else {
+          seen_mut <- c(seen_mut, mut_idx)  # First RA for this mutation - keep it
+        }
+      }
+    }
     if (is.finite(min_freq) && min_freq > 0) {
-      keep_ra <- v_not_na(ra$ev_frequency) & (ra$ev_frequency > min_freq)
+      keep_ra <- keep_ra & v_not_na(ra$ev_frequency) & (ra$ev_frequency > min_freq)
     }
     
     # --- NEW: compute 3-letter TYPE for RA rows (evidence-agnostic) ---
