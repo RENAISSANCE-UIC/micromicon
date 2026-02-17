@@ -753,7 +753,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     return(list(start = NA_integer_, end = NA_integer_, total_len = NA_integer_))
   }
 
-  # Pattern: "coding (152-278 / 435 nt)"
+  # Pattern 1: Range format "coding (152-278 / 435 nt)"
   del_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*-\\s*(\\d+)\\s*/\\s*([^\\s)]*?)\\s*nt\\s*\\)", annotation)
   matches <- regmatches(annotation, del_match)[[1]]
 
@@ -767,6 +767,22 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     }
 
     return(list(start = start, end = end, total_len = total_len))
+  }
+
+  # Pattern 2: Single position format "coding (758/1104 nt)" for 1-bp deletions
+  single_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*/\\s*([^\\s)]*?)\\s*nt\\s*\\)", annotation)
+  single_matches <- regmatches(annotation, single_match)[[1]]
+
+  if (length(single_matches) >= 2) {
+    pos <- as.integer(single_matches[2])
+    total_len <- if (length(single_matches) >= 3 && !grepl("\\?", single_matches[3])) {
+      as.integer(single_matches[3])
+    } else {
+      NA_integer_
+    }
+
+    # For 1-bp deletion, start and end are the same
+    return(list(start = pos, end = pos, total_len = total_len))
   }
 
   # Couldn't parse

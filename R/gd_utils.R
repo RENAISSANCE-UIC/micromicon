@@ -397,9 +397,9 @@ gd_features_at <- function(gd, seq_id, pos, feature_type = "CDS",
   # If you already have a function to list features, use that; otherwise:
   feats <- search_features(gd, type = feature_type, pattern = ".*")  # all CDS
   if (!nrow(feats)) return(list(overlap = feats[0,], upstream = NULL, downstream = NULL))
-  
+
   # Restrict to contig
-  f <- feats[feats$seq_id == as.character(seq_id), , drop = FALSE]
+  f <- feats[feats$seqname == as.character(seq_id), , drop = FALSE]
   if (!nrow(f)) return(list(overlap = f[0,], upstream = NULL, downstream = NULL))
   
   # Normalize coordinates: start <= end; get overlaps
@@ -454,9 +454,14 @@ gd_locate <- function(gd, seq_id, pos) {
     # For each overlapping CDS, compute CDS-relative position (1-based)
     ann <- character(nrow(hit$overlap))
     genes <- character(nrow(hit$overlap))
-    
+
     for (i in seq_len(nrow(hit$overlap))) {
-      gene <- hit$overlap$gene[i] %||% hit$overlap$locus_tag[i]
+      # Try multiple column names for gene identifier (GFF sources vary)
+      gene <- if ("gene" %in% names(hit$overlap)) hit$overlap$gene[i]
+              else if ("Name" %in% names(hit$overlap)) hit$overlap$Name[i]
+              else if ("locus_tag" %in% names(hit$overlap)) hit$overlap$locus_tag[i]
+              else if ("ID" %in% names(hit$overlap)) hit$overlap$ID[i]
+              else NA_character_
       strd <- hit$overlap$strand[i]
       gstart <- hit$overlap$start[i]; gend <- hit$overlap$end[i]
       # Normalize to CDS order (strand-aware)
@@ -469,7 +474,7 @@ gd_locate <- function(gd, seq_id, pos) {
       ann[i] <- sprintf("coding (%d/%d nt)", cds_pos, cds_len)
       genes[i] <- gene
     }
-    
+
     return(list(
       region = "coding",
       label  = paste(ann, collapse = " | "),
@@ -492,19 +497,28 @@ gd_locate <- function(gd, seq_id, pos) {
   # For a succinct approximation, we’ll sign by *genomic* left/right, and append arrows to gene names.
   # This keeps display consistent with what you’re already emitting (gene arrows via strand).
   
+  # Helper to extract gene name from feature row (tries multiple column names)
+  .get_gene_name <- function(feat_row) {
+    if ("gene" %in% names(feat_row)) feat_row$gene[1]
+    else if ("Name" %in% names(feat_row)) feat_row$Name[1]
+    else if ("locus_tag" %in% names(feat_row)) feat_row$locus_tag[1]
+    else if ("ID" %in% names(feat_row)) feat_row$ID[1]
+    else NA_character_
+  }
+
   up_label <- NA_character_; dn_label <- NA_character_
   up_gene  <- NA_character_; dn_gene  <- NA_character_
-  
+
   if (!is.null(up)) {
     # pos is to the right of 'up' gene; distance stored as positive
     up_label <- paste0("+", up$distance[1])
-    up_gene  <- up$gene[1] %||% up$locus_tag[1]
+    up_gene  <- .get_gene_name(up)
     if (!is.null(up$strand[1]) && up$strand[1] %in% c("-", -1L)) up_gene <- paste0(up_gene, " \u2190") else up_gene <- paste0(up_gene, " \u2192")
   }
   if (!is.null(dn)) {
     # pos is to the left of 'dn' gene; distance stored as positive
     dn_label <- paste0("+", dn$distance[1])
-    dn_gene  <- dn$gene[1] %||% dn$locus_tag[1]
+    dn_gene  <- .get_gene_name(dn)
     if (!is.null(dn$strand[1]) && dn$strand[1] %in% c("-", -1L)) dn_gene <- paste0(dn_gene, " \u2190") else dn_gene <- paste0(dn_gene, " \u2192")
   }
   
