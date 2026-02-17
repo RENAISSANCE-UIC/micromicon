@@ -80,6 +80,10 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     ))
   }
 
+  # Create caches for expensive operations (huge performance boost)
+  gene_dna_cache <- new.env(parent = emptyenv())
+  gene_aa_cache <- new.env(parent = emptyenv())
+
   # Add new columns (handle empty table case)
   out <- pm_tbl
   n_rows <- nrow(out)
@@ -114,7 +118,8 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
     # Structural mode: reference sequences only, no allele computation
     if (is_structural) {
-      enriched_row <- .pm_enrich_structural(gd, out[i, , drop = FALSE], flank, quiet)
+      enriched_row <- .pm_enrich_structural(gd, out[i, , drop = FALSE], flank, quiet,
+                                            gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
                     "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
@@ -124,26 +129,30 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
     # Allele mode: full allele-in, allele-out computation
     if (row_type == "SNP") {
-      enriched_row <- .pm_enrich_snp(gd, out[i, , drop = FALSE], flank, quiet)
+      enriched_row <- .pm_enrich_snp(gd, out[i, , drop = FALSE], flank, quiet,
+                                     gene_dna_cache, gene_aa_cache)
       # Copy enriched fields back
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
                     "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     } else if (row_type == "DEL") {
-      enriched_row <- .pm_enrich_del(gd, out[i, , drop = FALSE], flank, quiet)
+      enriched_row <- .pm_enrich_del(gd, out[i, , drop = FALSE], flank, quiet,
+                                     gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
                     "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     } else if (row_type == "INS") {
-      enriched_row <- .pm_enrich_ins(gd, out[i, , drop = FALSE], flank, quiet)
+      enriched_row <- .pm_enrich_ins(gd, out[i, , drop = FALSE], flank, quiet,
+                                     gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
                     "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     } else if (row_type == "SUB") {
-      enriched_row <- .pm_enrich_sub(gd, out[i, , drop = FALSE], flank, quiet)
+      enriched_row <- .pm_enrich_sub(gd, out[i, , drop = FALSE], flank, quiet,
+                                     gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
                     "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
@@ -160,6 +169,59 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   }
 
   out
+}
+
+
+#' Cached Gene DNA Retrieval
+#'
+#' @description
+#' Retrieves gene DNA sequence with caching to avoid repeated extractions.
+#' Massive performance improvement when multiple mutations hit the same gene.
+#'
+#' @param gd GenomeData object
+#' @param gene Gene name
+#' @param cache Environment used as cache (NULL disables caching)
+#' @return DNA sequence or NA
+#' @keywords internal
+.pm_cached_get_gene_dna <- function(gd, gene, cache = NULL) {
+  if (is.null(cache)) {
+    return(tryCatch(get_gene_dna(gd, gene), error = function(e) NA_character_))
+  }
+
+  if (!exists(gene, envir = cache, inherits = FALSE)) {
+    cache[[gene]] <- tryCatch(
+      get_gene_dna(gd, gene),
+      error = function(e) NA_character_
+    )
+  }
+
+  cache[[gene]]
+}
+
+
+#' Cached Gene AA Retrieval
+#'
+#' @description
+#' Retrieves gene AA sequence with caching to avoid repeated extractions.
+#'
+#' @param gd GenomeData object
+#' @param gene Gene name
+#' @param cache Environment used as cache (NULL disables caching)
+#' @return AA sequence or NA
+#' @keywords internal
+.pm_cached_get_gene_aa <- function(gd, gene, cache = NULL) {
+  if (is.null(cache)) {
+    return(tryCatch(get_gene_aa(gd, gene), error = function(e) NA_character_))
+  }
+
+  if (!exists(gene, envir = cache, inherits = FALSE)) {
+    cache[[gene]] <- tryCatch(
+      get_gene_aa(gd, gene),
+      error = function(e) NA_character_
+    )
+  }
+
+  cache[[gene]]
 }
 
 
@@ -278,7 +340,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #'
 #' @return The input row with enriched columns filled in
 #' @keywords internal
-.pm_enrich_snp <- function(gd, row, flank, quiet = FALSE) {
+.pm_enrich_snp <- function(gd, row, flank, quiet = FALSE, gene_dna_cache = NULL, gene_aa_cache = NULL) {
   # Parse position (remove commas, handle P:k format)
   parsed <- .pm_parse_position(as.character(row$position), return_offset = TRUE)
   if (is.na(parsed$position)) {
@@ -354,76 +416,103 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     return(row)
   }
 
-  # Coding region: use gd_verify_snp()
+  # Coding region: compute consequence directly (avoid gd_verify_snp redundancy)
   gene <- .pm_resolve_gene(gd, as.character(row$gene), row$seq_id, row$position)
 
   if (!is.na(gene) && nzchar(gene)) {
-    # Compute SNP effect using existing utility
-    effect <- tryCatch(
-      gd_verify_snp(gd, seq_id = seq_id_chr, position = pos_parsed, gene = gene),
-      error = function(e) {
-        if (!quiet) cli::cli_warn("gd_verify_snp failed for {gene}")
-        data.frame(ok = FALSE)
+    # Get full reference CDS and AA sequences (with caching) FIRST
+    dna_ref_full <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
+    aa_ref_full <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
+
+    if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
+      # Get strand and CDS position
+      feat <- tryCatch(
+        gd_resolve_feature(gd, gene),
+        error = function(e) NULL
+      )
+
+      if (is.null(feat) || nrow(feat) == 0) {
+        return(row)
       }
-    )
 
-    if (effect$ok) {
-      # Get full reference CDS and AA sequences
-      dna_ref_full <- tryCatch(
-        get_gene_dna(gd, gene),
+      strand <- as.character(feat$strand[1])
+
+      cds_pos_result <- tryCatch(
+        map_genomic_to_cds(gd, gene, pos_parsed),
+        error = function(e) NA_integer_
+      )
+      cds_pos <- if (is.list(cds_pos_result)) {
+        scalar_or(cds_pos_result$cds_pos, NA_integer_)
+      } else {
+        cds_pos_result
+      }
+
+      if (is.na(cds_pos) || cds_pos < 1 || cds_pos > nchar(dna_ref_full)) {
+        return(row)
+      }
+
+      # Compute codon position and extract reference codon
+      aa_index <- ceiling(cds_pos / 3)
+      codon_start <- (aa_index - 1) * 3 + 1
+      codon_end <- min(codon_start + 2, nchar(dna_ref_full))
+      codon_ref <- substr(dna_ref_full, codon_start, codon_end)
+
+      row$dna_ref <- dna_ref_full
+      row$aa_ref <- aa_ref_full
+      row$region <- "coding"
+      row$strand <- strand
+      row$codon_ref <- codon_ref
+
+      # Create mutated CDS (apply SNP at cds_pos)
+      alt_base <- if (strand == "-") gd_complement_base(mut$alt) else mut$alt
+      cds_alt <- dna_ref_full
+      substr(cds_alt, cds_pos, cds_pos) <- alt_base
+      row$dna_alt <- cds_alt
+
+      # Extract alternate codon
+      codon_alt <- substr(cds_alt, codon_start, codon_end)
+      row$codon_alt <- codon_alt
+      row$codon_new <- codon_alt
+
+      # Translate mutated CDS
+      aa_alt_raw <- tryCatch(
+        translate_dna(cds_alt, frame = 1, genetic_code = "11", .internal = TRUE),
         error = function(e) NA_character_
       )
 
-      aa_ref_full <- tryCatch(
-        get_gene_aa(gd, gene),
-        error = function(e) NA_character_
-      )
+      # Normalize alternative start codons to match get_gene_aa() behavior
+      aa_alt_full <- aa_alt_raw
+      if (!is.na(aa_alt_raw) && nchar(aa_alt_raw) > 0 && nchar(cds_alt) >= 3) {
+        first_codon <- toupper(substr(cds_alt, 1, 3))
+        alt_start_codons <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
 
-      if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
-        row$dna_ref <- dna_ref_full
-
-        # Create mutated CDS (apply SNP at cds_pos)
-        cds_alt <- dna_ref_full
-        substr(cds_alt, effect$cds_pos, effect$cds_pos) <-
-          if (effect$strand == "-") {
-            gd_complement_base(mut$alt)
-          } else {
-            mut$alt
-          }
-        row$dna_alt <- cds_alt
-
-        # Translate mutated CDS
-        aa_alt_raw <- tryCatch(
-          translate_dna(cds_alt, frame = 1, genetic_code = "11", .internal = TRUE),
-          error = function(e) NA_character_
-        )
-
-        # Normalize alternative start codons to match get_gene_aa() behavior
-        # get_gene_aa() normalizes GTG, TTG, CTG, ATT, ATC, ATA → M at position 1
-        aa_alt_full <- aa_alt_raw
-        if (!is.na(aa_alt_raw) && nchar(aa_alt_raw) > 0 && nchar(cds_alt) >= 3) {
-          first_codon <- toupper(substr(cds_alt, 1, 3))
-          alt_start_codons <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
-
-          if (first_codon %in% alt_start_codons && substr(aa_alt_raw, 1, 1) != "M") {
-            # Replace first AA with M
-            aa_alt_full <- paste0("M", substr(aa_alt_raw, 2, nchar(aa_alt_raw)))
-            qc_msg <- sprintf("Normalized alt start %s->M", first_codon)
-            row <- .pm_append_qc_note(row, qc_msg)
-          }
+        if (first_codon %in% alt_start_codons && substr(aa_alt_raw, 1, 1) != "M") {
+          aa_alt_full <- paste0("M", substr(aa_alt_raw, 2, nchar(aa_alt_raw)))
+          qc_msg <- sprintf("Normalized alt start %s->M", first_codon)
+          row <- .pm_append_qc_note(row, qc_msg)
         }
+      }
 
-        # Truncate at first stop codon (biological translation termination)
-        aa_alt_full <- .pm_truncate_at_stop(aa_alt_full)
+      # Truncate at first stop codon
+      aa_alt_full <- .pm_truncate_at_stop(aa_alt_full)
+      row$aa_alt <- aa_alt_full
 
-        row$aa_ref <- aa_ref_full
-        row$aa_alt <- aa_alt_full
-        row$codon_ref <- effect$codon_ref
-        row$codon_alt <- effect$codon_new
-        row$codon_new <- effect$codon_new
-        row$consequence <- effect$consequence
-        row$region <- "coding"
-        row$strand <- effect$strand
+      # Determine consequence
+      aa_ref_char <- substr(aa_ref_full, aa_index, aa_index)
+      aa_alt_char <- if (!is.na(aa_alt_full) && nchar(aa_alt_full) >= aa_index) {
+        substr(aa_alt_full, aa_index, aa_index)
+      } else {
+        NA_character_
+      }
+
+      if (!is.na(aa_alt_char)) {
+        if (aa_alt_char == "*") {
+          row$consequence <- "nonsense"
+        } else if (aa_ref_char == aa_alt_char) {
+          row$consequence <- "synonymous"
+        } else {
+          row$consequence <- "missense"
+        }
       }
     }
   }
@@ -510,7 +599,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #'
 #' @return The input row with enriched columns filled in
 #' @keywords internal
-.pm_enrich_del <- function(gd, row, flank, quiet = FALSE) {
+.pm_enrich_del <- function(gd, row, flank, quiet = FALSE, gene_dna_cache = NULL, gene_aa_cache = NULL) {
   # Parse annotation to determine region
   ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
     .pm_parse_annotation_geometry(as.character(row$annotation))
@@ -531,9 +620,9 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       return(row)
     }
 
-    # Get reference sequences
-    dna_ref_full <- tryCatch(get_gene_dna(gd, gene), error = function(e) NA_character_)
-    aa_ref_full <- tryCatch(get_gene_aa(gd, gene), error = function(e) NA_character_)
+    # Get reference sequences (with caching)
+    dna_ref_full <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
+    aa_ref_full <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
 
     if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
       row$dna_ref <- dna_ref_full
@@ -630,7 +719,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #'
 #' @return The input row with enriched columns filled in
 #' @keywords internal
-.pm_enrich_ins <- function(gd, row, flank, quiet = FALSE) {
+.pm_enrich_ins <- function(gd, row, flank, quiet = FALSE, gene_dna_cache = NULL, gene_aa_cache = NULL) {
   # Parse annotation
   ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
     .pm_parse_annotation_geometry(as.character(row$annotation))
@@ -650,9 +739,9 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       return(row)
     }
 
-    # Get reference sequences
-    dna_ref_full <- tryCatch(get_gene_dna(gd, gene), error = function(e) NA_character_)
-    aa_ref_full <- tryCatch(get_gene_aa(gd, gene), error = function(e) NA_character_)
+    # Get reference sequences (with caching)
+    dna_ref_full <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
+    aa_ref_full <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
 
     if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
       row$dna_ref <- dna_ref_full
@@ -736,7 +825,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #'
 #' @return The input row with enriched columns filled in
 #' @keywords internal
-.pm_enrich_sub <- function(gd, row, flank, quiet = FALSE) {
+.pm_enrich_sub <- function(gd, row, flank, quiet = FALSE, gene_dna_cache = NULL, gene_aa_cache = NULL) {
   # Substitutions are complex - for now treat similarly to deletions
   # Future: implement full substitution logic
   row <- .pm_append_qc_note(row, "SUB mutations not fully implemented")
@@ -778,7 +867,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #' @param quiet Logical, suppress messages
 #' @return Enriched row with reference sequences only
 #' @keywords internal
-.pm_enrich_structural <- function(gd, row, flank, quiet = FALSE) {
+.pm_enrich_structural <- function(gd, row, flank, quiet = FALSE, gene_dna_cache = NULL, gene_aa_cache = NULL) {
   # Parse annotation geometry (if available)
   ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
     .pm_parse_annotation_geometry(as.character(row$annotation))
@@ -817,12 +906,12 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
   # Extract reference sequences based on region
   if (row$region == "coding" && !is.na(gene) && nzchar(gene)) {
-    # Coding region: extract full CDS and translate
+    # Coding region: extract full CDS and translate (with caching)
     tryCatch({
-      dna_ref <- get_gene_dna(gd, gene)
+      dna_ref <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
       row$dna_ref <- dna_ref
 
-      aa_ref <- get_gene_aa(gd, gene)
+      aa_ref <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
       row$aa_ref <- aa_ref
 
       # Get strand (check column existence first, handle NAs)
