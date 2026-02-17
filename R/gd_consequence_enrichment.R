@@ -1014,6 +1014,13 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     return(list(start = NA_integer_, end = NA_integer_, total_len = NA_integer_))
   }
 
+  # Handle pipe-separated multi-gene annotations: "coding (717/726 nt)|coding (...)"
+  # Take the first annotation for parsing
+  if (grepl("\\|", annotation)) {
+    annotation <- strsplit(annotation, "\\|", fixed = FALSE)[[1]][1]
+    annotation <- trimws(annotation)
+  }
+
   # Pattern 1: Range format "coding (152-278 / 435 nt)"
   del_match <- regexec("coding\\s*\\(\\s*(\\d+)\\s*-\\s*(\\d+)\\s*/\\s*([^\\s)]*?)\\s*nt\\s*\\)", annotation)
   matches <- regmatches(annotation, del_match)[[1]]

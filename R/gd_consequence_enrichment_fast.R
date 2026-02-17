@@ -21,6 +21,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
     cli::cli_inform(c(
       "i" = "pm_enrich_consequences_fast(): enriching {nrow(pm_tbl)} mutation{?s}"
     ))
+    start_time <- Sys.time()
   }
 
   # Initialize output columns
@@ -41,18 +42,40 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   # Group mutations by gene for batch processing
   out$..row_id <- seq_len(n_rows)
 
-  # Split by gene (NA genes handled separately)
-  gene_groups <- split(out, out$gene, drop = FALSE)
+  # Separate intergenic mutations from coding ones (by annotation)
+  out$..is_intergenic <- grepl("intergenic", out$annotation, ignore.case = TRUE)
+
+  # Split into coding vs intergenic
+  coding_rows <- out[!out$..is_intergenic, , drop = FALSE]
+  intergenic_rows <- out[out$..is_intergenic, , drop = FALSE]
+
+  # Split coding mutations by gene
+  gene_groups <- if (nrow(coding_rows) > 0) {
+    split(coding_rows, coding_rows$gene, drop = FALSE)
+  } else {
+    list()
+  }
 
   # Global caches (shared across all genes)
   gene_dna_cache <- new.env(parent = emptyenv())
   gene_aa_cache <- new.env(parent = emptyenv())
   gene_meta_cache <- new.env(parent = emptyenv())  # Store strand, feature info
 
-  for (gene in names(gene_groups)) {
+  # Process genes with progress bar
+  gene_names <- names(gene_groups)
+
+  if (!quiet && length(gene_names) > 0) {
+    pb <- txtProgressBar(min = 0, max = length(gene_names), style = 3)
+  }
+
+  for (i in seq_along(gene_names)) {
+    gene <- gene_names[i]
     group <- gene_groups[[gene]]
 
     if (is.na(gene) || !nzchar(gene) || nrow(group) == 0) {
+      if (!quiet && length(gene_names) > 0) {
+        setTxtProgressBar(pb, i)
+      }
       next
     }
 
@@ -66,23 +89,35 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
                   "region", "strand", "qc_note")) {
       out[enriched_group$..row_id, col] <- enriched_group[[col]]
     }
+
+    if (!quiet && length(gene_names) > 0) {
+      setTxtProgressBar(pb, i)
+    }
   }
 
-  # Handle mutations without gene assignment (intergenic)
-  intergenic_idx <- which(is.na(out$gene) | !nzchar(out$gene) | out$region == "intergenic")
-  if (length(intergenic_idx) > 0) {
-    for (i in intergenic_idx) {
+  if (!quiet && length(gene_names) > 0) {
+    close(pb)
+    cat("\n")  # New line after progress bar
+  }
+
+  # Handle mutations that weren't enriched (intergenic or failed gene enrichment)
+  # Check for region = NA (not enriched yet) or explicitly intergenic
+  unenriched_idx <- which(is.na(out$region) | out$region == "intergenic")
+  if (length(unenriched_idx) > 0) {
+    for (i in unenriched_idx) {
       out[i, ] <- .pf_enrich_intergenic(gd, out[i, , drop = FALSE], flank, quiet)
     }
   }
 
   out$..row_id <- NULL
+  out$..is_intergenic <- NULL
 
   if (!quiet) {
+    elapsed <- round(as.numeric(difftime(Sys.time(), start_time, units = "secs")), 1)
     n_coding <- sum(out$region == "coding", na.rm = TRUE)
     n_intergenic <- sum(out$region == "intergenic", na.rm = TRUE)
     cli::cli_inform(c(
-      "v" = "Enriched {n_coding} coding and {n_intergenic} intergenic mutation{?s}"
+      "v" = "Enriched {n_coding} coding and {n_intergenic} intergenic mutation{?s} in {elapsed}s"
     ))
   }
 
@@ -104,6 +139,12 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
                                    gene_dna_cache, gene_aa_cache, gene_meta_cache) {
   gene <- as.character(group$gene[1])
   gene_clean <- gsub("\\s*[→←]\\s*$", "", gene)
+  gene_clean <- trimws(gene_clean)
+
+  # Handle multi-gene annotations (e.g., "geneA|geneB" or "geneA / geneB")
+  # Take the first gene in the list
+  gene_clean <- gsub("\\|.*$", "", gene_clean)  # Remove everything after |
+  gene_clean <- gsub("\\s*/\\s*.*$", "", gene_clean)  # Remove everything after /
   gene_clean <- trimws(gene_clean)
 
   # Get gene metadata once (cached)
@@ -325,6 +366,9 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
     }
   }
 
+  # Truncate at first stop codon (match original behavior)
+  aa_alt <- .pm_truncate_at_stop(aa_alt)
+
   row$aa_alt <- aa_alt
   row
 }
@@ -335,7 +379,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
 #' @keywords internal
 .pf_enrich_ins_fast <- function(gd, row, dna_ref, aa_ref, gene_meta, quiet) {
   # Parse insertion info
-  ins_info <- .pm_parse_insertion_annotation(as.character(row$annotation))
+  ins_info <- .pm_parse_insertion_mutation(as.character(row$mutation))
 
   if (is.na(ins_info$position) || is.na(ins_info$sequence)) {
     return(row)
@@ -370,6 +414,9 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
     }
   }
 
+  # Truncate at first stop codon (match original behavior)
+  aa_alt <- .pm_truncate_at_stop(aa_alt)
+
   row$aa_alt <- aa_alt
   row
 }
@@ -399,8 +446,8 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
 #'
 #' @keywords internal
 .pf_enrich_intergenic <- function(gd, row, flank, quiet) {
-  # Extract DNA window
-  pos <- as.integer(gsub(",", "", row$position))
+  # Extract DNA window (use proper position parser to handle colons)
+  pos <- .pm_parse_position(as.character(row$position))
   seq_id <- as.character(row$seq_id)
 
   start_pos <- max(1L, pos - flank)

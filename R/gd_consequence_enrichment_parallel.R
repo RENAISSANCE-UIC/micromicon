@@ -72,12 +72,31 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
 
   out$..row_id <- seq_len(n_rows)
 
-  # Clean gene names
-  out$..gene_clean <- gsub("\\s*[→←]\\s*$", "", out$gene)
-  out$..gene_clean <- trimws(out$..gene_clean)
+  # Separate intergenic mutations from coding ones (by annotation)
+  out$..is_intergenic <- grepl("intergenic", out$annotation, ignore.case = TRUE)
 
-  # Split by gene
-  gene_groups <- split(out, out$..gene_clean, drop = FALSE)
+  # Split into coding vs intergenic
+  coding_rows <- out[!out$..is_intergenic, , drop = FALSE]
+  intergenic_rows <- out[out$..is_intergenic, , drop = FALSE]
+
+  # Clean gene names for coding mutations only
+  if (nrow(coding_rows) > 0) {
+    coding_rows$..gene_clean <- gsub("\\s*[→←]\\s*$", "", coding_rows$gene)
+    coding_rows$..gene_clean <- trimws(coding_rows$..gene_clean)
+
+    # Handle multi-gene annotations (e.g., "geneA|geneB" or "geneA / geneB")
+    # Take the first gene in the list
+    coding_rows$..gene_clean <- gsub("\\|.*$", "", coding_rows$..gene_clean)  # Remove everything after |
+    coding_rows$..gene_clean <- gsub("\\s*/\\s*.*$", "", coding_rows$..gene_clean)  # Remove everything after /
+    coding_rows$..gene_clean <- trimws(coding_rows$..gene_clean)
+  }
+
+  # Split coding mutations by gene
+  gene_groups <- if (nrow(coding_rows) > 0) {
+    split(coding_rows, coding_rows$..gene_clean, drop = FALSE)
+  } else {
+    list()
+  }
 
   # Create shared caches (will be copied to each worker)
   gene_dna_cache <- new.env(parent = emptyenv())
@@ -89,6 +108,13 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
 
   if (use_parallel) {
     # PARALLEL PROCESSING: Process each gene in parallel
+    if (!quiet) {
+      cli::cli_inform(c(
+        "i" = "Processing {length(gene_names)} gene{?s} in parallel..."
+      ))
+      start_time <- Sys.time()
+    }
+
     enriched_groups <- parallel::mclapply(
       gene_names,
       function(gene) {
@@ -109,6 +135,13 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
       mc.cores = mc.cores,
       mc.preschedule = FALSE  # Dynamic scheduling for load balancing
     )
+
+    if (!quiet) {
+      elapsed <- round(as.numeric(difftime(Sys.time(), start_time, units = "secs")), 1)
+      cli::cli_inform(c(
+        "v" = "Parallel processing completed in {elapsed}s"
+      ))
+    }
   } else {
     # SEQUENTIAL PROCESSING: With progress bar
     enriched_groups <- vector("list", length(gene_names))
@@ -148,6 +181,12 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
   # Combine results
   for (i in seq_along(enriched_groups)) {
     enriched_group <- enriched_groups[[i]]
+
+    # Skip errors from parallel workers (will be caught by intergenic fallback)
+    if (inherits(enriched_group, "try-error") || !is.data.frame(enriched_group)) {
+      next
+    }
+
     for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
                   "codon_ref", "codon_alt", "codon_new", "consequence",
                   "region", "strand", "qc_note")) {
@@ -155,10 +194,11 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
     }
   }
 
-  # Handle intergenic mutations
-  intergenic_idx <- which(is.na(out$gene) | !nzchar(out$gene) | out$region == "intergenic")
-  if (length(intergenic_idx) > 0) {
-    for (i in intergenic_idx) {
+  # Handle mutations that weren't enriched (intergenic or failed gene enrichment)
+  # These will have region = NA still
+  unenriched_idx <- which(is.na(out$region))
+  if (length(unenriched_idx) > 0) {
+    for (i in unenriched_idx) {
       out[i, ] <- .pf_enrich_intergenic(gd, out[i, , drop = FALSE], flank, quiet)
     }
   }
@@ -166,6 +206,7 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
   # Clean up
   out$..row_id <- NULL
   out$..gene_clean <- NULL
+  out$..is_intergenic <- NULL
 
   if (!quiet) {
     n_coding <- sum(out$region == "coding", na.rm = TRUE)
