@@ -199,29 +199,50 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 }
 
 
-#' Cached Gene AA Retrieval
+#' Cached Gene Translation
 #'
 #' @description
-#' Retrieves gene AA sequence with caching to avoid repeated extractions.
+#' Translates DNA to AA with caching. More efficient than get_gene_aa()
+#' since DNA is already extracted and cached.
 #'
-#' @param gd GenomeData object
-#' @param gene Gene name
+#' @param dna_seq DNA sequence string
+#' @param gene Gene name (used as cache key)
 #' @param cache Environment used as cache (NULL disables caching)
 #' @return AA sequence or NA
 #' @keywords internal
-.pm_cached_get_gene_aa <- function(gd, gene, cache = NULL) {
-  if (is.null(cache)) {
-    return(tryCatch(get_gene_aa(gd, gene), error = function(e) NA_character_))
+.pm_cached_translate_gene <- function(dna_seq, gene, cache = NULL) {
+  if (is.na(dna_seq)) {
+    return(NA_character_)
   }
 
-  if (!exists(gene, envir = cache, inherits = FALSE)) {
-    cache[[gene]] <- tryCatch(
-      get_gene_aa(gd, gene),
-      error = function(e) NA_character_
-    )
+  # Check cache first
+  if (!is.null(cache) && exists(gene, envir = cache, inherits = FALSE)) {
+    return(cache[[gene]])
   }
 
-  cache[[gene]]
+  # Translate DNA to AA (mimics get_gene_aa() behavior)
+  aa_seq <- tryCatch({
+    aa_raw <- translate_dna(dna_seq, frame = 1, genetic_code = "11", .internal = TRUE)
+
+    # Normalize alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA → M)
+    if (!is.na(aa_raw) && nchar(aa_raw) > 0 && nchar(dna_seq) >= 3) {
+      first_codon <- toupper(substr(dna_seq, 1, 3))
+      alt_start_codons <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
+
+      if (first_codon %in% alt_start_codons && substr(aa_raw, 1, 1) != "M") {
+        aa_raw <- paste0("M", substr(aa_raw, 2, nchar(aa_raw)))
+      }
+    }
+
+    aa_raw
+  }, error = function(e) NA_character_)
+
+  # Store in cache
+  if (!is.null(cache)) {
+    cache[[gene]] <- aa_seq
+  }
+
+  aa_seq
 }
 
 
@@ -420,9 +441,11 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   gene <- .pm_resolve_gene(gd, as.character(row$gene), row$seq_id, row$position)
 
   if (!is.na(gene) && nzchar(gene)) {
-    # Get full reference CDS and AA sequences (with caching) FIRST
+    # Get full reference CDS (with caching) FIRST
     dna_ref_full <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
-    aa_ref_full <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
+
+    # Translate DNA to AA ourselves (don't call get_gene_aa which re-extracts DNA)
+    aa_ref_full <- .pm_cached_translate_gene(dna_ref_full, gene, gene_aa_cache)
 
     if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
       # Get strand and CDS position
@@ -622,7 +645,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
     # Get reference sequences (with caching)
     dna_ref_full <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
-    aa_ref_full <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
+    aa_ref_full <- .pm_cached_translate_gene(dna_ref_full, gene, gene_aa_cache)
 
     if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
       row$dna_ref <- dna_ref_full
@@ -741,7 +764,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
     # Get reference sequences (with caching)
     dna_ref_full <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
-    aa_ref_full <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
+    aa_ref_full <- .pm_cached_translate_gene(dna_ref_full, gene, gene_aa_cache)
 
     if (!is.na(dna_ref_full) && !is.na(aa_ref_full)) {
       row$dna_ref <- dna_ref_full
@@ -911,7 +934,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       dna_ref <- .pm_cached_get_gene_dna(gd, gene, gene_dna_cache)
       row$dna_ref <- dna_ref
 
-      aa_ref <- .pm_cached_get_gene_aa(gd, gene, gene_aa_cache)
+      aa_ref <- .pm_cached_translate_gene(dna_ref, gene, gene_aa_cache)
       row$aa_ref <- aa_ref
 
       # Get strand (check column existence first, handle NAs)
