@@ -514,6 +514,27 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
         ins_seq <- gsub("ins_", "", regmatches(mutation_str, ins_match))
       }
 
+      # If we couldn't parse from mutation string, look it up from GD object
+      if (is.na(ins_seq)) {
+        events <- tryCatch(
+          gd_events_table(gd),
+          error = function(e) NULL
+        )
+        if (!is.null(events)) {
+          matching_event <- events[events$type == "INS" &
+                                  events$position == pos &
+                                  events$seq_id == seq_id, ]
+          if (nrow(matching_event) > 0 && !is.na(matching_event$ins_seq[1])) {
+            ins_seq <- as.character(matching_event$ins_seq[1])
+            # Add QC note that we looked it up
+            row$qc_note <- paste0(
+              if (!is.na(row$qc_note) && nzchar(row$qc_note)) paste0(row$qc_note, "; ") else "",
+              "ins_seq from GD object"
+            )
+          }
+        }
+      }
+
       if (!is.na(ins_seq) && window_offset >= 1 && window_offset <= nchar(dna_window)) {
         before_ins <- substr(dna_window, 1, window_offset)
         after_ins <- if (window_offset < nchar(dna_window)) {

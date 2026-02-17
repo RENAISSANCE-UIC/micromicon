@@ -824,8 +824,43 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
       if (!is.na(dna_window)) {
         row$dna_ref <- dna_window
-        row$dna_alt <- NA_character_
-        row <- .pm_append_qc_note(row, "Intergenic insertion - dna_alt not computed")
+
+        # Try to compute dna_alt for intergenic insertion
+        ins_seq <- ins_info$sequence
+
+        # If we couldn't parse from mutation string, look it up from GD object
+        if (is.na(ins_seq)) {
+          events <- tryCatch(
+            gd_events_table(gd),
+            error = function(e) NULL
+          )
+          if (!is.null(events)) {
+            matching_event <- events[events$type == "INS" &
+                                    events$position == pos_parsed &
+                                    events$seq_id == seq_id_chr, ]
+            if (nrow(matching_event) > 0 && !is.na(matching_event$ins_seq[1])) {
+              ins_seq <- as.character(matching_event$ins_seq[1])
+              row <- .pm_append_qc_note(row, "ins_seq from GD object")
+            }
+          }
+        }
+
+        # Apply insertion if we have the sequence
+        if (!is.na(ins_seq)) {
+          window_offset <- pos_parsed - start_pos + 1L
+          if (window_offset >= 1 && window_offset <= nchar(dna_window)) {
+            before_ins <- substr(dna_window, 1, window_offset)
+            after_ins <- if (window_offset < nchar(dna_window)) {
+              substr(dna_window, window_offset + 1, nchar(dna_window))
+            } else {
+              ""
+            }
+            row$dna_alt <- paste0(before_ins, ins_seq, after_ins)
+          }
+        } else {
+          row$dna_alt <- NA_character_
+          row <- .pm_append_qc_note(row, "Intergenic insertion - ins_seq not available")
+        }
       }
 
       row$region <- "intergenic"
