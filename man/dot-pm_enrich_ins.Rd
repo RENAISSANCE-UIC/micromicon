@@ -4,7 +4,14 @@
 \alias{.pm_enrich_ins}
 \title{Enrich Single INS Row}
 \usage{
-.pm_enrich_ins(gd, row, flank, quiet = FALSE)
+.pm_enrich_ins(
+  gd,
+  row,
+  flank,
+  quiet = FALSE,
+  gene_dna_cache = NULL,
+  gene_aa_cache = NULL
+)
 }
 \arguments{
 \item{gd}{GenomeData object}

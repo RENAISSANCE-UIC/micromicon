@@ -114,3 +114,38 @@ extract_sequences_by_coords <- extract_by_coords
 #' @rdname extract_by_name
 #' @export
 extract_sequences_by_name <- extract_by_name
+
+#' Predict Mutations
+#'
+#' @description
+#' Extracts and presents mutations from a genome data object.
+#'
+#' @param gd A genome data object
+#' @param ... Additional arguments passed to methods
+#' @param min_freq Minimum frequency threshold (default: 0)
+#' @param include_structural Include structural variants (default: TRUE)
+#' @param join Join method for multi-gene annotations (default: "slash")
+#'
+#' @return A data frame of mutations with friendly preview
+#' @export
+predict_mutations <- function(gd, ...) {
+  UseMethod("predict_mutations")
+}
+
+#' Compute Mutation Effects
+#'
+#' @description
+#' Enriches mutation table with molecular consequences. Automatically selects
+#' the best implementation based on operating system:
+#' - Linux/macOS: Uses parallel processing for speed
+#' - Windows: Uses fast serial processing (parallel not supported)
+#'
+#' @param gd A genome data object
+#' @param pm_tbl A data frame from \code{predict_mutations()}
+#' @param ... Additional arguments passed to methods
+#'
+#' @return Enriched data frame with consequence columns
+#' @export
+compute_effects <- function(gd, pm_tbl, ...) {
+  UseMethod("compute_effects")
+}

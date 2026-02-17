@@ -35,10 +35,12 @@ A data.frame with additional columns:
 }
 \description{
 Adds molecular consequence annotations to a \code{predict_mutations()} table.
-Supports SNPs, deletions (DEL), insertions (INS), and substitutions (SUB).
+Supports SNPs, deletions (DEL), insertions (INS), substitutions (SUB), and
+structural variants (MOB, AMP, CON, INV).
 
 For coding region mutations, computes reference/alternate sequences and
 consequences. For intergenic mutations, extracts flanking DNA windows.
+Structural variants receive reference sequences only (no allele computation).
 }
 \details{
 This function leverages existing micromicon utilities:
@@ -56,6 +58,7 @@ This function leverages existing micromicon utilities:
 \item \strong{DEL}: inframe_deletion, frameshift
 \item \strong{INS}: inframe_insertion, frameshift
 \item \strong{SUB}: complex (partial support)
+\item \strong{MOB/AMP/CON/INV}: structural variants (reference sequences only)
 }
 
 \strong{Note}: Only coding region mutations get amino acid sequences. Intergenic

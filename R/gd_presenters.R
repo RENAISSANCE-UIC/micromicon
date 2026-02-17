@@ -768,11 +768,13 @@ predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
 #' @param join one of c("slash","pipe","newline") for multi-item fields (default "slash")
 #' @return data.frame/tibble with predicted mutations (superset schema)
 #' @export
-predict_mutations <- function(gd, ...,
-                                min_freq = 0,
-                                include_structural = TRUE,
-                                join = c("slash", "pipe", "newline")) {
-  gd_assert(gd)
+#' @rdname predict_mutations
+#' @export
+predict_mutations.genome_entity_gd <- function(gd, ...,
+                                                min_freq = 0,
+                                                include_structural = TRUE,
+                                                join = c("slash", "pipe", "newline")) {
+  gd_assert(gd, "gd")
   join <- match.arg(join)
   
   # Build once via internal, regardless of downstream printing path

@@ -1206,3 +1206,52 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     substr(seq, pos + 1, nchar(seq))
   )
 }
+#' @rdname compute_effects
+#' @export
+compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...,
+                                              flank = 50L,
+                                              quiet = FALSE) {
+  gd_assert(gd, "gd")
+  stopifnot(is.data.frame(pm_tbl))
+
+  # Detect operating system
+  is_windows <- .Platform$OS.type == "windows"
+
+  if (is_windows) {
+    # Windows: use fast serial version
+    if (!quiet) {
+      cli::cli_inform(c(
+        "i" = "compute_effects(): Using fast serial implementation",
+        "!" = "Parallel processing not supported on Windows",
+        "i" = "Consider running on Linux/macOS for faster parallel processing"
+      ))
+    }
+
+    result <- pm_enrich_consequences_fast(
+      gd = gd,
+      pm_tbl = pm_tbl,
+      flank = flank,
+      quiet = quiet,
+      ...
+    )
+
+  } else {
+    # Linux/macOS: use parallel version
+    if (!quiet) {
+      cli::cli_inform(c(
+        "i" = "compute_effects(): Using parallel implementation for faster processing"
+      ))
+    }
+
+    result <- pm_enrich_consequences_parallel(
+      gd = gd,
+      pm_tbl = pm_tbl,
+      flank = flank,
+      quiet = quiet,
+      use_parallel = TRUE,  # Enable parallel by default
+      ...
+    )
+  }
+
+  result
+}
