@@ -461,16 +461,74 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   row$dna_ref <- dna_window
   row$region <- "intergenic"
 
-  # Apply mutation to window if SNP
-  if (toupper(row$type) == "SNP") {
-    mutation_str <- as.character(row$mutation)
-    mut_parts <- strsplit(gsub("→|->|&gt;", "|", mutation_str), "\\|")[[1]]
-    if (length(mut_parts) == 2 && !is.na(dna_window)) {
-      window_offset <- pos - start_pos + 1L
-      alt_base <- mut_parts[2]
-      dna_alt <- dna_window
-      substr(dna_alt, window_offset, window_offset) <- alt_base
-      row$dna_alt <- dna_alt
+  # Apply mutation to window based on type
+  if (!is.na(dna_window) && !is.na(pos)) {
+    window_offset <- pos - start_pos + 1L
+    mut_type <- toupper(as.character(row$type))
+
+    if (mut_type == "SNP") {
+      # SNP: substitute single base
+      mutation_str <- as.character(row$mutation)
+      mut_parts <- strsplit(gsub("→|->|&gt;", "|", mutation_str), "\\|")[[1]]
+      if (length(mut_parts) == 2) {
+        alt_base <- mut_parts[2]
+        dna_alt <- dna_window
+        substr(dna_alt, window_offset, window_offset) <- alt_base
+        row$dna_alt <- dna_alt
+      }
+
+    } else if (mut_type == "DEL") {
+      # DEL: remove bases from window
+      mutation_str <- as.character(row$mutation)
+      # Parse deletion size (e.g., "Δ1 bp" or "Δ5 bp")
+      del_size <- 1L  # Default to 1
+      if (grepl("Δ(\\d+)", mutation_str)) {
+        del_match <- regexpr("Δ(\\d+)", mutation_str, perl = TRUE)
+        del_text <- regmatches(mutation_str, del_match)
+        if (length(del_text) > 0) {
+          del_size <- as.integer(gsub("Δ", "", del_text))
+        }
+      }
+
+      # Apply deletion to window (with NA checks)
+      if (!is.na(window_offset) && !is.na(del_size) &&
+          window_offset >= 1 && window_offset + del_size - 1 <= nchar(dna_window)) {
+        before_del <- if (window_offset > 1) substr(dna_window, 1, window_offset - 1) else ""
+        after_del <- if (window_offset + del_size <= nchar(dna_window)) {
+          substr(dna_window, window_offset + del_size, nchar(dna_window))
+        } else {
+          ""
+        }
+        row$dna_alt <- paste0(before_del, after_del)
+      }
+
+    } else if (mut_type == "INS") {
+      # INS: insert bases into window
+      mutation_str <- as.character(row$mutation)
+      # Parse insertion sequence (e.g., "+ACGT" or "ins_ACGT")
+      ins_seq <- NA_character_
+      if (grepl("^\\+([ACGT]+)$", mutation_str)) {
+        ins_seq <- gsub("^\\+", "", mutation_str)
+      } else if (grepl("ins_([ACGT]+)", mutation_str)) {
+        ins_match <- regexpr("ins_([ACGT]+)", mutation_str)
+        ins_seq <- gsub("ins_", "", regmatches(mutation_str, ins_match))
+      }
+
+      if (!is.na(ins_seq) && window_offset >= 1 && window_offset <= nchar(dna_window)) {
+        before_ins <- substr(dna_window, 1, window_offset)
+        after_ins <- if (window_offset < nchar(dna_window)) {
+          substr(dna_window, window_offset + 1, nchar(dna_window))
+        } else {
+          ""
+        }
+        row$dna_alt <- paste0(before_ins, ins_seq, after_ins)
+      }
+
+    } else if (mut_type == "SUB") {
+      # SUB: substitute sequence segment
+      # For now, just copy dna_ref (SUB not fully implemented)
+      row$dna_alt <- dna_window
+      row$qc_note <- "SUB in intergenic - dna_alt = dna_ref (not fully implemented)"
     }
   }
 
