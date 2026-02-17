@@ -27,3 +27,4 @@ Fully vectorized version with:
 \item Vectorized string operations
 }
 }
+\keyword{internal}

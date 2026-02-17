@@ -72,3 +72,4 @@ enriched <- pm_enrich_consequences(gd, mutations, flank = 50)
 }
 
 }
+\keyword{internal}

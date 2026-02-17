@@ -12,7 +12,7 @@
 #' @param mc.cores Number of cores to use (default: parallel::detectCores() - 1)
 #'
 #' @return Enriched data.frame with consequence columns
-#' @export
+#' @keywords internal
 pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FALSE,
                                            use_parallel = TRUE,
                                            mc.cores = parallel::detectCores() - 1) {

@@ -13,7 +13,7 @@
 #' @param quiet Logical, suppress messages (default: FALSE)
 #'
 #' @return Enriched data.frame with consequence columns
-#' @export
+#' @keywords internal
 pm_enrich_consequences_vectorized <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   gd_assert(gd, "gd")
   stopifnot(is.data.frame(pm_tbl))

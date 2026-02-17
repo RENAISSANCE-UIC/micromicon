@@ -33,3 +33,4 @@ Enriched data.frame with consequence columns
 Uses parallel processing to enrich mutations across multiple cores.
 Each gene is processed independently in parallel.
 }
+\keyword{internal}

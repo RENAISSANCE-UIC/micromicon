@@ -26,3 +26,4 @@ Optimized version of pm_enrich_consequences() with:
 \item Minimal sequence operations
 }
 }
+\keyword{internal}
