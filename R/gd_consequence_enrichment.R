@@ -2,10 +2,12 @@
 #'
 #' @description
 #' Adds molecular consequence annotations to a `predict_mutations()` table.
-#' Supports SNPs, deletions (DEL), insertions (INS), and substitutions (SUB).
+#' Supports SNPs, deletions (DEL), insertions (INS), substitutions (SUB), and
+#' structural variants (MOB, AMP, CON, INV).
 #'
 #' For coding region mutations, computes reference/alternate sequences and
 #' consequences. For intergenic mutations, extracts flanking DNA windows.
+#' Structural variants receive reference sequences only (no allele computation).
 #'
 #' @param gd A GenomeData object
 #' @param pm_tbl A data.frame from `predict_mutations()`, containing at minimum:
@@ -45,6 +47,7 @@
 #'   \item \strong{DEL}: inframe_deletion, frameshift
 #'   \item \strong{INS}: inframe_insertion, frameshift
 #'   \item \strong{SUB}: complex (partial support)
+#'   \item \strong{MOB/AMP/CON/INV}: structural variants (reference sequences only)
 #' }
 #'
 #' **Note**: Only coding region mutations get amino acid sequences. Intergenic
@@ -96,8 +99,12 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   for (i in seq_len(nrow(out))) {
     row_type <- toupper(as.character(out$type[i]))
 
+    # Classify as allele-mode or structural-mode
+    is_allele <- row_type %in% c("SNP", "DEL", "INS", "SUB")
+    is_structural <- row_type %in% c("MOB", "AMP", "CON", "INV")
+
     # Handle NA or unrecognized types
-    if (is.na(row_type) || !row_type %in% c("SNP", "DEL", "INS", "SUB")) {
+    if (is.na(row_type) || (!is_allele && !is_structural)) {
       if (!quiet) {
         cli::cli_warn("Row {i}: Skipping unrecognized mutation type '{out$type[i]}'")
       }
@@ -105,6 +112,17 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       next
     }
 
+    # Structural mode: reference sequences only, no allele computation
+    if (is_structural) {
+      enriched_row <- .pm_enrich_structural(gd, out[i, , drop = FALSE], flank, quiet)
+      for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
+                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+        out[i, col] <- enriched_row[[col]]
+      }
+      next
+    }
+
+    # Allele mode: full allele-in, allele-out computation
     if (row_type == "SNP") {
       enriched_row <- .pm_enrich_snp(gd, out[i, , drop = FALSE], flank, quiet)
       # Copy enriched fields back
@@ -735,6 +753,137 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   } else {
     row$region <- "intergenic"
   }
+
+  row
+}
+
+
+#' Enrich Structural Variant (MOB/AMP/CON/INV)
+#'
+#' @description
+#' Extracts reference sequences for structural variants without computing
+#' alternate alleles. These JC-supported events (mobile element insertions,
+#' amplifications, etc.) break the "allele-in, allele-out" model.
+#'
+#' Returns:
+#' - dna_ref: Reference sequence (full CDS or window)
+#' - aa_ref: Reference protein (coding only)
+#' - region: "coding" or "intergenic"
+#' - All alt fields set to NA
+#' - qc_note: Explains why variant sequences are not computed
+#'
+#' @param gd GenomeData object
+#' @param row Single-row data.frame from pm_tbl
+#' @param flank Integer, flanking bases for intergenic regions
+#' @param quiet Logical, suppress messages
+#' @return Enriched row with reference sequences only
+#' @keywords internal
+.pm_enrich_structural <- function(gd, row, flank, quiet = FALSE) {
+  # Parse annotation geometry (if available)
+  ann_geo <- if ("annotation" %in% names(row) && !is.na(row$annotation)) {
+    .pm_parse_annotation_geometry(as.character(row$annotation))
+  } else {
+    list(region = NA_character_, coding_pos = NA_integer_, coding_len = NA_integer_)
+  }
+
+  # Try annotation first, then fall back to gd_locate
+  if (!is.na(ann_geo$region)) {
+    row$region <- ann_geo$region
+  } else {
+    # Fall back to gd_locate
+    loc <- tryCatch({
+      gd_locate(gd,
+                seq_id = as.character(row$seq_id),
+                pos = as.integer(gsub(",", "", row$position)))
+    }, error = function(e) {
+      list(region = "intergenic", genes = NA_character_, label = NA_character_)
+    })
+    row$region <- loc$region
+    row <- .pm_append_qc_note(row, "Used gd_locate fallback")
+  }
+
+  # Extract position (structural variants may have ranges like "1,873,031")
+  pos_str <- gsub(",", "", as.character(row$position))
+  # Take first number if it's a range
+  if (grepl(":", pos_str)) {
+    pos_str <- strsplit(pos_str, ":")[[1]][1]
+  }
+  pos <- as.integer(pos_str)
+
+  # Get gene name from row (clean up direction arrows)
+  gene <- as.character(row$gene)
+  gene <- gsub("\\s*[→←]\\s*$", "", gene)  # Remove trailing arrows
+  gene <- trimws(gene)
+
+  # Extract reference sequences based on region
+  if (row$region == "coding" && !is.na(gene) && nzchar(gene)) {
+    # Coding region: extract full CDS and translate
+    tryCatch({
+      dna_ref <- get_gene_dna(gd, gene)
+      row$dna_ref <- dna_ref
+
+      aa_ref <- get_gene_aa(gd, gene)
+      row$aa_ref <- aa_ref
+
+      # Get strand (check column existence first, handle NAs)
+      feat <- gd$features
+      matches <- rep(FALSE, nrow(feat))
+      if ("Name" %in% names(feat)) {
+        name_matches <- feat$Name == gene
+        matches <- matches | replace(name_matches, is.na(name_matches), FALSE)
+      }
+      if ("ID" %in% names(feat)) {
+        id_matches <- feat$ID == gene
+        matches <- matches | replace(id_matches, is.na(id_matches), FALSE)
+      }
+      if ("gene" %in% names(feat)) {
+        gene_matches <- feat$gene == gene
+        matches <- matches | replace(gene_matches, is.na(gene_matches), FALSE)
+      }
+      if ("locus_tag" %in% names(feat)) {
+        locus_matches <- feat$locus_tag == gene
+        matches <- matches | replace(locus_matches, is.na(locus_matches), FALSE)
+      }
+
+      feat <- feat[matches, ]
+      if (nrow(feat) > 0) {
+        row$strand <- as.character(feat$strand[1])
+      }
+    }, error = function(e) {
+      if (!quiet) {
+        cli::cli_warn("Could not extract reference sequences for gene '{gene}': {e$message}")
+      }
+      row <- .pm_append_qc_note(row, paste0("Reference extraction failed: ", e$message))
+    })
+  } else {
+    # Intergenic: extract window
+    row$region <- "intergenic"
+    tryCatch({
+      dna_ref <- get_roi_dna(gd,
+                            seq_id = as.character(row$seq_id),
+                            start = pos - flank,
+                            end = pos + flank)
+      row$dna_ref <- dna_ref
+    }, error = function(e) {
+      if (!quiet) {
+        cli::cli_warn("Could not extract reference window at position {pos}: {e$message}")
+      }
+      row <- .pm_append_qc_note(row, paste0("Reference extraction failed: ", e$message))
+    })
+  }
+
+  # Set all alternate fields to NA (structural variants don't have simple alleles)
+  row$dna_alt <- NA_character_
+  row$aa_alt <- NA_character_
+  row$codon_ref <- NA_character_
+  row$codon_alt <- NA_character_
+  row$codon_new <- NA_character_
+  row$consequence <- NA_character_
+
+  # Add QC note explaining why variant sequences are not computed
+  variant_type <- toupper(as.character(row$type))
+  note <- sprintf("Structural variant (%s) - alternate sequences not computed", variant_type)
+  row <- .pm_append_qc_note(row, note)
 
   row
 }
