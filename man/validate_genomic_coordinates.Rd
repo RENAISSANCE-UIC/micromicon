@@ -26,20 +26,4 @@ Validates that genomic coordinates satisfy domain rules:
 \item Coordinates must be within sequence bounds (if max_length provided)
 }
 }
-\examples{
-# Valid coordinates
-validate_genomic_coordinates(1, 100, "chr1")
-validate_genomic_coordinates(50, 150, "chr1", max_length = 200)
-
-\dontrun{
-# Invalid: negative start
-validate_genomic_coordinates(-1, 100, "chr1")  # Error
-
-# Invalid: start > end
-validate_genomic_coordinates(100, 50, "chr1")  # Error
-
-# Invalid: exceeds bounds
-validate_genomic_coordinates(1, 200, "chr1", max_length = 100)  # Error
-}
-}
 \keyword{internal}

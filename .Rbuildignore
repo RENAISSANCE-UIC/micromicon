@@ -9,3 +9,5 @@
 ^\.claude$
 ^vignettes/.*\.html$
 ^LICENSE\.md$
+^doc$
+^Meta$

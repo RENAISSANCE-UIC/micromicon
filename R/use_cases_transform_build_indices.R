@@ -14,21 +14,6 @@
 #'
 #' @return List with indices components
 #' @keywords internal
-#' @examples
-#' features <- data.frame(
-#'   seqname = c("chr1", "chr1", "chr2"),
-#'   locus_tag = c("GENE001", "GENE002", "GENE003"),
-#'   gene = c("geneA", "geneB", "geneC"),
-#'   stringsAsFactors = FALSE
-#' )
-#'
-#' metadata <- data.frame(
-#'   seqname = c("chr1", "chr2"),
-#'   length = c(1000, 500),
-#'   stringsAsFactors = FALSE
-#' )
-#'
-#' indices <- execute_build_indices(features, metadata)
 execute_build_indices <- function(features_df, metadata_df) {
   # Extract unique seqnames from metadata
   seqnames_unique <- unique(metadata_df$seqname)

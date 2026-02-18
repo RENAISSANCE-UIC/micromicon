@@ -706,13 +706,6 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
 #' @param seq Character string of DNA sequence
 #' @return Character string of reverse complement sequence
 #' @keywords internal
-#'
-#' @examples
-#' reverse_complement("ATCG")
-#' # Returns: "CGAT"
-#'
-#' reverse_complement("ATCGATCG")
-#' # Returns: "CGATCGAT"
 reverse_complement <- function(seq) {
   # Complement lookup
   complement_map <- c(

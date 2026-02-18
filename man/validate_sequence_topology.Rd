@@ -16,13 +16,4 @@ TRUE if valid, stops with error if invalid
 Validates that sequence topology is one of the allowed values.
 Allowed: "linear", "circular", NA
 }
-\examples{
-validate_sequence_topology("linear")
-validate_sequence_topology("circular")
-validate_sequence_topology(NA)
-
-\dontrun{
-validate_sequence_topology("supercoiled")  # Error
-}
-}
 \keyword{internal}

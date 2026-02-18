@@ -22,21 +22,6 @@ NULL
 #'
 #' @return TRUE if valid, stops with error if invalid
 #' @keywords internal
-#' @examples
-#' # Valid coordinates
-#' validate_genomic_coordinates(1, 100, "chr1")
-#' validate_genomic_coordinates(50, 150, "chr1", max_length = 200)
-#'
-#' \dontrun{
-#' # Invalid: negative start
-#' validate_genomic_coordinates(-1, 100, "chr1")  # Error
-#'
-#' # Invalid: start > end
-#' validate_genomic_coordinates(100, 50, "chr1")  # Error
-#'
-#' # Invalid: exceeds bounds
-#' validate_genomic_coordinates(1, 200, "chr1", max_length = 100)  # Error
-#' }
 validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length = NULL) {
   # Rule 1: Start must be positive (1-based coordinates)
   if (any(start < 1, na.rm = TRUE)) {
@@ -80,19 +65,6 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
 #'
 #' @return TRUE if valid, stops with error if invalid
 #' @keywords internal
-#' @examples
-#' # Valid strands
-#' validate_strand("+")
-#' validate_strand("-")
-#' validate_strand(".")  # Unknown
-#' validate_strand("*")  # Either strand
-#' validate_strand(NA)   # Not applicable
-#'
-#' \dontrun{
-#' # Invalid strand
-#' validate_strand("F")  # Error
-#' validate_strand("forward")  # Error
-#' }
 validate_strand <- function(strand) {
   valid_strands <- c("+", "-", ".", "*", NA_character_)
 
@@ -128,17 +100,6 @@ validate_strand <- function(strand) {
 #'
 #' @return TRUE if valid, stops with error if invalid
 #' @keywords internal
-#' @examples
-#' # Valid sequences
-#' validate_dna_sequence("ATCG")
-#' validate_dna_sequence("ATCGNNNATCG")  # With ambiguity codes
-#' validate_dna_sequence("ATCG--ATCG")   # With gaps
-#'
-#' \dontrun{
-#' # Invalid sequence
-#' validate_dna_sequence("ATCGX")  # X not allowed
-#' validate_dna_sequence("ATCG123")  # Numbers not allowed
-#' }
 validate_dna_sequence <- function(seq_char, allow_gaps = TRUE) {
   # IUPAC nucleotide codes
   valid_codes <- c(
@@ -179,14 +140,6 @@ validate_dna_sequence <- function(seq_char, allow_gaps = TRUE) {
 #'
 #' @return TRUE if valid, emits warning if unrecognized and allow_custom=TRUE
 #' @keywords internal
-#' @examples
-#' # Valid types
-#' validate_feature_type("gene")
-#' validate_feature_type("CDS")
-#' validate_feature_type("mRNA")
-#'
-#' # Custom types (with warning)
-#' validate_feature_type("my_custom_feature")
 validate_feature_type <- function(type, allow_custom = TRUE) {
   # Common Sequence Ontology (SO) feature types
   recognized_types <- c(
@@ -227,17 +180,6 @@ validate_feature_type <- function(type, allow_custom = TRUE) {
 #'
 #' @return TRUE if valid, stops with error if invalid
 #' @keywords internal
-#' @examples
-#' # Valid locus tags
-#' validate_locus_tag("GENE001")
-#' validate_locus_tag("ABC_12345")
-#' validate_locus_tag("locus_tag_v2")
-#'
-#' \dontrun{
-#' # Invalid locus tags
-#' validate_locus_tag("GENE 001")  # Space not allowed
-#' validate_locus_tag("GENE-001")  # Hyphen typically not allowed
-#' }
 validate_locus_tag <- function(locus_tag, max_length = 50) {
   # Check length
   if (nchar(locus_tag) > max_length) {
@@ -268,14 +210,6 @@ validate_locus_tag <- function(locus_tag, max_length = 50) {
 #'
 #' @return TRUE if valid, stops with error if invalid
 #' @keywords internal
-#' @examples
-#' validate_sequence_topology("linear")
-#' validate_sequence_topology("circular")
-#' validate_sequence_topology(NA)
-#'
-#' \dontrun{
-#' validate_sequence_topology("supercoiled")  # Error
-#' }
 validate_sequence_topology <- function(topology) {
   valid_topologies <- c("linear", "circular", NA_character_)
 

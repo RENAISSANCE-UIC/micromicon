@@ -30,16 +30,4 @@ percent signs (\%) looking like grapes, but "or-else" is much clearer.
 This operator is similar to rlang's \verb{\%||\%} but implemented here to avoid
 a hard dependency on rlang.
 }
-\examples{
-# Basic usage
-NULL \%||\% "default"        # Returns "default"
-"value" \%||\% "default"     # Returns "value"
-
-# Common pattern for function arguments
-my_function <- function(x = NULL) {
-  x <- x \%||\% 10  # Use 10 if x is NULL
-  x * 2
-}
-
-}
 \keyword{internal}

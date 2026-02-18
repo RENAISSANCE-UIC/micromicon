@@ -15,11 +15,6 @@
 #'
 #' @return Logical indicating if Bioconductor packages are available
 #' @keywords internal
-#'
-#' @examples
-#' if (has_bioconductor()) {
-#'   message("Bioconductor is available")
-#' }
 has_bioconductor <- function() {
   requireNamespace("GenomicRanges", quietly = TRUE) &&
     requireNamespace("Biostrings", quietly = TRUE) &&

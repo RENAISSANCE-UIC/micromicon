@@ -25,20 +25,4 @@ Indices built:
 \item gene_index: Map gene name to feature row number(s)
 }
 }
-\examples{
-features <- data.frame(
-  seqname = c("chr1", "chr1", "chr2"),
-  locus_tag = c("GENE001", "GENE002", "GENE003"),
-  gene = c("geneA", "geneB", "geneC"),
-  stringsAsFactors = FALSE
-)
-
-metadata <- data.frame(
-  seqname = c("chr1", "chr2"),
-  length = c(1000, 500),
-  stringsAsFactors = FALSE
-)
-
-indices <- execute_build_indices(features, metadata)
-}
 \keyword{internal}

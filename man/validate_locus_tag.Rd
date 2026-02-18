@@ -18,16 +18,4 @@ TRUE if valid, stops with error if invalid
 Validates that a locus tag follows common naming conventions.
 Typically: alphanumeric with underscores, no spaces, reasonable length.
 }
-\examples{
-# Valid locus tags
-validate_locus_tag("GENE001")
-validate_locus_tag("ABC_12345")
-validate_locus_tag("locus_tag_v2")
-
-\dontrun{
-# Invalid locus tags
-validate_locus_tag("GENE 001")  # Space not allowed
-validate_locus_tag("GENE-001")  # Hyphen typically not allowed
-}
-}
 \keyword{internal}

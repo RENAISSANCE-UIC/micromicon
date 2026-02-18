@@ -18,13 +18,4 @@ TRUE if valid, emits warning if unrecognized and allow_custom=TRUE
 Validates that a feature type is a recognized genomic feature type.
 This uses a permissive list that includes common Sequence Ontology (SO) terms.
 }
-\examples{
-# Valid types
-validate_feature_type("gene")
-validate_feature_type("CDS")
-validate_feature_type("mRNA")
-
-# Custom types (with warning)
-validate_feature_type("my_custom_feature")
-}
 \keyword{internal}

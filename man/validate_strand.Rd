@@ -16,18 +16,4 @@ TRUE if valid, stops with error if invalid
 Validates that strand value is one of the allowed genomic strand values.
 Allowed values: "+", "-", ".", "*", NA
 }
-\examples{
-# Valid strands
-validate_strand("+")
-validate_strand("-")
-validate_strand(".")  # Unknown
-validate_strand("*")  # Either strand
-validate_strand(NA)   # Not applicable
-
-\dontrun{
-# Invalid strand
-validate_strand("F")  # Error
-validate_strand("forward")  # Error
-}
-}
 \keyword{internal}

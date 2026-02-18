@@ -16,11 +16,6 @@ This layer enables graceful degradation when Bioconductor packages are not avail
 Checks whether the required Bioconductor packages (GenomicRanges, Biostrings,
 rtracklayer, Rsamtools) are installed and can be loaded.
 }
-\examples{
-if (has_bioconductor()) {
-  message("Bioconductor is available")
-}
-}
 \keyword{Bioconductor}
 \keyword{Check}
 \keyword{are}

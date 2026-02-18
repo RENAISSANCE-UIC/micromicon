@@ -16,11 +16,4 @@ Character string of reverse complement sequence
 Reverse complement a DNA sequence. Handles standard bases (A, T, G, C) and
 IUPAC ambiguity codes (N, R, Y, S, W, K, M, B, V, D, H).
 }
-\examples{
-reverse_complement("ATCG")
-# Returns: "CGAT"
-
-reverse_complement("ATCGATCG")
-# Returns: "CGATCGAT"
-}
 \keyword{internal}

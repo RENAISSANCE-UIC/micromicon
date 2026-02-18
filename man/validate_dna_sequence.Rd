@@ -27,16 +27,4 @@ Valid IUPAC nucleotide codes:
 \item -: Gap
 }
 }
-\examples{
-# Valid sequences
-validate_dna_sequence("ATCG")
-validate_dna_sequence("ATCGNNNATCG")  # With ambiguity codes
-validate_dna_sequence("ATCG--ATCG")   # With gaps
-
-\dontrun{
-# Invalid sequence
-validate_dna_sequence("ATCGX")  # X not allowed
-validate_dna_sequence("ATCG123")  # Numbers not allowed
-}
-}
 \keyword{internal}
