@@ -38,7 +38,7 @@ test_that("features returns data.frame", {
   )
 
   # Act
-  feats <- features(entity)
+  feats <- get_features(entity)
 
   # Assert
   expect_s3_class(feats, "data.frame")
@@ -62,7 +62,7 @@ test_that("features filters by type", {
   )
 
   # Act
-  genes <- features(entity, type = "gene")
+  genes <- get_features(entity, type = "gene")
 
   # Assert
   expect_equal(nrow(genes), 1)
@@ -121,7 +121,7 @@ test_that("accessor functions validate input", {
 
   # Act & Assert
   expect_error(sequences(not_entity), "genome_entity")
-  expect_error(features(not_entity), "genome_entity")
+  expect_error(get_features(not_entity), "genome_entity")
   expect_error(metadata(not_entity), "genome_entity")
   expect_error(seqnames(not_entity), "genome_entity")
 })

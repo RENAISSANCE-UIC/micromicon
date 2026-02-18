@@ -52,7 +52,7 @@ The layer prefix encodes *what kind of code lives there*, not the domain. The to
 
 **Examples:**
 - `generics_queries.R` — `search_features.genome_entity()`, `get_gene_dna.genome_entity()`
-- `generics_accessors.R` — `features()`, `sequences()`, `genome_metadata()`
+- `generics_accessors.R` — `get_features()`, `sequences()`, `get_genome_metadata()`
 - `generics_print.R` — `print.genome_entity()`, `print.genome_entity_gd()`
 - `generics_summary.R` — `summary.genome_entity()`, `summary.genome_entity_gd()`
 - `generics_gd.R` — GD-specific generics (`compute_effects`, `predict_mutations`)

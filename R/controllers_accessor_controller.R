@@ -155,7 +155,7 @@ metadata <- function(x, ...) {
 #' Convenience function to quickly retrieve the names of all sequences
 #' (scaffolds, contigs, chromosomes, plasmids) in a genome object.
 #'
-#' This is a short alias for `genome_seqnames()` and is equivalent to
+#' This is a short alias for `get_genome_seqnames()` and is equivalent to
 #' `unique(genome$features$seqname)` but more convenient.
 #'
 #' @param x A genome_entity object
@@ -171,8 +171,8 @@ metadata <- function(x, ...) {
 #' # Get all sequence names
 #' seqnames(gd)  # e.g., c("NC_000913.3", "plasmid_pXYZ")
 #'
-#' # Also available as genome_seqnames()
-#' genome_seqnames(gd)
+#' # Also available as get_genome_seqnames()
+#' get_genome_seqnames(gd)
 #' }
 seqnames <- function(x, ...) {
   # Validate input

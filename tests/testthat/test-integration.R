@@ -12,7 +12,7 @@ test_that("End-to-end GenBank workflow works", {
   seqs <- sequences(entity)
   expect_type(seqs, "character")
 
-  feats <- features(entity)
+  feats <- get_features(entity)
   expect_s3_class(feats, "data.frame")
 
   meta <- metadata(entity)

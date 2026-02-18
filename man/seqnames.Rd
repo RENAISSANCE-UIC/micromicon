@@ -18,7 +18,7 @@ Character vector of unique sequence names
 Convenience function to quickly retrieve the names of all sequences
 (scaffolds, contigs, chromosomes, plasmids) in a genome object.
 
-This is a short alias for \code{genome_seqnames()} and is equivalent to
+This is a short alias for \code{get_genome_seqnames()} and is equivalent to
 \code{unique(genome$features$seqname)} but more convenient.
 }
 \examples{
@@ -28,7 +28,7 @@ gd <- read_genome("genome.gbk")
 # Get all sequence names
 seqnames(gd)  # e.g., c("NC_000913.3", "plasmid_pXYZ")
 
-# Also available as genome_seqnames()
-genome_seqnames(gd)
+# Also available as get_genome_seqnames()
+get_genome_seqnames(gd)
 }
 }

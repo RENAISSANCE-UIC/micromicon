@@ -42,7 +42,7 @@ test_that("features accessor works with data.frame format", {
     features_df = feat_df
   )
 
-  feats <- features(entity, format = "data.frame")
+  feats <- get_features(entity, format = "data.frame")
   expect_s3_class(feats, "data.frame")
   expect_equal(nrow(feats), 1)
   expect_equal(feats$type[1], "CDS")

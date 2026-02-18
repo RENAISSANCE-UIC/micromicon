@@ -38,7 +38,7 @@ entity_to_legacy_genome_obj <- function(entity) {
   }
 
   # Get GRanges (create if needed)
-  gff <- features(entity, format = "GRanges")
+  gff <- get_features(entity, format = "GRanges")
 
   # Get DNAStringSet (create if needed)
   fasta <- sequences(entity, format = "DNAStringSet")

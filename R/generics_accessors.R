@@ -3,12 +3,12 @@
 #' @param x Object to extract features from
 #' @param ... Additional arguments
 #' @export
-features <- function(x, ...) {
-  UseMethod("features")
+get_features <- function(x, ...) {
+  UseMethod("get_features")
 }
 
 #' @export
-features.genome_entity <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
+get_features.genome_entity <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
   format <- match.arg(format)
   validate_genome_entity(x)
 
@@ -33,8 +33,8 @@ features.genome_entity <- function(x, format = c("data.frame", "GRanges"), type 
 }
 
 #' @export
-features.default <- function(x, ...) {
-  cli::cli_abort("features() not implemented for class {.cls {class(x)[1]}}")
+get_features.default <- function(x, ...) {
+  cli::cli_abort("get_features() not implemented for class {.cls {class(x)[1]}}")
 }
 
 
@@ -77,19 +77,19 @@ sequences.default <- function(x, ...) {
 #' @param x Object to extract metadata from
 #' @param ... Additional arguments
 #' @export
-genome_metadata <- function(x, ...) {
-  UseMethod("genome_metadata")
+get_genome_metadata <- function(x, ...) {
+  UseMethod("get_genome_metadata")
 }
 
 #' @export
-genome_metadata.genome_entity <- function(x, ...) {
+get_genome_metadata.genome_entity <- function(x, ...) {
   validate_genome_entity(x)
   x$metadata
 }
 
 #' @export
-genome_metadata.default <- function(x, ...) {
-  cli::cli_abort("genome_metadata() not implemented for class {.cls {class(x)[1]}}")
+get_genome_metadata.default <- function(x, ...) {
+  cli::cli_abort("get_genome_metadata() not implemented for class {.cls {class(x)[1]}}")
 }
 
 
@@ -112,24 +112,24 @@ genome_metadata.default <- function(x, ...) {
 #' gd <- read_genome("genome.gbk")
 #'
 #' # Full function name
-#' genome_seqnames(gd)
+#' get_genome_seqnames(gd)
 #'
 #' # Short alias
 #' seqnames(gd)
 #' }
 #'
 #' @export
-genome_seqnames <- function(x, ...) {
-  UseMethod("genome_seqnames")
+get_genome_seqnames <- function(x, ...) {
+  UseMethod("get_genome_seqnames")
 }
 
 #' @export
-genome_seqnames.genome_entity <- function(x, ...) {
+get_genome_seqnames.genome_entity <- function(x, ...) {
   validate_genome_entity(x)
   x$indices$seqnames
 }
 
 #' @export
-genome_seqnames.default <- function(x, ...) {
-  cli::cli_abort("genome_seqnames() not implemented for class {.cls {class(x)[1]}}")
+get_genome_seqnames.default <- function(x, ...) {
+  cli::cli_abort("get_genome_seqnames() not implemented for class {.cls {class(x)[1]}}")
 }

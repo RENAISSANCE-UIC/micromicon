@@ -62,7 +62,7 @@ entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
 
 # Inspect genome structure
 seqnames(entity)  # Get scaffold/contig/chromosome/plasmid names
-genome_metadata(entity)  # View genome-level metadata
+get_genome_metadata(entity)  # View genome-level metadata
 
 # Search and query features
 ampC <- search_features(entity, pattern = "ampC", type = "CDS")
@@ -183,7 +183,7 @@ Find features by type, name, or location:
 
 ```r
 # All CDS features
-cds <- features(genome, type = "CDS")
+cds <- get_features(genome, type = "CDS")
 
 # Search by gene name
 dna_genes <- search_features(genome, pattern = "dna")
@@ -196,7 +196,7 @@ region <- search_features(genome,
 )
 
 # Helper for complex filters
-filtered <- feat_filter(features(genome),
+filtered <- feat_filter(get_features(genome),
   type = "CDS",
   name = "lac"
 )
@@ -303,11 +303,11 @@ Core accessors use S3 dispatch, enabling custom implementations:
 ```r
 # Built-in: in-memory genome
 genome <- read_genome("ecoli.gbk")
-features(genome)  # Returns data.frame
+get_features(genome)  # Returns data.frame
 
 # Future: remote database genome
 genome_remote <- connect_to_db(...)
-features(genome_remote)  # Queries database, same interface
+get_features(genome_remote)  # Queries database, same interface
 ```
 
 ## Pipes, Routing, and Early Thinness
@@ -339,7 +339,7 @@ class(gd)
 # [1] "genome_entity_gd" "genome_entity"
 
 # All base methods work (inheritance)
-features(gd)           # Works
+get_features(gd)           # Works
 get_gene_aa(gd, "ampC")  # Works
 
 # New methods for subclass
@@ -363,7 +363,7 @@ features.genome_entity_remote <- function(x, ...) {
 }
 
 # Works seamlessly
-features(remote_genome)  # Dispatches to your method
+get_features(remote_genome)  # Dispatches to your method
 ```
 
 ### Current Capabilities
