@@ -16,6 +16,18 @@ knitr::opts_chunk$set(
   fig.width = 7,
   fig.height = 5
 )
+
+
+if (!exists("len_bp", inherits = FALSE)) {
+  len_bp <- function(x) {
+    if (methods::is(x, "XString"))    return(Biostrings::width(x))
+    if (methods::is(x, "XStringSet")) return(Biostrings::width(x)[1L])
+    if (is.character(x))              return(nchar(x[1L]))
+    if (is.raw(x) || is.integer(x))   return(length(x))
+    nchar(as.character(x)[1L])
+  }
+}
+
 ```
 
 # Quick Start
