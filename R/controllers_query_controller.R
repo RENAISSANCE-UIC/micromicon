@@ -711,7 +711,7 @@ get_roi_fasta_batch <- function(genome_obj,
 #' @param include_feature Include the feature itself (default = TRUE)
 #' @param output_file Optional file path to write sequences (default = NULL)
 #' @return DNAStringSet with extracted sequences
-#' @keywords internal
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -947,7 +947,7 @@ extract_roi_complete <- function(genome_obj,
 #'   - evalue: expect value
 #'   - staxids: subject taxonomic IDs
 #'
-#' @keywords internal
+#' @export
 #'
 #' @examples
 #' \dontrun{

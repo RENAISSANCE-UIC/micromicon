@@ -46,4 +46,3 @@ promoters <- get_feature_fasta(genome, "acrB",
                               include_feature = FALSE)
 }
 }
-\keyword{internal}

@@ -101,4 +101,3 @@ results <- blast_protein(
 print(results)
 }
 }
-\keyword{internal}
