@@ -17,6 +17,7 @@
 #' # Read the example file
 #' genome <- read_genome(gbk_file)
 #' }
+#' @export
 get_example_file <- function(filename) {
   # Get file from installed package
   pkg_file <- system.file("extdata", filename, package = "micromicon")

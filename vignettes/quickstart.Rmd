@@ -37,6 +37,9 @@ devtools::install_local("/path/to/micromicon")
 ```{r load-package}
 library(micromicon)
 
+# Function lookup 
+micromicon_functions()
+
 # Load example GenBank file (included with package)
 genome <- read_genome(get_example_file("test_ampC.gbk"))
 ```

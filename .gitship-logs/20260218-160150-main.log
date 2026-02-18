@@ -1,0 +1,80 @@
+ℹ Updating micromicon documentation
+ℹ Loading micromicon
+ℹ Testing micromicon
+✔ | F W  S  OK | Context
+
+⠏ |          0 | accessors                                                      
+⠋ |          1 | accessors                                                      
+✔ |      1  11 | accessors [3.5s]
+
+⠏ |          0 | consequence-enrichment                                         
+⠴ |         56 | consequence-enrichment                                         
+⠏ |         70 | consequence-enrichment                                         
+✔ |         99 | consequence-enrichment
+
+⠏ |          0 | export-warnings                                                
+✔ |          7 | export-warnings
+
+⠏ |          0 | gene-utilities                                                 
+✔ |      7  24 | gene-utilities
+
+⠏ |          0 | genome_entity                                                  genome_entity Summary
+=====================
+
+Source: NA 
+Sequences: 0 sequences, 0 bp total
+Features: 0 
+Records: 0 
+
+✔ |          9 | genome_entity
+
+⠏ |          0 | integration                                                    
+✔ |      3  40 | integration
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 4.4 s
+
+── Skipped tests (11) ──────────────────────────────────────────────────────────
+• empty test (1): 'test-accessors.R:20:1'
+• Test file not found (9): 'test-gene-utilities.R:2:3',
+  'test-gene-utilities.R:37:3', 'test-gene-utilities.R:64:3',
+  'test-gene-utilities.R:118:3', 'test-gene-utilities.R:165:3',
+  'test-gene-utilities.R:202:3', 'test-gene-utilities.R:234:3',
+  'test-integration.R:2:3', 'test-integration.R:111:3'
+• Test GFF3 file not found (1): 'test-integration.R:42:3'
+
+[ FAIL 0 | WARN 0 | SKIP 11 | PASS 190 ]
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file ‘.../DESCRIPTION’ ... OK
+* preparing ‘micromicon’:
+* checking DESCRIPTION meta-information ... OK
+* installing the package to build vignettes
+* creating vignettes ... ERROR
+--- re-building ‘gene-utilities.Rmd’ using rmarkdown
+--- finished re-building ‘gene-utilities.Rmd’
+--- re-building ‘micromicon-intro.Rmd’ using rmarkdown
+--- finished re-building ‘micromicon-intro.Rmd’
+--- re-building ‘quickstart.Rmd’ using rmarkdown
+Quitting from quickstart.Rmd:118-132 [extract-with-flanking]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<error/rlang_error>
+Error in `nchar()`:
+! no method for coercing this S4 class to a vector
+---
+Backtrace:
+    ▆
+ 1. ├─base::cat("Gene length:", nchar(ampC_dna), "bp\n")
+ 2. └─base::nchar(ampC_dna)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error: processing vignette 'quickstart.Rmd' failed with diagnostics:
+no method for coercing this S4 class to a vector
+--- failed re-building ‘quickstart.Rmd’
+--- re-building ‘variation-analysis.Rmd’ using rmarkdown
+--- finished re-building ‘variation-analysis.Rmd’
+SUMMARY: processing the following file failed:
+  ‘quickstart.Rmd’
+Error: Vignette re-building failed.
+Execution halted
+Error in proc$get_built_file() : Build process failed
+Calls: <Anonymous> ... build_package -> with_envvar -> force -> <Anonymous>
+Execution halted
