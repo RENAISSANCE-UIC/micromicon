@@ -1,35 +1,25 @@
-#' Parse a breseq annotated.gd file with type-aware dispatch
+#' Parse raw breseq .gd file into R-native event list
 #'
-#' Parses a breseq annotated.gd file (produced by gdtools ANNOTATE) and creates
-#' a genome_entity_gd object. The parser uses type-aware dispatch to handle
-#' different mutation types (SNP, DEL, INS, SUB, MOB, AMP, CON, INV), evidence
-#' types (RA, MC, JC, UN), and validation types (TSEQ, PFLP, etc.). Events are
-#' automatically binned by kind (mutation/evidence/validation) for efficient filtering.
+#' Reads a breseq annotated.gd file and returns a plain list of events,
+#' header key-values, and a kind vector. No domain objects are constructed;
+#' this is a mechanical adapter from .gd bytes to R-native shapes.
 #'
-#' @param gd_path Path to the annotated.gd file (not raw output.gd)
-#' @param entity A genome_entity object (reference genome; fields will be hoisted)
-#' @param strict Logical; if TRUE, stop on inconsistencies; if FALSE, warn and continue
-#' @param fasta_path Optional path to FASTA file for provenance checksums
-#' @param gff3_path Optional path to GFF3 file for provenance checksums
-#' @param gbk_path Optional path to GenBank file for provenance checksums
-#' @return A genome_entity_gd object with parsed events binned by kind in
-#'   \code{provenance$by_kind} (mutation_idx, evidence_idx, validation_idx)
-#' @export
-#' @examples
-#' \dontrun{
-#'   ref <- read_genome("reference.gbk")
-#'   gd <- parse_gd_annotated("annotated.gd", ref, strict = TRUE)
-#'   length(gd$events)
-#'   gd$provenance$by_kind$mutation_idx  # indices of mutation events
-#' }
-parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
-                               fasta_path = NULL, gff3_path = NULL, 
-                               gbk_path = NULL) {
-  if (!file.exists(gd_path)) cli::cli_abort("File does not exist: {gd_path}")
-  stopifnot(inherits(entity, "genome_entity"))
-  
+#' @param gd_path Path to the annotated.gd file
+#' @param contig_lengths Named numeric vector of contig lengths (name = contig id,
+#'   value = length in bp). Used only for bounds-checking; pass an empty named
+#'   numeric to skip bounds checks.
+#' @param strict Logical; if TRUE, stop on parse errors; if FALSE, warn and skip
+#' @return A list with components:
+#'   \describe{
+#'     \item{header}{Key-value list from the file header}
+#'     \item{events}{List of per-event lists (one per body line)}
+#'     \item{kind_vec}{Character vector parallel to events: "mutation", "evidence", or "validation"}
+#'   }
+#' @keywords internal
+parse_gd_raw <- function(gd_path, contig_lengths, strict = TRUE) {
+
   # ---- local scalar helpers
-  # Note: %||% is defined globally in R/operators.R
+  # Note: %||% is defined globally in R/frameworks_operators.R
 
   first_non_na <- function(x) {
     if (is.null(x) || length(x) == 0L) return(NA)
@@ -42,7 +32,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     if (length(a) == 1L && is.na(a)) return(b)
     a
   }
-  
+
   # ---- local helpers used by the parser -
   .normalize_seq_id <- function(s) {
     if (is.null(s)) return(NA_character_)
@@ -85,23 +75,23 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     }
     invisible(TRUE)
   }
-  
-  # ---------- read and pre-filter 
+
+  # ---------- read and pre-filter
   lines <- readLines(gd_path, warn = FALSE)
   lines <- lines[nzchar(lines)]
-  
+
   if (!is_annotated_gd(lines)) {
     cli::cli_abort(c(
       "This appears to be a raw breseq output.gd (annotation tags not detected).",
       "i" = "Supply an annotated.gd produced by gdtools ANNOTATE together with the reference."
     ))
   }
-  
+
   header_idx   <- grep("^#", lines)
   body_idx     <- setdiff(seq_along(lines), header_idx)
   header_lines <- lines[header_idx]
   body_lines   <- lines[body_idx]
-  
+
   # Header key/values
   header <- list()
   for (h in header_lines) {
@@ -112,26 +102,22 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     if (!nzchar(key)) next
     if (key %in% names(header)) header[[key]] <- c(header[[key]], val) else header[[key]] <- val
   }
-  
-  # Provenance + reference
-  ref_manifest   <- reference_manifest_from_genome_entity(entity, fasta_path, gff3_path, gbk_path)
-  contig_lengths <- setNames(as.numeric(entity$metadata$length_bp), entity$metadata$seqname)
-  
+
   MUT_TYPES <- c("SNP","SUB","DEL","INS","MOB","AMP","CON","INV")
   EVI_TYPES <- c("RA","MC","JC","UN")
   VAL_TYPES <- c("TSEQ","PFLP","RFLP","PFGE","PHYL","CURA","NOTE","FPOS")
-  
-  # ---------- type-specific parsers 
+
+  # ---------- type-specific parsers
   .parse_mut <- function(row, type) {
     # mutation: type, id, parent-ids, seq_id, position, ...
     idx <- 4L
     f   <- function(k) if (length(row) >= k) row[k] else NA_character_
-    
+
     parent_ids_raw <- if (length(row) >= 3L) row[3L] else NA_character_
     parent_ids     <- if (is.na(parent_ids_raw) || parent_ids_raw %in% c(".", "")) integer(0) else {
       suppressWarnings(as.integer(strsplit(parent_ids_raw, ",", fixed = TRUE)[[1]]))
     }
-    
+
     if (type == "SNP") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -144,7 +130,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 2L
       ))
     }
-    
+
     if (type == "SUB") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -158,7 +144,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 3L
       ))
     }
-    
+
     if (type == "DEL") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -171,7 +157,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 2L
       ))
     }
-    
+
     if (type == "INS") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -185,7 +171,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 2L
       ))
     }
-    
+
     if (type == "MOB") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -200,7 +186,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 4L
       ))
     }
-    
+
     if (type == "AMP") {
       seq_id     <- .normalize_seq_id(f(idx + 0L))
       position   <- .as_int(f(idx + 1L))
@@ -214,7 +200,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 3L
       ))
     }
-    
+
     if (type == "CON") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -228,7 +214,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 3L
       ))
     }
-    
+
     if (type == "INV") {
       seq_id   <- .normalize_seq_id(f(idx + 0L))
       position <- .as_int(f(idx + 1L))
@@ -241,20 +227,20 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 2L
       ))
     }
-    
+
     cli::cli_abort("Unhandled mutation type: {type}")
   }
-  
+
   .parse_evidence <- function(row, type) {
     # evidence: type, evidence-id, then seq_id/... (type-specific)
     idx <- 3L
     f   <- function(k) if (length(row) >= k) row[k] else NA_character_
-    
-    
+
+
     if (type == "RA") {
       # RA: seq_id, position, insert_position, ref_base, new_base
       toks <- if (length(row) >= idx) row[idx:length(row)] else character(0)
-      
+
       .is_base_char <- function(x) {
         if (is.null(x) || length(x) == 0L) return(FALSE)
         x <- as.character(x[1])
@@ -263,7 +249,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       }
       .is_nonneg <- function(x) !is.na(x) && x >= 0L
       .has_sid   <- function(s) { s <- .normalize_seq_id(s); !is.na(s) && nzchar(s) }
-      
+
       attempt <- function(o) {
         need <- o + 5L
         if (length(toks) < need) return(NULL)
@@ -272,18 +258,18 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         ins <- .as_int(toks[o + 3L])
         ref <- toks[o + 4L]
         new <- toks[o + 5L]
-        
+
         ok  <- .is_nonneg(ins) && .is_base_char(ref) && .is_base_char(new)
         # score: prefer real seq_id, then prefer ref not "0" (guards against shifted digits)
         score <- (if (.has_sid(sid)) 2L else 0L) + (ref != "0")
         list(ok = ok, score = score,
              sid = sid, pos = pos, ins = ins, ref = ref, new = new, used = need)
       }
-      
+
       cand <- list(attempt(0L), attempt(1L), attempt(2L))
       cand <- Filter(Negate(is.null), cand)
       ok   <- Filter(function(z) isTRUE(z$ok), cand)
-      
+
       pick <- NULL
       if (length(ok)) {
         # choose the highest score; ties go to the earliest offset
@@ -295,7 +281,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       } else {
         return(list(.fixed_end = idx - 1L))  # no fixed fields; let the caller parse tags
       }
-      
+
       return(list(
         seq_id = pick$sid, position = pick$pos, contig = pick$sid,
         ra_insert_position = pick$ins,
@@ -304,7 +290,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end         = (idx - 1L) + pick$used
       ))
     }
-    
+
     if (type == "MC") {
       seq_id      <- .normalize_seq_id(f(idx + 0L))
       start       <- .as_int(f(idx + 1L))
@@ -317,7 +303,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 4L
       ))
     }
-    
+
     if (type == "JC") {
       # JC has 7 fixed scalars; try offsets 0..2 to avoid stray placeholder columns.
       toks <- if (length(row) >= idx) row[idx:length(row)] else character(0)
@@ -339,14 +325,14 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         ok <- .is_strand(s1_st) && .is_strand(s2_st) &&
           .valid_pos(s1_po) && .valid_pos(s2_po) &&
           .valid_int(ovlp)
-        
+
         list(ok = ok,
              s1_id = s1_id, s1_po = s1_po, s1_st = s1_st,
              s2_id = s2_id, s2_po = s2_po, s2_st = s2_st,
              ovlp  = ovlp,
              used  = need)
       }
-      
+
       cand <- list(attempt(0L), attempt(1L), attempt(2L))
       pick <- NULL
       for (c in cand) { if (!is.null(c) && isTRUE(c$ok)) { pick <- c; break } }
@@ -354,7 +340,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         pick <- attempt(0L)
         if (is.null(pick)) return(list(.fixed_end = idx - 1L))
       }
-      
+
       return(list(
         side_1_seq_id = pick$s1_id,
         side_1_position = pick$s1_po,
@@ -366,7 +352,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = (idx - 1L) + pick$used
       ))
     }
-    
+
     if (type == "UN") {
       seq_id <- .normalize_seq_id(f(idx + 0L))
       start  <- .as_int(f(idx + 1L))
@@ -376,10 +362,10 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         .fixed_end = idx + 2L
       ))
     }
-    
+
     cli::cli_abort("Unhandled evidence type: {type}")
   }
-  
+
   .rectify_for_constructor <- function(ev) {
     # Universal columns the constructor/validator require
     ev$type      <- ev$type      %||% NA_character_
@@ -390,15 +376,15 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     ev$tags      <- ev$tags      %||% list()
     ev$raw_line  <- ev$raw_line  %||% NA_character_
     ev$hash      <- ev$hash      %||% NA_character_
-    
+
     # Legacy col6/7/8
     ev$col6 <- if (!is.null(ev$col6)) ev$col6 else NA
     ev$col7 <- if (!is.null(ev$col7)) ev$col7 else NA
     ev$col8 <- if (!is.null(ev$col8)) ev$col8 else NA
-    
+
     # Legacy rank (not in GD spec for mutations)
     ev$rank <- ev$rank %||% NA_integer_
-    
+
     # Evidence flags
     if (!is.null(ev$kind) && ev$kind == "evidence") {
       ev$is_evidence    <- TRUE
@@ -407,21 +393,21 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       ev$is_evidence    <- FALSE
       ev$evidence_class <- NA_character_
     }
-    
+
     # Descriptors (ensure presence)
     defaults_chr <- c("snp_alt_base","snp_ref_base","ins_seq","sub_new_seq","mob_repeat_name","con_region")
     defaults_int <- c("del_size","ins_size","sub_size","mob_strand","mob_duplication_size",
                       "amp_size","amp_new_copy_number","con_size","inv_size")
     for (nm in defaults_chr) if (is.null(ev[[nm]])) ev[[nm]] <- NA_character_
     for (nm in defaults_int) if (is.null(ev[[nm]])) ev[[nm]] <- NA_integer_
-    
+
     # Evidence numerics (ensure presence)
     evid_num <- c("ev_frequency","ev_quality","ev_ref_cov_1","ev_ref_cov_2",
                   "ev_new_cov_1","ev_new_cov_2","ev_tot_cov_1","ev_tot_cov_2",
                   "ev_alignment_overlap","ev_cov_minus","ev_cov_plus",
                   "ev_pos_start","ev_pos_end")
     for (nm in evid_num) if (is.null(ev[[nm]])) ev[[nm]] <- NA_real_
-    
+
     # pos_start/pos_end from tags if present
     if (is.na(ev$ev_pos_start) && length(ev$tags)) {
       ev$ev_pos_start <- suppressWarnings(as.integer(ev$tags[["position_start"]][1]))
@@ -429,7 +415,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
     if (is.na(ev$ev_pos_end) && length(ev$tags)) {
       ev$ev_pos_end <- suppressWarnings(as.integer(ev$tags[["position_end"]][1]))
     }
-    
+
     # Evidence rows that lack a single canonical (seq_id, position)
     if (!is.null(ev$kind) && ev$kind == "evidence") {
       if (ev$type == "MC" || ev$type == "UN") {
@@ -444,14 +430,14 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         ev$contig   <- scalar_coalesce(ev$contig,   ev$seq_id)
       }
     }
-    
+
     ev
   }
-  
+
   # ---------- parse body main loop
   events   <- vector("list", length(body_lines))
   kind_vec <- character(length(body_lines))
-  
+
   for (i in seq_along(body_lines)) {
     raw <- body_lines[i]
     row <- strsplit(raw, "\t", fixed = TRUE)[[1]]
@@ -459,21 +445,21 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       msg <- sprintf("Malformed GD line %d: too few fields.", i)
       if (strict) cli::cli_abort(msg) else next
     }
-    
+
     type <- row[1]
     id   <- .as_int(row[2])
-    
+
     if (type %in% MUT_TYPES) {
       ev   <- .parse_mut(row, type)
       kind <- "mutation"
       if (!is.null(ev$seq_id) && !is.na(ev$seq_id) && !is.null(ev$position) && !is.na(ev$position)) {
         .bounds_check(i, ev$seq_id, ev$position, strict, contig_lengths)
       }
-      
+
     } else if (type %in% EVI_TYPES) {
       ev   <- .parse_evidence(row, type)
       kind <- "evidence"
-      
+
       # evidence-specific bounds
       if (type %in% c("RA","UN")) {
         sid <- ev$seq_id
@@ -491,28 +477,28 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
         if (!is.na(ev$side_2_seq_id) && !is.na(ev$side_2_position))
           .bounds_check(i, ev$side_2_seq_id, ev$side_2_position, strict, contig_lengths)
       }
-      
+
     } else if (type %in% VAL_TYPES) {
       ev <- list(seq_id = .normalize_seq_id(if (length(row) >= 3L) row[3L] else NA_character_),
                  .fixed_end = length(row))
       kind <- "validation"
-      
+
     } else {
       if (strict) cli::cli_abort("Unknown GD type '{type}' at line {i}") else next
     }
-    
+
     # Slice trailing tags using sentinel (falls back to row length)
     fixed_end <- scalar_coalesce(ev$.fixed_end, length(row))
     tags_raw  <- if (length(row) > fixed_end) row[(fixed_end + 1L):length(row)] else character(0)
     taglist   <- .parse_tags(tags_raw)
-    
+
     # Envelope
     ev$type     <- type
     ev$id       <- id
     ev$tags     <- taglist
     ev$raw_line <- raw
     ev$kind     <- kind
-    
+
     # Evidence numerics (if applicable)
     if (kind == "evidence") {
       ev$ev_frequency <- .as_num(taglist[["frequency"]])
@@ -527,47 +513,22 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
       ev$ev_cov_minus         <- .as_int(taglist[["coverage_minus"]])
       ev$ev_cov_plus          <- .as_int(taglist[["coverage_plus"]])
     }
-    
+
     # Hash from raw fixed slice + tags (pre-rectification)
     row_fixed <- row[seq_len(fixed_end)]
     ev$hash <- canonical_event_hash(
       fixed_fields = row_fixed,
       taglist      = taglist
     )
-    
+
     # Drop sentinel and rectify for constructor's rectangle
     ev$.fixed_end <- NULL
     ev <- .rectify_for_constructor(ev)
-    
+
     # Store
     events[[i]] <- ev
     kind_vec[i] <- kind
   }
 
-  # Package object
-  gd_checksum <- gd_digest(gd_path, file = TRUE)
-  
-  obj <- new_genome_entity_gd(
-    header    = header,
-    events    = events,
-    file      = list(path = normalizePath(gd_path), checksum = gd_checksum),
-    entity    = entity,
-    reference = ref_manifest,
-    strict    = strict
-  )
-  
-  # Optional: keep kind indices for convenience
-  obj$provenance$by_kind <- list(
-    mutation_idx   = which(kind_vec == "mutation"),
-    evidence_idx   = which(kind_vec == "evidence"),
-    validation_idx = which(kind_vec == "validation")
-  )
-  
-  validate_genome_entity_gd(obj, strict = strict)
+  list(header = header, events = events, kind_vec = kind_vec)
 }
-
-
-
-
-
-
