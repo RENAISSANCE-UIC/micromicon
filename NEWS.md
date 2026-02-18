@@ -1,3 +1,10 @@
+# micromicon 0.3.2
+
+## Architectural Focus
+
+* Made `predict_mutations()` and `compute_effects()` official S3 generics
+* Reorganized code base to better conform with clean architecture design 
+
 # micromicon 0.3.0
 
 ## Major: Mutation Consequence Enrichment System

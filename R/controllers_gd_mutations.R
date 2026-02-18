@@ -379,9 +379,6 @@ predict_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
   out[o, , drop = FALSE]
 }
 
-
-
-
 #' Columns: evidence, type, seq_id, position, mutation, freq, annotation, gene, description
 #'
 #' @param gd genome_entity_gd parsed by parse_gd_annotated()
@@ -750,82 +747,6 @@ predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
   out[o, , drop = FALSE]
 }
 
-
-
-
-
-#' Public wrapper: predict mutations (opinionated defaults; args pass-through)
-#'
-#' Calls predict_mutations_int(), announces row count, and prints a preview:
-#' - If dplyr is installed: prints tibble (contract unaffected).
-#' - If dplyr is not installed: prints base data.frame.
-#' Any preview/logging errors are swallowed; the table is still returned.
-#'
-#' @param gd genome_entity_gd
-#' @param ... reserved for future options passed to *_int (kept for forward-compat)
-#' @param min_freq numeric scalar, keep rows with freq >= min_freq (default 0)
-#' @param include_structural logical, include JC/MC/etc. (default TRUE)
-#' @param join one of c("slash","pipe","newline") for multi-item fields (default "slash")
-#' @return data.frame/tibble with predicted mutations (superset schema)
-#' @export
-#' @rdname predict_mutations
-#' @export
-predict_mutations.genome_entity_gd <- function(gd, ...,
-                                                min_freq = 0,
-                                                include_structural = TRUE,
-                                                join = c("slash", "pipe", "newline")) {
-  gd_assert(gd, "gd")
-  join <- match.arg(join)
-  
-  # Build once via internal, regardless of downstream printing path
-  tbl <- predict_mutations_int(
-    gd,
-    min_freq = min_freq,
-    include_structural = include_structural,
-    join = join,
-    ...
-  )
-  
-  # Announce + print a friendly preview, but never fail the call if printing goes sideways
-  tryCatch(
-    {
-      n <- NROW(tbl)
-      # row count announcement
-      cli::cli_inform(c(
-        "i" = sprintf("predict_mutations: %d row%s.", n, if (n == 1L) "" else "s")
-      ))
-      
-      # choose printing strategy
-      has_dplyr <- requireNamespace("dplyr", quietly = TRUE)
-      n_show <- min(n, 25L)
-      
-      if (has_dplyr) {
-        # tibble path (do not modify tbl; only coerce for printing)
-        cli::cli_inform(c(
-          "i" = sprintf("Showing top %d as a tibble.", n_show)
-        ))
-        print(utils::head(dplyr::as_tibble(tbl), n_show))
-        tbl <- dplyr::as_tibble(tbl)
-      } else {
-        cli::cli_inform(c(
-          "!" = "{.pkg dplyr} not detected; showing a base data.frame preview.",
-          "i" = "Install with: {.code install.packages('dplyr')} to prefer tibble display."
-        ))
-        print(utils::head(tbl, n_show))
-      }
-    },
-    error = function(e) {
-      # Stay serene; log and proceed to return the table
-      cli::cli_warn(c(
-        "!" = "Non-fatal issue while printing the preview.",
-        ">" = conditionMessage(e)
-      ))
-    }
-  )
-  
-  # Always return the fully built table (but quietly)
-  invisible(tbl)
-}
 
 #' Fallback enrichment for predict_mutations() output using hoisted features
 #'
