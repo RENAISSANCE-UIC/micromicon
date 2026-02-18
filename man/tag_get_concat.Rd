@@ -11,7 +11,7 @@ tag_get_concat(tbl, name, into = paste0("tag_", name), sep = "|")
 
 \item{name}{Name of the tag to extract (without "tag_" prefix)}
 
-\item{into}{Name for the new column (default: "tag_{name}")}
+\item{into}{Name for the new column (default: \code{"tag_\\{name\\}"})}
 
 \item{sep}{Separator for concatenating multiple values (default "|")}
 }

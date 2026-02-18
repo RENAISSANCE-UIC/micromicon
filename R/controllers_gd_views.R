@@ -408,7 +408,7 @@ peek_tags <- function(ev_tbl, i = 1L, n = 20L) {
 #'
 #' @param tbl A data frame from \code{gd_events_table()} with a tags list-column
 #' @param name Name of the tag to extract (without "tag_" prefix)
-#' @param into Name for the new column (default: "tag_{name}")
+#' @param into Name for the new column (default: \code{"tag_\\{name\\}"})
 #' @return The input data frame with the new column added
 #' @keywords internal
 #' @seealso \code{\link{tag_get_concat}}, \code{\link{gd_events_table}}
@@ -433,7 +433,7 @@ tag_get_first <- function(tbl, name, into = paste0("tag_", name)) {
 #'
 #' @param tbl A data frame from \code{gd_events_table()} with a tags list-column
 #' @param name Name of the tag to extract (without "tag_" prefix)
-#' @param into Name for the new column (default: "tag_{name}")
+#' @param into Name for the new column (default: \code{"tag_\\{name\\}"})
 #' @param sep Separator for concatenating multiple values (default "|")
 #' @return The input data frame with the new column added
 #' @keywords internal
