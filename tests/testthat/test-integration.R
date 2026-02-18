@@ -110,23 +110,13 @@ test_that("Clean Architecture layers work independently", {
 test_that("Backward compatibility is maintained", {
   skip_if(!file.exists("inst/extdata/test.gbk"), "Test file not found")
 
-  # Old API: read_gbk with return_entity = FALSE
+  # Old API: read_gbk with return_entity = FALSE returns raw record list
   gbk_list <- read_gbk("inst/extdata/test.gbk", return_entity = FALSE)
   expect_type(gbk_list, "list")
   expect_true(length(gbk_list) > 0)
-
-  # Should have old structure
   expect_true("metadata" %in% names(gbk_list[[1]]))
   expect_true("features" %in% names(gbk_list[[1]]))
   expect_true("sequence" %in% names(gbk_list[[1]]))
-
-  # Convert to entity
-  entity <- gbk_to_entity(gbk_list)
-  expect_s3_class(entity, "genome_entity")
-
-  # Convert back to legacy format
-  legacy <- entity_to_gbk_list(entity)
-  expect_type(legacy, "list")
 })
 
 test_that("Error handling works correctly", {

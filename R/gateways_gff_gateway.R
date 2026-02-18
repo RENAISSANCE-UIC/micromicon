@@ -32,8 +32,19 @@ create_gff_gateway <- function(use_bioconductor = TRUE) {
       }
 
       if (has_rtracklayer) {
-        # Use rtracklayer for reading (robust, handles edge cases)
-        features <- read_gff_with_rtracklayer(path)
+        # Attempt direct import; fall back to clean-and-retry for malformed GFF3
+        features <- tryCatch(
+          read_gff_with_rtracklayer(path),
+          error = function(e) {
+            cli::cli_inform(c(
+              "x" = "Direct GFF import failed.",
+              ">" = conditionMessage(e),
+              "i" = "Attempting to clean GFF3 and retry..."
+            ))
+            cleaned_path <- clean_gff_for_import(path, drop_invalid = TRUE, verbose = FALSE)
+            read_gff_with_rtracklayer(cleaned_path)
+          }
+        )
       } else {
         # Use simple parser
         features <- parse_gff_simple(path)
