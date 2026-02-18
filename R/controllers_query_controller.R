@@ -13,6 +13,9 @@
 # or the legacy list from init_genome() directly.
 # =============================================================================
 
+# Piping, tidyselect ops
+#' @importFrom magrittr %>%
+
 #' Extract Sequence from Genomic Coordinates
 #'
 #' @param genome_obj Genome object from init_genome() (expects $fa, $fasta (optional), $seqnames)
