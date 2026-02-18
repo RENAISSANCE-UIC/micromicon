@@ -458,6 +458,14 @@ predict_mutations.genome_entity_gd <- function(gd, ...,
   invisible(tbl)
 }
 
+#' @export
+predict_mutations.default <- function(gd, ...) {
+  cli::cli_abort(c(
+    "{.fn predict_mutations} requires a {.cls genome_entity_gd} as its first argument.",
+    "i" = "Load your variant calls first with {.fn read_variants}."
+  ))
+}
+
 #' Compute Mutation Effects
 #'
 #' @description
@@ -484,6 +492,14 @@ compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...) {
   } else {
     pm_enrich_consequences_parallel(gd, pm_tbl, ...)
   }
+}
+
+#' @export
+compute_effects.default <- function(gd, pm_tbl, ...) {
+  cli::cli_abort(c(
+    "{.fn compute_effects} requires a {.cls genome_entity_gd} as its first argument.",
+    "i" = "Load your variant calls first with {.fn read_variants}, then call {.fn predict_mutations} to get a mutation table."
+  ))
 }
 
 

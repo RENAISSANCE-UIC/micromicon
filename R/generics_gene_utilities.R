@@ -14,7 +14,7 @@ get_gene_dna <- function(x, gene, ...) {
   UseMethod("get_gene_dna")
 }
 
-#' @keywords internal
+#' @export
 get_gene_dna.genome_entity <- function(x, gene, format = c("character", "DNAString"), ...) {
   format <- match.arg(format)
   validate_genome_entity(x)
@@ -57,7 +57,7 @@ get_gene_dna.genome_entity <- function(x, gene, format = c("character", "DNAStri
   dna
 }
 
-#' @keywords internal
+#' @export
 get_gene_dna.default <- function(x, gene, ...) {
   cli::cli_abort("get_gene_dna() not implemented for class {.cls {class(x)[1]}}")
 }
@@ -86,7 +86,7 @@ get_gene_aa <- function(x, gene, ...) {
   UseMethod("get_gene_aa")
 }
 
-#' @keywords internal
+#' @export
 get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_codon = TRUE, ...) {
   validate_genome_entity(x)
 
@@ -129,7 +129,7 @@ get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_co
   aa
 }
 
-#' @keywords internal
+#' @export
 get_gene_aa.default <- function(x, gene, ...) {
   cli::cli_abort("get_gene_aa() not implemented for class {.cls {class(x)[1]}}")
 }
@@ -154,7 +154,7 @@ get_roi_dna <- function(x, chrom, start, end, strand = "+", ...) {
   UseMethod("get_roi_dna")
 }
 
-#' @keywords internal
+#' @export
 get_roi_dna.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
   validate_genome_entity(x)
 
@@ -166,7 +166,7 @@ get_roi_dna.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
   as.character(result)
 }
 
-#' @keywords internal
+#' @export
 get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
   cli::cli_abort("get_roi_dna() not implemented for class {.cls {class(x)[1]}}")
 }
@@ -264,7 +264,7 @@ map_genomic_to_cds <- function(x, gene, genomic_pos, ...) {
   UseMethod("map_genomic_to_cds")
 }
 
-#' @keywords internal
+#' @export
 map_genomic_to_cds.genome_entity <- function(x, gene, genomic_pos, ...) {
   validate_genome_entity(x)
 
@@ -291,7 +291,7 @@ map_genomic_to_cds.genome_entity <- function(x, gene, genomic_pos, ...) {
   cds_pos
 }
 
-#' @keywords internal
+#' @export
 map_genomic_to_cds.default <- function(x, gene, genomic_pos, ...) {
   cli::cli_abort("map_genomic_to_cds() not implemented for class {.cls {class(x)[1]}}")
 }
@@ -314,7 +314,7 @@ map_cds_to_genomic <- function(x, gene, cds_pos, ...) {
   UseMethod("map_cds_to_genomic")
 }
 
-#' @keywords internal
+#' @export
 map_cds_to_genomic.genome_entity <- function(x, gene, cds_pos, ...) {
   validate_genome_entity(x)
 
@@ -341,7 +341,7 @@ map_cds_to_genomic.genome_entity <- function(x, gene, cds_pos, ...) {
   genomic_pos
 }
 
-#' @keywords internal
+#' @export
 map_cds_to_genomic.default <- function(x, gene, cds_pos, ...) {
   cli::cli_abort("map_cds_to_genomic() not implemented for class {.cls {class(x)[1]}}")
 }
@@ -374,7 +374,7 @@ gene_info <- function(x, gene, ...) {
   UseMethod("gene_info")
 }
 
-#' @keywords internal
+#' @export
 gene_info.genome_entity <- function(x, gene, ...) {
   validate_genome_entity(x)
 
@@ -406,7 +406,7 @@ gene_info.genome_entity <- function(x, gene, ...) {
   info
 }
 
-#' @keywords internal
+#' @export
 gene_info.default <- function(x, gene, ...) {
   cli::cli_abort("gene_info() not implemented for class {.cls {class(x)[1]}}")
 }
@@ -430,7 +430,7 @@ validate_variant_in_gene <- function(x, gene, genomic_pos, ref_base, ...) {
   UseMethod("validate_variant_in_gene")
 }
 
-#' @keywords internal
+#' @export
 validate_variant_in_gene.genome_entity <- function(x, gene, genomic_pos, ref_base, ...) {
   validate_genome_entity(x)
 
@@ -476,7 +476,7 @@ validate_variant_in_gene.genome_entity <- function(x, gene, genomic_pos, ref_bas
   result
 }
 
-#' @keywords internal
+#' @export
 validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...) {
   cli::cli_abort("validate_variant_in_gene() not implemented for class {.cls {class(x)[1]}}")
 }
