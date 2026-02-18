@@ -53,10 +53,10 @@ The `genome_entity` object contains three main components:
 print(genome)
 
 # Access metadata using accessor
-head(metadata(genome))
+head(get_genome_metadata(genome))
 
 # Access features using accessor
-head(features(genome))
+head(get_features(genome))
 
 # Access sequences using accessor
 names(sequences(genome))
