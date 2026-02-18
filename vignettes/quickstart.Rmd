@@ -130,7 +130,7 @@ ampC_with_flanks <- extract_by_coords(
 
 cat("Gene + flanking regions:\n")
 cat("Total length:", nchar(ampC_with_flanks), "bp\n")
-cat("Gene length:", nchar(ampC_dna), "bp\n")
+cat("Gene length:", len_bp(ampC_dna), "bp\n")
 cat("Flanking:", flank_size * 2, "bp\n")
 ```
 
