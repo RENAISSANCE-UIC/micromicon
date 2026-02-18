@@ -485,3 +485,69 @@ compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...) {
     pm_enrich_consequences_parallel(gd, pm_tbl, ...)
   }
 }
+
+
+#' Get Features Overlapping a Region of Interest
+#'
+#' @description
+#' Returns a tidy tibble of genomic features that overlap a specified region,
+#' with optional flanking extension. Works on \code{genome_entity} objects and,
+#' by S3 dispatch inheritance, on \code{genome_entity_gd} objects as well.
+#'
+#' @param x A genome_entity (or genome_entity_gd) object
+#' @param seqname Character; chromosome/contig name (numeric-like strings such
+#'   as \code{"1"} are resolved automatically against the GFF seqlevels)
+#' @param start Integer; start coordinate (1-based, inclusive)
+#' @param end Integer; end coordinate (1-based, inclusive)
+#' @param flank Integer; extend the query region by this many bp on each side
+#'   (default 0)
+#' @param feature_type Character; keep only features of this type, e.g.
+#'   \code{"CDS"} (default). Pass \code{NULL} to return all feature types.
+#' @param auto_resolve Logical; attempt to reconcile seqname to a GFF seqlevel
+#'   when an exact match is not found (default TRUE)
+#' @param drop_extdb Logical; replace \code{extdb:*} placeholder names with
+#'   gene/locus_tag labels when available (default TRUE)
+#' @param ... Additional arguments (currently unused)
+#'
+#' @return A tibble with columns: seqnames, start, end, width, strand, type,
+#'   Name, Alias, Note
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' gd <- parse_gd_annotated("sample.gd", ref_dir = "reference/")
+#'
+#' # Features in a 2.4 Mb region with 10 kb flanks
+#' feats <- get_roi_features(gd, "1", 2369501, 2613000, flank = 10000)
+#'
+#' # All feature types, no flanks
+#' feats <- get_roi_features(gd, "1", 2369501, 2613000, feature_type = NULL)
+#' }
+get_roi_features <- function(x, ...) {
+  UseMethod("get_roi_features")
+}
+
+#' @export
+get_roi_features.genome_entity <- function(x, seqname, start, end,
+                                           flank = 0,
+                                           feature_type = "CDS",
+                                           auto_resolve = TRUE,
+                                           drop_extdb = TRUE,
+                                           ...) {
+  analyze_roi(
+    genome_obj   = x,
+    seqname      = seqname,
+    start        = start,
+    end          = end,
+    flank        = flank,
+    feature_type = feature_type,
+    tidy         = TRUE,
+    auto_resolve = auto_resolve,
+    drop_extdb   = drop_extdb
+  )
+}
+
+#' @export
+get_roi_features.default <- function(x, ...) {
+  cli::cli_abort("get_roi_features() not implemented for class {.cls {class(x)[1]}}")
+}
