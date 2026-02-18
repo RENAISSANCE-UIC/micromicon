@@ -25,3 +25,4 @@ validate_sequence_topology(NA)
 validate_sequence_topology("supercoiled")  # Error
 }
 }
+\keyword{internal}

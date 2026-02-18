@@ -57,3 +57,4 @@ results <- gateway$blastp_capture(
 filtered <- gateway$reduce_hits(results, min_qcov = 80)
 }
 }
+\keyword{internal}

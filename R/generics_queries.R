@@ -361,11 +361,11 @@ extract_by_name.default <- function(x, ...) {
 
 # Backward compatibility aliases
 #' @rdname extract_by_coords
-#' @export
+#' @keywords internal
 extract_sequences_by_coords <- extract_by_coords
 
 #' @rdname extract_by_name
-#' @export
+#' @keywords internal
 extract_sequences_by_name <- extract_by_name
 
 #' Predict Mutations

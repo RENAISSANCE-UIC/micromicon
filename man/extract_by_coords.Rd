@@ -17,3 +17,4 @@ extract_sequences_by_coords(x, ...)
 \description{
 Extract Sequences by Coordinates
 }
+\keyword{internal}

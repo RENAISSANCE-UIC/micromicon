@@ -34,3 +34,4 @@ if (gateway$is_available()) {
 }
 }
 }
+\keyword{internal}

@@ -22,3 +22,4 @@ entity <- read_genome(gff = "annotation.gff3", fasta = "genome.fasta")
 genome_obj <- entity_to_legacy_genome_obj(entity)
 }
 }
+\keyword{internal}

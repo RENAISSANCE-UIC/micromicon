@@ -12,3 +12,4 @@ Named list of package versions, or NULL if packages not available
 \description{
 Returns version information for installed Bioconductor packages.
 }
+\keyword{internal}

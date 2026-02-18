@@ -37,3 +37,4 @@ seqs <- sequences(genome)
 seqs_bio <- sequences(genome, format = "DNAStringSet")
 }
 }
+\keyword{internal}

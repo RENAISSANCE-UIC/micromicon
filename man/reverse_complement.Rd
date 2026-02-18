@@ -23,3 +23,4 @@ reverse_complement("ATCG")
 reverse_complement("ATCGATCG")
 # Returns: "CGATCGAT"
 }
+\keyword{internal}

@@ -42,3 +42,4 @@ validate_genomic_coordinates(100, 50, "chr1")  # Error
 validate_genomic_coordinates(1, 200, "chr1", max_length = 100)  # Error
 }
 }
+\keyword{internal}

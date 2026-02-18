@@ -3,26 +3,11 @@
 ## High Priority
 
 ### NAMESPACE Cleanup
-- [ ] Review and audit all exported functions
-- [ ] Consider making these internal (using `@keywords internal` instead of `@export`):
-  - `execute_import_genbank()` - line 53
-  - `execute_import_gff_fasta()` - line 54
-  - `execute_build_indices()` - line 52
-  - `validate_*()` functions (lines 106-112 in NAMESPACE)
-    - `validate_dna_sequence()`
-    - `validate_feature_type()`
-    - `validate_genome_entity()`
-    - `validate_genomic_coordinates()`
-    - `validate_locus_tag()`
-    - `validate_sequence_topology()`
-    - `validate_strand()`
-  - Converter functions that might be internal:
-    - `entity_to_gbk_list()` - line 50
-    - `entity_to_legacy_genome_obj()` - line 51
-    - `gbk_to_entity()` - line 66
-    - `gff_fasta_to_entity()` - line 79
-
-**Decision needed**: Are these meant for advanced users/extensibility, or should they be internal?
+- [x] Review and audit all exported functions
+- [x] Make non-generics internal (`@keywords internal`) — kept only S3 generics + `read_genome()` + `read_variants()`
+- [x] Make `execute_import_genbank()`, `execute_import_gff_fasta()`, `execute_build_indices()` internal
+- [x] Make all `validate_*()` functions internal
+- [x] Make converter functions internal (`entity_to_gbk_list()`, `entity_to_legacy_genome_obj()`, `gbk_to_entity()`, `gff_fasta_to_entity()`)
 
 ## Medium Priority
 
@@ -44,6 +29,8 @@
 - [x] Standardize error messages using cli package
 - [ ] Consider deprecation strategy for legacy functions
 - [ ] Review and consolidate duplicate functionality (if any)
+- [ ] Remove commented-out code blocks in `queries.R` (next code wrangling session)
+- [ ] Investigate overlap between `generics_export.R` and `generics_export_methods.R`
 
 ### Performance
 - [ ] Profile common workflows
@@ -53,8 +40,9 @@
 ## Future Features
 
 ### Enhancements
-- [ ] VCF format support
-- [ ] Functional consequence prediction for mutations
+- [x] `read_variants()` S3 generic — dispatches on `genome_entity`, currently supports `"gd"` (annotated breseq genome diff); extensible to `"vcf"`
+- [ ] VCF format support (via `read_variants(..., format = "vcf")`)
+- [x] Functional consequence prediction for mutations (`pm_enrich_consequences()` / `compute_effects()`)
 - [ ] Multi-genome comparative analysis
 - [ ] Time-series mutation tracking
 - [ ] Integration with phylogenetic tools
@@ -66,6 +54,27 @@
 - [ ] Benchmarking suite
 
 ## Notes
+
+### Recent Work (v0.3.x, 2026-02)
+
+**Architecture reorganization:**
+- ✅ Migrated `queries.R` functions to correct layers (S3 methods → `generics_queries.R`, helpers → `controllers_query_controller.R`)
+- ✅ Fixed alphabetical-load shadow bug (queries.R was overwriting earlier-loading generics/controllers)
+- ✅ Restored `use_cases_gd_consequence_enrichment.R` (deleted in prior wrangling, restored from git)
+- ✅ Added `compute_effects.genome_entity_gd` method
+
+**Naming consistency:**
+- ✅ `genome_metadata()` → `get_genome_metadata()`
+- ✅ `genome_seqnames()` → `get_genome_seqnames()`
+- ✅ `features()` → `get_features()`
+
+**New generics:**
+- ✅ `get_roi_features()` — exported S3 generic wrapping `analyze_roi()`
+- ✅ `read_variants()` — exported S3 generic; `read_variants(ref, "annotated.gd")` replaces direct `parse_gd_annotated()` calls
+
+**Bug fixes:**
+- ✅ `predict_mutations()` duplicate RA entries for INS mutations (fixed `scalar_or` truncation + added deduplication in `gd_presenters.R`)
+- ✅ JC parser negative `alignment_overlap` bug (added `.valid_int()` in `gd_parser.R`)
 
 ### Recent Fixes (v0.2.8)
 - ✅ Fixed namespace prefixes in sequence extraction functions
@@ -79,7 +88,8 @@
 - Prefer clear error messages over silent failures
 - Document assumptions about data sources (breseq, Prokka, etc.)
 - Maintain clean architecture separation
+- Public API: 21 exports total — 19 S3 generics + `read_genome()` + `read_variants()`
 
 ---
 
-**Last updated**: 2026-02-12
+**Last updated**: 2026-02-18

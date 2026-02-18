@@ -69,3 +69,4 @@ seqs <- sequences(genome)
 write_fasta(seqs[1:5], "subset.fasta")
 }
 }
+\keyword{internal}

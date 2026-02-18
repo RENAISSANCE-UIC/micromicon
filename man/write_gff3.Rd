@@ -63,3 +63,4 @@ genome <- read_genome("data.gbk")
 write_gff3(genome, "output.gff3")
 }
 }
+\keyword{internal}

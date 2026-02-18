@@ -41,3 +41,4 @@ metadata <- data.frame(
 
 indices <- execute_build_indices(features, metadata)
 }
+\keyword{internal}

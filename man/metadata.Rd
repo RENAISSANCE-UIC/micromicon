@@ -24,3 +24,4 @@ meta <- metadata(genome)
 print(meta)
 }
 }
+\keyword{internal}

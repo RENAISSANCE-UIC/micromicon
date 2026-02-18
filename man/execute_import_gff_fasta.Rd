@@ -72,3 +72,4 @@ mock_fasta <- list(
 entity <- execute_import_gff_fasta(mock_gff, mock_fasta, "test.gff3", "test.fasta")
 }
 }
+\keyword{internal}

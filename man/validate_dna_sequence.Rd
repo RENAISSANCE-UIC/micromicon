@@ -39,3 +39,4 @@ validate_dna_sequence("ATCGX")  # X not allowed
 validate_dna_sequence("ATCG123")  # Numbers not allowed
 }
 }
+\keyword{internal}

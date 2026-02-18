@@ -30,3 +30,4 @@ genome <- read_gbk("data/ecoli.gbk")
 gbk_list <- read_gbk("data/ecoli.gbk", return_entity = FALSE)
 }
 }
+\keyword{internal}

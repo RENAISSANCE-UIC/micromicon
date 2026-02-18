@@ -7,19 +7,42 @@
 \usage{
 extract_by_name(x, ...)
 
-extract_sequences_by_name(
-  genome_obj,
-  gene_pattern,
-  translate = FALSE,
-  genetic_code = "11",
-  auto_harmonize = TRUE
-)
+extract_sequences_by_name(x, ...)
 }
 \arguments{
-\item{x}{Object to extract from}
+\item{x}{A genome_entity (or genome_entity_gd) object}
 
-\item{...}{Additional arguments}
+\item{...}{Additional arguments (currently unused)}
+
+\item{pattern}{Character string or regex pattern (perl-compatible) to match
+feature names. Searches Name field first; falls back to gene, locus_tag,
+and product if Name yields no matches.}
+
+\item{translate}{Logical; if TRUE, translate extracted CDS to amino acids
+(default FALSE)}
+
+\item{genetic_code}{NCBI genetic code ID (default "11" for bacterial/archaeal)}
+
+\item{auto_harmonize}{Logical; if TRUE, automatically harmonize seqname
+vocabulary between GFF and FASTA when mismatches are detected (default TRUE)}
+}
+\value{
+A DNAStringSet (or AAStringSet if translate = TRUE) of extracted sequences
 }
 \description{
-Extract Sequences by Name
+Extract DNA (or protein) sequences for features matching a name pattern.
+Uses Bioconductor's GRanges and FaFile for robust extraction, including
+automatic seqname harmonization between GFF and FASTA.
 }
+\examples{
+\dontrun{
+genome <- read_genome("data.gbk")
+
+# Extract DNA sequence for dnaA
+seqs <- extract_by_name(genome, "dnaA")
+
+# Translate to protein
+proteins <- extract_by_name(genome, "dnaA", translate = TRUE)
+}
+}
+\keyword{internal}

@@ -52,3 +52,4 @@ mock_gateway <- list(
 entity <- execute_import_genbank(mock_gateway, "test_ampC.gbk")
 }
 }
+\keyword{internal}

@@ -12,3 +12,4 @@ suggest_bioconductor(feature = "this feature")
 \description{
 Prints a helpful message about installing Bioconductor packages.
 }
+\keyword{internal}

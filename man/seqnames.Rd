@@ -32,3 +32,4 @@ seqnames(gd)  # e.g., c("NC_000913.3", "plasmid_pXYZ")
 get_genome_seqnames(gd)
 }
 }
+\keyword{internal}

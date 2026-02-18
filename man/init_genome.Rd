@@ -4,19 +4,26 @@
 \alias{init_genome}
 \title{Initialize Genome from GFF3 and FASTA Files}
 \usage{
-init_genome(gff_path, fasta_path, auto_index = TRUE, verbose = TRUE)
+init_genome(
+  gff_path,
+  fasta_path,
+  return_entity = TRUE,
+  auto_harmonize = TRUE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{gff_path}{Path to GFF3 file}
 
 \item{fasta_path}{Path to FASTA file}
 
-\item{verbose}{Logical; if TRUE, print progress messages}
-
 \item{return_entity}{Logical; if TRUE (default), return genome_entity,
 if FALSE, return legacy genome_obj format (not yet implemented)}
 
 \item{auto_harmonize}{Logical; attempt to harmonize seqname mismatches}
+
+\item{verbose}{Logical; if TRUE, print progress messages}
 
 \item{...}{Additional arguments passed to use case}
 }
@@ -42,3 +49,4 @@ genome <- init_genome(
 )
 }
 }
+\keyword{internal}

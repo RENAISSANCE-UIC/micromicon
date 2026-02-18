@@ -27,3 +27,4 @@ validate_feature_type("mRNA")
 # Custom types (with warning)
 validate_feature_type("my_custom_feature")
 }
+\keyword{internal}

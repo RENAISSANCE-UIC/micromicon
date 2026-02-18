@@ -30,3 +30,4 @@ validate_strand("F")  # Error
 validate_strand("forward")  # Error
 }
 }
+\keyword{internal}

@@ -30,3 +30,4 @@ gateway <- create_gff_gateway()
 features <- gateway$read("annotation.gff3")
 }
 }
+\keyword{internal}

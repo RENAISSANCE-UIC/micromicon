@@ -31,3 +31,4 @@ of alternative start codons.
 \seealso{
 \code{\link{get_gene_aa}} for CDS translation with alternative start codon handling
 }
+\keyword{internal}

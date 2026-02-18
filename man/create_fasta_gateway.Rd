@@ -31,3 +31,4 @@ sequences <- gateway$read("genome.fasta")
 gateway$write(sequences, "output.fasta")
 }
 }
+\keyword{internal}

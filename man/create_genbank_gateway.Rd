@@ -30,3 +30,4 @@ gateway <- create_genbank_gateway()
 records <- gateway$read("data.gbk")
 }
 }
+\keyword{internal}

@@ -30,3 +30,4 @@ validate_locus_tag("GENE 001")  # Space not allowed
 validate_locus_tag("GENE-001")  # Hyphen typically not allowed
 }
 }
+\keyword{internal}
