@@ -14,7 +14,7 @@
 #' rtracklayer, Rsamtools) are installed and can be loaded.
 #'
 #' @return Logical indicating if Bioconductor packages are available
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' if (has_bioconductor()) {
@@ -44,7 +44,7 @@ has_bioc_package <- function(package) {
 #' Returns version information for installed Bioconductor packages.
 #'
 #' @return Named list of package versions, or NULL if packages not available
-#' @export
+#' @keywords internal
 bioconductor_versions <- function() {
   if (!has_bioconductor()) {
     return(NULL)
@@ -97,7 +97,7 @@ check_bioc_versions <- function(min_versions = list()) {
 #' Prints a helpful message about installing Bioconductor packages.
 #'
 #' @param feature Character string describing the feature that requires Bioconductor
-#' @export
+#' @keywords internal
 suggest_bioconductor <- function(feature = "this feature") {
   cli::cli_inform(c(
     "Bioconductor packages are required for {feature}.",

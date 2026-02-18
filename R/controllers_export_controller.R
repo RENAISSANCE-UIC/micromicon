@@ -35,7 +35,7 @@
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return Invisibly returns the file path
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -100,7 +100,7 @@ write_fasta <- function(x, file, wrap_width = 80, ...) {
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return Invisibly returns the file path
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -157,7 +157,7 @@ build_gff3_attributes <- function(feat) {
 #' @param ... Additional arguments passed to write_fasta
 #'
 #' @return Invisibly returns the file path
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -179,7 +179,7 @@ write_gbk_fasta <- function(x, file, ...) {
 #' @param ... Additional arguments passed to write_gff3
 #'
 #' @return Invisibly returns the file path
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

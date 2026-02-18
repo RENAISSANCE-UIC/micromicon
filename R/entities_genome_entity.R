@@ -21,7 +21,7 @@
 #'
 #' @return A genome_entity object
 #' @keywords internal
-#' @export
+#' @keywords internal
 new_genome_entity <- function(sequences_list = list(
                                  dna_raw = character(),
                                  dna_bio = NULL,
@@ -65,7 +65,7 @@ new_genome_entity <- function(sequences_list = list(
 #' @param x A genome_entity object
 #' @return TRUE invisibly if valid, stops with error if invalid
 #' @keywords internal
-#' @export
+#' @keywords internal
 validate_genome_entity <- function(x) {
   if (!inherits(x, "genome_entity")) {
     cli::cli_abort("Object is not a genome_entity")

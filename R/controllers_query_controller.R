@@ -23,7 +23,7 @@
 #' @param auto_resolve If TRUE, resolve seqname to a valid FASTA header (default TRUE)
 #' @param clamp If TRUE, clamp coordinates into contig bounds with a warning (default FALSE)
 #' @return DNAStringSet of length 1 with the extracted sequence
-#' @export
+#' @keywords internal
 extract_sequence_by_coords <- function(genome_obj,
                                        seqname,
                                        start,
@@ -154,7 +154,7 @@ extract_sequence_by_coords <- function(genome_obj,
 #' @param flank_size Flanking region size (bp) on each side
 #' @param feature_filter Optional regex pattern to filter context features
 #' @return GRanges with features in the flanking regions
-#' @export
+#' @keywords internal
 get_genomic_context <- function(genome_obj,
                                 features,
                                 flank_size = 20000,
@@ -255,7 +255,7 @@ get_genomic_context <- function(genome_obj,
 #' @param auto_resolve If TRUE, resolve seqname against GFF seqlevels (default TRUE)
 #' @param drop_extdb If TRUE, prefer human labels over extdb placeholders (default TRUE)
 #' @return GRanges or tibble with features in ROI
-#' @export
+#' @keywords internal
 analyze_roi <- function(genome_obj,
                         seqname,
                         start,
@@ -473,7 +473,7 @@ search_features_legacy_internal <- function(genome_obj,
 #' @param output_file Optional file path to write FASTA (default = NULL)
 #' @param seq_name Custom sequence name for FASTA header (default = auto-generated)
 #' @return DNAStringSet with extracted sequence(s)
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -614,7 +614,7 @@ get_roi_fasta <- function(genome_obj,
 #' @param flank Flanking region size in bp (default = 0)
 #' @param output_file Optional file path to write all sequences (default = NULL)
 #' @return DNAStringSet with all extracted sequences
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -708,7 +708,7 @@ get_roi_fasta_batch <- function(genome_obj,
 #' @param include_feature Include the feature itself (default = TRUE)
 #' @param output_file Optional file path to write sequences (default = NULL)
 #' @return DNAStringSet with extracted sequences
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -849,7 +849,7 @@ get_feature_fasta <- function(genome_obj,
 #' @param get_features Get overlapping features (default = TRUE)
 #' @param output_fasta Optional FASTA output file
 #' @return List with sequence (if requested) and features (if requested)
-#' @export
+#' @keywords internal
 extract_roi_complete <- function(genome_obj,
                                  seqname,
                                  start,
@@ -944,7 +944,7 @@ extract_roi_complete <- function(genome_obj,
 #'   - evalue: expect value
 #'   - staxids: subject taxonomic IDs
 #'
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -1048,7 +1048,7 @@ blast_protein <- function(sequence,
 #' @param xml_text XML text from BLAST results
 #' @param top_n Number of top hits to return (default = 10)
 #' @return Tibble with top BLAST hits
-#' @export
+#' @keywords internal
 parse_blast_xml <- function(xml_text, top_n = 10) {
   
   doc <- read_xml(xml_text)
@@ -1090,7 +1090,7 @@ flatten_CharacterList <- function(x) {
 #' @param gr GRanges object
 #' @param sort_by Sort by coordinate (default = TRUE)
 #' @return Tibble with key annotation fields
-#' @export
+#' @keywords internal
 tidy_features <- function(gr, sort_by = "start") {
   
   if (length(gr) == 0) {
@@ -1132,7 +1132,7 @@ tidy_features <- function(gr, sort_by = "start") {
 #' @param seq2 Second sequence (AAString or character)
 #' @param type Alignment type (default = "global")
 #' @return List with percent identity and alignment object
-#' @export
+#' @keywords internal
 compare_sequences <- function(seq1, seq2, type = "global") {
   
   if (!requireNamespace("pwalign", quietly = TRUE)) {
@@ -1160,7 +1160,7 @@ compare_sequences <- function(seq1, seq2, type = "global") {
 #' @param flank_size Flanking region size for context
 #' @param blast Perform BLAST search (default = FALSE)
 #' @return List with sequences, context, and optional BLAST results
-#' @export
+#' @keywords internal
 analyze_gene <- function(genome_obj,
                          gene_pattern,
                          flank_size = 20000,

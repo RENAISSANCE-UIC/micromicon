@@ -19,7 +19,7 @@ utils::globalVariables(c("pident", "qcovs", "bitscore", "evalue", "qseqid"))
 #'   for future extensibility (blastn, blastx, etc.)
 #'
 #' @return Gateway object (list with BLAST methods)
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

@@ -125,7 +125,7 @@ read_genome <- function(path = NULL, gff = NULL, fasta = NULL,
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return A genome_entity object (if return_entity=TRUE) or list of records (if FALSE)
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -166,7 +166,7 @@ read_gbk <- function(path, return_entity = TRUE, ...) {
 #' @param ... Additional arguments passed to use case
 #'
 #' @return A genome_entity object (if return_entity=TRUE)
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

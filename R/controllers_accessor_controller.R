@@ -10,7 +10,7 @@
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return Sequences in requested format
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -70,7 +70,7 @@ sequences <- function(x, format = c("character", "DNAStringSet"), ...) {
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return Features in requested format
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -130,7 +130,7 @@ features <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return data.frame with metadata
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -162,7 +162,7 @@ metadata <- function(x, ...) {
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return Character vector of unique sequence names
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

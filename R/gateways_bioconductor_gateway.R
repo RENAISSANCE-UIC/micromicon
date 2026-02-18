@@ -13,7 +13,7 @@
 #' - from_dnastringset(dna_bio): Convert DNAStringSet to character vector
 #'
 #' @return Gateway object (list with conversion methods)
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' gateway <- create_bioconductor_gateway()

@@ -7,7 +7,7 @@
 #' @param entity A genome_entity object
 #'
 #' @return Legacy genome_obj list
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

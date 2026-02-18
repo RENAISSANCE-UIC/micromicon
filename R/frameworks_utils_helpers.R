@@ -3,7 +3,7 @@
 #' @param df Features data.frame
 #' @param key Character; attribute name
 #' @return Character vector (NA for missing)
-#' @export
+#' @keywords internal
 feat_attr <- function(df, key) {
   if (!key %in% names(df)) {
     return(rep(NA_character_, nrow(df)))
@@ -20,7 +20,7 @@ feat_attr <- function(df, key) {
 #' @param id Feature ID
 #' @param attr Named list of attribute filters
 #' @return Filtered data.frame
-#' @export
+#' @keywords internal
 feat_filter <- function(df, type = NULL, name = NULL, id = NULL, attr = list()) {
   if (!is.data.frame(df)) {
     cli::cli_abort("{.arg df} must be a data.frame")
@@ -67,7 +67,7 @@ feat_filter <- function(df, type = NULL, name = NULL, id = NULL, attr = list()) 
 #' @param end Integer; end position (1-based, inclusive)
 #' @param strand Character; strand (default "+")
 #' @return roi_spec object with validated coordinates
-#' @export
+#' @keywords internal
 roi_coords <- function(seqname, start, end, strand = "+") {
   # Validate
   validate_genomic_coordinates(start, end, seqname)
@@ -89,7 +89,7 @@ roi_coords <- function(seqname, start, end, strand = "+") {
 #'
 #' @param x roi_spec object
 #' @param ... Additional arguments (ignored)
-#' @export
+#' @keywords internal
 print.roi_spec <- function(x, ...) {
   cat("ROI: ", x$seqname, ":", x$start, "-", x$end,
       " (", x$strand, ")\n", sep = "")

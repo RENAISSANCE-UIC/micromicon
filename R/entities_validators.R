@@ -21,7 +21,7 @@ NULL
 #' @param max_length Integer maximum sequence length (optional)
 #'
 #' @return TRUE if valid, stops with error if invalid
-#' @export
+#' @keywords internal
 #' @examples
 #' # Valid coordinates
 #' validate_genomic_coordinates(1, 100, "chr1")
@@ -79,7 +79,7 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
 #' @param strand Character strand value
 #'
 #' @return TRUE if valid, stops with error if invalid
-#' @export
+#' @keywords internal
 #' @examples
 #' # Valid strands
 #' validate_strand("+")
@@ -127,7 +127,7 @@ validate_strand <- function(strand) {
 #' @param allow_gaps Logical; allow gap characters ("-")? Default TRUE
 #'
 #' @return TRUE if valid, stops with error if invalid
-#' @export
+#' @keywords internal
 #' @examples
 #' # Valid sequences
 #' validate_dna_sequence("ATCG")
@@ -178,7 +178,7 @@ validate_dna_sequence <- function(seq_char, allow_gaps = TRUE) {
 #' @param allow_custom Logical; allow custom (unrecognized) types? Default TRUE
 #'
 #' @return TRUE if valid, emits warning if unrecognized and allow_custom=TRUE
-#' @export
+#' @keywords internal
 #' @examples
 #' # Valid types
 #' validate_feature_type("gene")
@@ -226,7 +226,7 @@ validate_feature_type <- function(type, allow_custom = TRUE) {
 #' @param max_length Integer maximum length (default 50)
 #'
 #' @return TRUE if valid, stops with error if invalid
-#' @export
+#' @keywords internal
 #' @examples
 #' # Valid locus tags
 #' validate_locus_tag("GENE001")
@@ -267,7 +267,7 @@ validate_locus_tag <- function(locus_tag, max_length = 50) {
 #' @param topology Character topology value
 #'
 #' @return TRUE if valid, stops with error if invalid
-#' @export
+#' @keywords internal
 #' @examples
 #' validate_sequence_topology("linear")
 #' validate_sequence_topology("circular")

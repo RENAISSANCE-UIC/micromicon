@@ -551,3 +551,70 @@ get_roi_features.genome_entity <- function(x, seqname, start, end,
 get_roi_features.default <- function(x, ...) {
   cli::cli_abort("get_roi_features() not implemented for class {.cls {class(x)[1]}}")
 }
+
+# ── read_variants ──────────────────────────────────────────────────────────────
+
+#' Read Variant Calls Against a Reference Genome
+#'
+#' @description
+#' Parses a variant file against an existing reference genome and returns a
+#' \code{genome_entity_gd} object. The reference genome must already be loaded
+#' with \code{read_genome()} before calling \code{read_variants()}.
+#'
+#' Currently supports breseq annotated genome diff (\code{format = "gd"}). The
+#' function is designed to be extensible: future formats (e.g., VCF) will be
+#' added via the \code{format} argument without changing the calling convention.
+#'
+#' @details
+#' ## Format requirements
+#' - **"gd"**: Must be an *annotated* genome diff (produced by \code{gdtools ANNOTATE}).
+#'   Raw breseq \code{output.gd} files are not accepted because they lack the
+#'   gene-level annotation needed for reference cross-checking.
+#'
+#' @param x A \code{genome_entity} object (the reference genome).
+#' @param path Character; path to the variant file.
+#' @param format Character; variant format. Currently \code{"gd"} (annotated breseq
+#'   genome diff). Will be extended to support \code{"vcf"} in a future release.
+#' @param strict Logical; if \code{TRUE} (default), stop on structural
+#'   inconsistencies; if \code{FALSE}, warn and continue.
+#' @param ... Additional arguments passed to the format-specific parser.
+#'
+#' @return A \code{genome_entity_gd} object.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Load the reference genome first
+#' ref <- read_genome("reference.gbk")
+#'
+#' # Then load variants against it
+#' gd <- read_variants(ref, "annotated.gd")
+#'
+#' # Inspect mutations
+#' predict_mutations(gd)
+#' }
+read_variants <- function(x, path, format = "gd", ...) {
+  UseMethod("read_variants")
+}
+
+#' @export
+read_variants.genome_entity <- function(x, path, format = "gd",
+                                        strict = TRUE, ...) {
+  format <- match.arg(format, choices = c("gd"))
+  switch(format,
+    "gd" = .read_variants_gd(x, path, strict = strict, ...),
+    cli::cli_abort("Unsupported variant format: {.val {format}}")
+  )
+}
+
+#' @export
+read_variants.default <- function(x, ...) {
+  cli::cli_abort(c(
+    "{.fn read_variants} requires a {.cls genome_entity} as its first argument.",
+    "i" = "Load your reference genome first with {.fn read_genome}, then call {.fn read_variants}."
+  ))
+}
+
+.read_variants_gd <- function(entity, path, strict = TRUE, ...) {
+  parse_gd_annotated(gd_path = path, entity = entity, strict = strict, ...)
+}

@@ -20,7 +20,7 @@
 #'   - verbose: Logical, print progress messages (default TRUE)
 #'
 #' @return A validated genome_entity object
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' # With real gateways

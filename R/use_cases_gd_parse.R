@@ -14,7 +14,7 @@
 #' @param gbk_path Optional path to GenBank file for provenance checksums
 #' @return A genome_entity_gd object with parsed events binned by kind in
 #'   \code{provenance$by_kind} (mutation_idx, evidence_idx, validation_idx)
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #'   ref <- read_genome("reference.gbk")

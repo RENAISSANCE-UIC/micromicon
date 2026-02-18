@@ -106,7 +106,7 @@ NULL
 #' @param translate Logical; translate to amino acid sequence
 #' @param genetic_code Genetic code to use (default = "11" for bacteria)
 #' @return DNAStringSet or AAStringSet with extracted sequences
-#' @export
+#' @keywords internal
 #'
 # troubleshooting
 # genome_obj <- NIST_pgap_genome

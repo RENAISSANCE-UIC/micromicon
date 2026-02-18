@@ -364,7 +364,7 @@ first_non_na <- function(x) {
 #' @param x Numeric vector of frequencies (values between 0 and 1)
 #' @param digits Number of decimal places (default 2)
 #' @return Character vector of formatted percentages (e.g., "85.50%")
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #'   format_freq(c(0.855, 0.12, NA))  # "85.50%" "12.00%" NA

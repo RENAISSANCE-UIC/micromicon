@@ -15,7 +15,7 @@
 #' @param cols Character vector of column names to prioritize in output order
 #' @param stringsAsFactors Logical; passed to as.data.frame()
 #' @return A data frame (or tibble if available) with one row per event
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #'   # Get all events with tags as list-column
@@ -198,7 +198,7 @@ gd_events_table <- function(
 #' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns
 #' @param include_raw Logical; include the raw GD line in output
 #' @return The previewed data frame/tibble (invisibly)
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #'   # Preview all events
@@ -260,7 +260,7 @@ view_events <- function(
 #' @param n Number of rows to display (default 20)
 #' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns
 #' @return The previewed data frame/tibble (invisibly)
-#' @export
+#' @keywords internal
 #' @seealso \code{\link{view_events}}, \code{\link{view_evidence}}
 #' @examples
 #' \dontrun{
@@ -281,7 +281,7 @@ view_mutations <- function(gd, n = 20, expand_tags = TRUE) {
 #' @param n Number of rows to display (default 25)
 #' @param expand_tags Logical; if TRUE, flatten tags into separate tag_* columns
 #' @return The previewed data frame/tibble (invisibly)
-#' @export
+#' @keywords internal
 #' @seealso \code{\link{view_events}}, \code{\link{view_mutations}}
 #' @examples
 #' \dontrun{
@@ -334,7 +334,7 @@ view_evidence <- function(gd, n = 25, expand_tags = TRUE) {
 #' @param gd A genome_entity_gd object
 #' @param k Maximum number of RA events to examine (default 10)
 #' @return A list of lists with raw_line and parsed fields for each RA event
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #'   probe <- probe_ra(gd, k = 5)
@@ -387,7 +387,7 @@ tags_as_kv <- function(tags) {
 #' @param i Row index of the event to inspect (default 1)
 #' @param n Maximum number of tag key-value pairs to display (default 20)
 #' @return A data frame with columns: key, index, value
-#' @export
+#' @keywords internal
 #' @seealso \code{\link{gd_events_table}}
 #' @examples
 #' \dontrun{
@@ -410,7 +410,7 @@ peek_tags <- function(ev_tbl, i = 1L, n = 20L) {
 #' @param name Name of the tag to extract (without "tag_" prefix)
 #' @param into Name for the new column (default: "tag_{name}")
 #' @return The input data frame with the new column added
-#' @export
+#' @keywords internal
 #' @seealso \code{\link{tag_get_concat}}, \code{\link{gd_events_table}}
 #' @examples
 #' \dontrun{
@@ -436,7 +436,7 @@ tag_get_first <- function(tbl, name, into = paste0("tag_", name)) {
 #' @param into Name for the new column (default: "tag_{name}")
 #' @param sep Separator for concatenating multiple values (default "|")
 #' @return The input data frame with the new column added
-#' @export
+#' @keywords internal
 #' @seealso \code{\link{tag_get_first}}, \code{\link{gd_events_table}}
 #' @examples
 #' \dontrun{
@@ -460,7 +460,7 @@ tag_get_concat <- function(tbl, name, into = paste0("tag_", name), sep = "|") {
 #' @param gd A genome_entity_gd object
 #' @param i Index of the event to print (1-based)
 #' @return The event object (invisibly)
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #'   print_event(gd, 10)  # Print event #10

@@ -17,7 +17,7 @@
 #' @param options List of options (currently unused, for future extensibility)
 #'
 #' @return A validated genome_entity object
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' # With a real gateway

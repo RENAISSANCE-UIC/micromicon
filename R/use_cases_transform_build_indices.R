@@ -13,7 +13,7 @@
 #' @param metadata_df data.frame with sequence metadata (must have seqname column)
 #'
 #' @return List with indices components
-#' @export
+#' @keywords internal
 #' @examples
 #' features <- data.frame(
 #'   seqname = c("chr1", "chr1", "chr2"),

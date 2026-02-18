@@ -640,4 +640,4 @@ write_cds_table <- function(gbk_list, file) {
 #' @param include_length Logical; append [length=X] to header (default TRUE)
 #'
 #' @return Invisibly returns output path
-#' @export
+#' @keywords internal

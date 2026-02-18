@@ -13,7 +13,7 @@
 #'   Default TRUE.
 #'
 #' @return Gateway object (list with read method)
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' gateway <- create_gff_gateway()

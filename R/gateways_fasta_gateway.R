@@ -13,7 +13,7 @@
 #'   for reading/writing. Default TRUE.
 #'
 #' @return Gateway object (list with read and write methods)
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' gateway <- create_fasta_gateway()

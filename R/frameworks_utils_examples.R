@@ -7,7 +7,7 @@
 #' @param filename Character string of the filename in inst/extdata
 #'
 #' @return Character string with full path to the example file
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

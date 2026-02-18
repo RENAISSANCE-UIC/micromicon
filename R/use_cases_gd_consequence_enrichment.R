@@ -1242,7 +1242,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   )
 }
 #' @rdname compute_effects
-#' @export
+#' @keywords internal
 compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...,
                                               flank = 50L,
                                               quiet = FALSE) {
