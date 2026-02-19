@@ -193,15 +193,9 @@ dna_genes <- search_features(genome, pattern = "dna")
 
 # Features in a region
 region <- search_features(genome,
-  seqname = "chr1",
+  seqname = "chr1",                 # <- look these up for your genome using get_genome_seqnames(genome)
   start = 1000,
   end = 5000
-)
-
-# Helper for complex filters
-filtered <- feat_filter(get_features(genome),
-  type = "CDS",
-  name = "lac"
 )
 ```
 
@@ -281,12 +275,14 @@ top_hits <- reduce_hits(hits,
 `micromicon` follows some Clean Architecture principles:
 
 - **Entities**: `genome_entity` and `genome_entity_gd` as the core domain objects
-- **Use Cases**: Pure functions for genome operations
-- **Controllers**: S3 generics for extensibility and dispatching
-- **Gateways**: Format-specific parsing (GenBank, GFF3, etc.)
+- **Use Cases**: Pure functions for genome operations (business logic)
+- **Controllers**: User-facing API surface
+- **Generics**: S3 generic definitions and their method dispatch
+- **Gateways**:  Integration surfaces to external formats, tools, or data sources
+- **Frameworks**: Utility functions and adapters
 
 This separation ensures:
-- Format-agnostic operations
+- Object-scoped operations
 - Easy testing and validation
 - Extensibility for future formats
 - No framework lock-in
@@ -315,7 +311,7 @@ get_features(genome_remote)  # Queries database, same interface
 
 ## Pipes, Routing, and Early Thinness
 
-The public API of `micromicon` is intentionally thin. Most user-facing functions are S3 generics that act as the routing stubs that inspect the object’s class and dispatch to a backend implementation. We kept these wrappers deliberately minimal for now to preserve architectural flexibility as the backends proliferate (in-memory objects today; remote stores or on-disk indices later). Think of it as preemptive debt-control. `micromicon` emerged from an earlier, more noodle-shaped prototype. Rather than retrofit dispatch and purity later, we wanted to scaffold in routing early, ensuring that method boundaries, side-effect hygiene, and extension points would be made explicit from the start.
+The public API of `micromicon` is intentionally thin. Most user-facing functions apply S3 generics that act as the routing stubs that inspect the object’s class and dispatch to a backend implementation. We kept some wrappers deliberately minimal for now to preserve architectural flexibility as the backend proliferates (in-memory objects today; remote stores or on-disk indices later). Think of it as preemptive debt-control. `micromicon` emerged from an earlier, more noodle-shaped prototype. Rather than retrofit dispatch and purity later, we wanted to scaffold in routing early, ensuring that method boundaries, side-effect hygiene, and extension points would be made explicit from the start.
 
 We have borrowed the excellent design idioms familiar in other ecosystems (clean architecture, dependency inversion, strict boundaries between entities and gateways). While R itself does not enforce these constraints, we hope that the idioms will make the public interface predictable, the backends swappable, and the migration to stricter object systems (S4 or S7) straightforward as our invariants become more fully specified. 
 
@@ -386,6 +382,7 @@ Planned features:
 - **Comparative genomics**: Multi-genome operations and phylogenetic integration
 - **VCF support**: Import variant calls from other pipelines
 - **Time-series analysis**: Track evolutionary dynamics across multiple samples
+- **Visualization**: Remember [ApE](https://jorgensen.biology.utah.edu/wayned/ape/), A Plasmid Editor by Davis and Jorgensen)? What if this, but for microbial genomics using modern tooling?
 
 ## Dependencies
 
