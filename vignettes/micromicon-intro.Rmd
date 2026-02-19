@@ -45,7 +45,7 @@ This vignette demonstrates core functionality using a small test plasmid contain
 - **Use cases layer**: Pure functions for genome operations
 - **Controllers layer**: Public API functions
 - **Generics layer**: S3 generics for method dispatch
-- **Gateways layer**: HJFSKFSSSF
+- **Gateways layer**: Interface with external tools, formats, data sources
 
 This design keeps the package idiomatic to R while maintaining clean separation of concerns.
 
@@ -112,8 +112,7 @@ table(all_features$type)
 
 # Format Conversion Rules
 
-**IMPORTANT**: micromicon enforces ONE-WAY format conversion.
-
+## micromicon enforces ONE-WAY format conversion.
 ## ALLOWED: GenBank → GFF3+FASTA
 
 ```{r export-genbank, eval=FALSE}
@@ -167,23 +166,6 @@ cat("Protein:", ampC_cds$product, "\n")
 cat("Length:", nchar(ampC_protein), "amino acids\n")
 cat("Sequence:", substr(ampC_protein, 1, 60), "...\n")
 ```
-
-Save to FASTA format:
-
-```{r save-protein, eval=FALSE}
-# Format as FASTA
-header <- paste0(">", ampC_cds$locus_tag, " ", ampC_cds$gene,
-                 " | ", ampC_cds$product)
-
-# Write with 60-character lines
-protein_lines <- character()
-for (i in seq(1, nchar(ampC_protein), 60)) {
-  protein_lines <- c(protein_lines, substr(ampC_protein, i, i + 59))
-}
-
-writeLines(c(header, protein_lines), "ampC_protein.fasta")
-```
-
 ## Nucleotide Sequences
 
 Extract DNA sequences by coordinates:
@@ -241,28 +223,6 @@ region_features <- search_features(
 
 cat("Features in region:", nrow(region_features), "\n")
 table(region_features$type)
-```
-
-# Basic Sequence Analysis
-
-Calculate simple statistics:
-
-```{r sequence-stats}
-# GC content
-calc_gc <- function(seq) {
-  seq_upper <- toupper(seq)
-  g <- lengths(regmatches(seq_upper, gregexpr("G", seq_upper)))
-  c <- lengths(regmatches(seq_upper, gregexpr("C", seq_upper)))
-  (g + c) / nchar(seq) * 100
-}
-
-ampC_gc <- calc_gc(ampC_dna)
-cat("GC content:", sprintf("%.1f%%", ampC_gc), "\n")
-
-# Codon count
-codon_count <- floor(nchar(ampC_dna) / 3)
-cat("Codons:", codon_count, "\n")
-cat("Amino acids:", nchar(ampC_protein), "\n")
 ```
 
 # BLASTP Analysis (REQUIRES local database)
