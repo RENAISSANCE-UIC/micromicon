@@ -1,6 +1,6 @@
 # micromicon Architecture Dictionary
 
-A reference for contributors and Future Claude: what code belongs where.
+A reference for contributors: what code belongs where (ideally).
 
 ---
 
