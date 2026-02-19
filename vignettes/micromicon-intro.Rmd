@@ -73,6 +73,7 @@ The `genome_entity` object contains:
 - **Sequences**: DNA sequences from the GenBank ORIGIN section
 - **Features**: Annotations (genes, CDS, tRNA, etc.) from the FEATURES table
 - **Records**: Metadata (LOCUS, DEFINITION, etc.)
+- **Indices**: The scaffolds (under $seqnames)
 
 # Exploring Genome Features
 
