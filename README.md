@@ -60,6 +60,9 @@ library(micromicon)
 entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
 # or: entity <- read_genome("reference.gbk")
 
+# Look at scaffold names (chromosomes, plasmids, contigs)
+get_genome_seqnames(entity)
+
 # Inspect genome structure
 seqnames(entity)  # Get scaffold/contig/chromosome/plasmid names
 get_genome_metadata(entity)  # View genome-level metadata
