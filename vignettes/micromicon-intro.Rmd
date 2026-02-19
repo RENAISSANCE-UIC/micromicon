@@ -41,9 +41,11 @@ This vignette demonstrates core functionality using a small test plasmid contain
 
 `micromicon` follows Clean Architecture principles with a functional programming approach:
 
-- **Entity layer**: `genome_entity` S3 class (core domain object)
-- **Use case layer**: Pure functions for genome operations
-- **Controller layer**: Public API functions
+- **Entities layer**: `genome_entity` S3 class (core domain object), `genome_entity_gd` S3 subclass
+- **Use cases layer**: Pure functions for genome operations
+- **Controllers layer**: Public API functions
+- **Generics layer**: S3 generics for method dispatch
+- **Gateways layer**: HJFSKFSSSF
 
 This design keeps the package idiomatic to R while maintaining clean separation of concerns.
 
