@@ -6,7 +6,7 @@ The package supports two complementary modes:
 
 * **Genome Navigation Mode** (based around the `genome_entity` object) for reference sequence exploration.
 
-* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) pipeline.
+* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing mutations from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing).
 
 [<a href="https://doi.org/10.5281/zenodo.18665300"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg)
 
