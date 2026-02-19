@@ -14,6 +14,13 @@ knitr::opts_chunk$set(
 )
 ```
 
+# All Functions
+
+To see the fucntions currently available, do:
+
+micromicon_functions()
+
+
 # Gene Utility Functions
 
 The `micromicon` package provides a comprehensive set of utility functions for working with genes in `genome_entity` objects. These functions make it easy to extract sequences, translate proteins, map positions, and validate variants.
@@ -22,14 +29,38 @@ The `micromicon` package provides a comprehensive set of utility functions for w
 
 The gene utility functions include:
 
+### Genomic Features
+
+- **`get_features()`** - List all annotated features as a data.frame
+- **`search_features()`** - filter features by type, name pattern, or coordinates
+- **`get_roi_features()`** - features overlapping a genomic region
+- **`gene_info()`** - full details for a single gene
+
+### Sequences
+
 - **`get_gene_dna()`** - Extract DNA sequence for a gene in 5'-to-3' canonical orientation
 - **`get_gene_aa()`** - Get translated amino acid sequence for a CDS
 - **`get_roi_dna()`** - Extract DNA for an arbitrary genomic region
-- **`translate_dna()`** - Translate DNA to protein with frame and genetic code support
+- **`sequences()`** - List all scaffold (contig/chromosome/plasmid) sequences
+
+### Coordinate Mapping
+
 - **`map_genomic_to_cds()`** - Convert genomic position to CDS position
 - **`map_cds_to_genomic()`** - Convert CDS position to genomic position
+- **`extract_by_name()`** - Extract sequence and features by gene name
+- **`extract_by_coords()`** - Extract sequence and features by coordinates
 - **`gene_info()`** - Get comprehensive gene metadata
-- **`validate_variant_in_gene()`** - Validate genomic variants
+
+### Genome Metadata
+
+- **`get_genome_metadata()`** - Get organism name, length, topology, etc.
+- **`get_genome_seqnames()`** - List contig / chromosome names
+
+### Variants & mutations 
+
+- **`predict_mutations()`** - Get a tidy mutation table from a genome diff
+- **`compute_effects()`** - Look at molecular consequences (aa change, consequence class)
+- **`validate_variant_in_gene()`** - Check whether a variant falls within a gene
 
 ## Setup
 
@@ -91,19 +122,19 @@ roi_minus <- get_roi_dna(entity, chrom = "chromosome", start = 1000, end = 1099,
 
 ## Translation
 
-The `translate_dna()` function supports multiple reading frames and genetic codes:
+`micromicon` has numerous inner functions as well, such as `translate_dna()` to multiple reading frames and genetic codes. NOTE that this function issue uses the STANDARD genetic code translation, which does NOT account for  :
 
 ```{r translate, eval=FALSE}
 dna <- "ATGAAATTTCCCGGGTTTAAATAG"
 
 # Translate in frame 1 (default)
-aa1 <- translate_dna(dna, frame = 1, genetic_code = "11")
+aa1 <- micromicon:::translate_dna(dna, frame = 1, genetic_code = "11") <- Note ":::" to access additional functions
 
 # Translate in frame 2 (skip first base)
-aa2 <- translate_dna(dna, frame = 2, genetic_code = "11")
+aa2 <- micromicon:::translate_dna(dna, frame = 2, genetic_code = "11")
 
 # Translate in frame 3 (skip first two bases)
-aa3 <- translate_dna(dna, frame = 3, genetic_code = "11")
+aa3 <- micromicon:::translate_dna(dna, frame = 3, genetic_code = "11")
 
 # Use standard genetic code
 aa_std <- translate_dna(dna, frame = 1, genetic_code = "1")
