@@ -444,4 +444,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Questions?** Open an [issue](https://github.com/your-username/micromicon/issues) or check the [vignette](vignettes/micromicon-intro.Rmd).
+**Questions?** Open an [issue](https://github.com/RENAISSANCE-UIC/micromicon/issues) or check the [vignette](vignettes/micromicon-intro.Rmd).
