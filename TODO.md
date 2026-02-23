@@ -42,7 +42,7 @@
 ### Enhancements
 - [x] `read_variants()` S3 generic — dispatches on `genome_entity`, currently supports `"gd"` (annotated breseq genome diff); extensible to `"vcf"`
 - [ ] VCF format support (via `read_variants(..., format = "vcf")`)
-- [x] Functional consequence prediction for mutations (`pm_enrich_consequences()` / `compute_effects()`)
+- [x] Functional consequence prediction for mutations (`pm_enrich_consequences()` / `annotate_variants()`)
 - [ ] Multi-genome comparative analysis
 - [ ] Time-series mutation tracking
 - [ ] Integration with phylogenetic tools
@@ -61,7 +61,7 @@
 - ✅ Migrated `queries.R` functions to correct layers (S3 methods → `generics_queries.R`, helpers → `controllers_query_controller.R`)
 - ✅ Fixed alphabetical-load shadow bug (queries.R was overwriting earlier-loading generics/controllers)
 - ✅ Restored `use_cases_gd_consequence_enrichment.R` (deleted in prior wrangling, restored from git)
-- ✅ Added `compute_effects.genome_entity_gd` method
+- ✅ Added `annotate_variants.genome_entity_gd` method
 
 **Naming consistency:**
 - ✅ `genome_metadata()` → `get_genome_metadata()`

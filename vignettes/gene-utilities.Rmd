@@ -59,7 +59,7 @@ The gene utility functions include:
 ### Variants & mutations 
 
 - **`predict_variants()`** - Get a tidy mutation table from a genome diff
-- **`compute_effects()`** - Look at molecular consequences (aa change, consequence class)
+- **`annotate_variants()`** - Look at molecular consequences (aa change, consequence class)
 - **`validate_variant_in_gene()`** - Check whether a variant falls within a gene
 
 ## Setup

@@ -35,7 +35,7 @@ The layer prefix encodes *what kind of code lives there*, not the domain. The to
 **Examples:**
 - `controllers_query_controller.R` — `search_features()`, `extract_by_name()`, `gene_info()`
 - `controllers_gd_views.R` — `view_mutations()`, `view_evidence()`, `peek_tags()`
-- `controllers_gd_mutations.R` — `predict_variants()`, `compute_effects()`
+- `controllers_gd_mutations.R` — `predict_variants()`, `annotate_variants()`
 - `controllers_import_controller.R` — `read_genome()`, `init_genome()`
 
 ---
@@ -55,7 +55,7 @@ The layer prefix encodes *what kind of code lives there*, not the domain. The to
 - `generics_accessors.R` — `get_features()`, `sequences()`, `get_genome_metadata()`
 - `generics_print.R` — `print.genome_entity()`, `print.genome_entity_gd()`
 - `generics_summary.R` — `summary.genome_entity()`, `summary.genome_entity_gd()`
-- `generics_gd.R` — GD-specific generics (`compute_effects`, `predict_variants`)
+- `generics_gd.R` — GD-specific generics (`annotate_variants`, `predict_variants`)
 - `generics_export.R` — generic definition; `generics_export_methods.R` — S3 methods
 
 ---

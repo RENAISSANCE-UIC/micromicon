@@ -124,7 +124,7 @@ map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 mutation_table <- predict_variants(gd)  # Reproduces breseq "Predicted Mutations" table
 
 # Enrich mutations with molecular consequences
-consequence_table <- compute_effects(gd, mutation_table)
+consequence_table <- annotate_variants(gd, mutation_table)
 # Returns: DNA sequences (dna_ref, dna_alt), amino acid changes (aa_ref, aa_alt),
 #          codon changes, and consequence classification
 # Supports: SNP, DEL, INS, SUB mutation types (coding and intergenic)
@@ -373,7 +373,7 @@ get_features(remote_genome)  # Dispatches to your method
 - **Variant-aware workflows**: Track mutations via `genome_entity_gd`
 - **breseq integration**: Parse `annotated.gd` files with `parse_gd_annotated()`
 - **Mutation tables**: Generate predicted mutations summaries with `predict_variants()`
-- **Consequence enrichment**: Molecular impact analysis with `compute_effects()` for SNP/DEL/INS/SUB
+- **Consequence enrichment**: Molecular impact analysis with `annotate_variants()` for SNP/DEL/INS/SUB
 - **Cross-platform optimization**: Auto-detects OS for parallel (Linux/macOS) or serial (Windows) processing
 - **Unified interface**: All navigation functions work on both modes
 

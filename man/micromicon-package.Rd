@@ -24,7 +24,7 @@ gd <- read_variants(ref, "annotated.gd")
 
 # 4. Analyse mutations
 pm  <- predict_variants(gd)
-eff <- compute_effects(gd, pm)
+eff <- annotate_variants(gd, pm)
 }\if{html}{\out{</div>}}
 
 Call \code{\link{micromicon_functions}()} at the console for a full

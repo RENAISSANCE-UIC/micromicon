@@ -479,19 +479,19 @@ predict_variants.default <- function(gd, ...) {
 #'
 #' @return Enriched data frame with consequence columns
 #' @export
-compute_effects <- function(gd, pm_tbl, ...) {
-  UseMethod("compute_effects")
+annotate_variants <- function(gd, pm_tbl, ...) {
+  UseMethod("annotate_variants")
 }
 
 #' @export
-compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...) {
+annotate_variants.genome_entity_gd <- function(gd, pm_tbl, ...) {
   pm_enrich_consequences_parallel(gd, pm_tbl, ...)
 }
 
 #' @export
-compute_effects.default <- function(gd, pm_tbl, ...) {
+annotate_variants.default <- function(gd, pm_tbl, ...) {
   cli::cli_abort(c(
-    "{.fn compute_effects} requires a {.cls genome_entity_gd} as its first argument.",
+    "{.fn annotate_variants} requires a {.cls genome_entity_gd} as its first argument.",
     "i" = "Load your variant calls first with {.fn read_variants}, then call {.fn predict_variants} to get a variant table."
   ))
 }

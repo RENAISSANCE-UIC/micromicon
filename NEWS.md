@@ -15,7 +15,7 @@
 
 ## Architectural Focus
 
-* Made `predict_variants()` and `compute_effects()` official S3 generics
+* Made `predict_variants()` and `annotate_variants()` official S3 generics
 * Reorganized code base to better conform with clean architecture design
 
 # micromicon 0.3.0
