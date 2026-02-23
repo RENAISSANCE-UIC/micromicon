@@ -16,7 +16,7 @@ pm_enrich_consequences_parallel(
 \arguments{
 \item{gd}{A GenomeData object}
 
-\item{pm_tbl}{A data.frame from \code{predict_mutations()}}
+\item{pm_tbl}{A data.frame from \code{predict_variants()}}
 
 \item{flank}{Integer, flanking bases for intergenic regions (default: 50)}
 

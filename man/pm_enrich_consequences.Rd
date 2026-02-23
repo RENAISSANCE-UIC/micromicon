@@ -9,7 +9,7 @@ pm_enrich_consequences(gd, pm_tbl, flank = 50L, quiet = FALSE)
 \arguments{
 \item{gd}{A GenomeData object}
 
-\item{pm_tbl}{A data.frame from \code{predict_mutations()}, containing at minimum:
+\item{pm_tbl}{A data.frame from \code{predict_variants()}, containing at minimum:
 \code{type}, \code{seq_id}, \code{position}, \code{mutation}, \code{gene}}
 
 \item{flank}{Integer, number of bases to extract upstream/downstream for
@@ -34,7 +34,7 @@ A data.frame with additional columns:
 }
 }
 \description{
-Adds molecular consequence annotations to a \code{predict_mutations()} table.
+Adds molecular consequence annotations to a \code{predict_variants()} table.
 Supports SNPs, deletions (DEL), insertions (INS), substitutions (SUB), and
 structural variants (MOB, AMP, CON, INV).
 
@@ -67,7 +67,7 @@ mutations only receive DNA sequences (no protein translation).
 \examples{
 \dontrun{
 gd <- read_genomedata("data/sample.gd", ref_dir = "data/reference")
-mutations <- predict_mutations(gd)
+mutations <- predict_variants(gd)
 enriched <- pm_enrich_consequences(gd, mutations, flank = 50)
 }
 

@@ -6,7 +6,7 @@
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations
 #' @keywords internal
-predict_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
+predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   
   join <- match.arg(join)
@@ -387,7 +387,7 @@ predict_mutations_orig <- function(gd, min_freq = 0, include_structural = TRUE,
 #' @param join how to present multi-valued tags: "slash" (default), "pipe", or "newline"
 #' @return data.frame with breseq-like predicted mutations (now with 3-letter `type`)
 #' @keywords internal
-predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
+predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
                                 join = c("slash","pipe","newline")) {
   join <- match.arg(join)
   
@@ -748,13 +748,13 @@ predict_mutations_int <- function(gd, min_freq = 0, include_structural = TRUE,
 }
 
 
-#' Fallback enrichment for predict_mutations() output using hoisted features
+#' Fallback enrichment for predict_variants() output using hoisted features
 #'
 #' This function does *not* change existing, non-missing fields. It only
 #' fills gaps using the reference features in `gd$features`.
 #'
 #' @param gd          genome_entity_gd
-#' @param tbl         data.frame from predict_mutations(gd)
+#' @param tbl         data.frame from predict_variants(gd)
 #' @param want_distance logical; compute intergenic distance when gene is NA
 #' @return data.frame with enriched columns (type/gene/annotation/distance if missing)
 #' @keywords internal
@@ -966,7 +966,7 @@ pm_tbl <- function(gd) {
     )
   }
   
-  tb <- predict_mutations_int(gd)
+  tb <- predict_variants_int(gd)
 
   # Enforce your pared-down column contract
   required_cols <- c("evidence","type","seq_id","position","mutation","freq","annotation","gene")
@@ -976,7 +976,7 @@ pm_tbl <- function(gd) {
       c(
         "x" = "pm_tbl: required column(s) missing.",
         "!" = paste("Missing:", paste(missing, collapse = ", ")),
-        "i" = "Confirm that {.fn predict_mutations} produces these fields upstream."
+        "i" = "Confirm that {.fn predict_variants} produces these fields upstream."
       )
     )
   }
@@ -999,7 +999,7 @@ pm_view <- function(gd, n = 25) {
     # Contracted tibble path
     tb <- pm_tbl(gd)  # will cli_abort if something else is wrong
     cli::cli_inform(c(
-      "i" = sprintf("predict_mutations (contracted tibble): %d rows; showing top %d.", nrow(tb), n)
+      "i" = sprintf("predict_variants (contracted tibble): %d rows; showing top %d.", nrow(tb), n)
     ))
     print(utils::head(tb, n))
     return(invisible(tb))
@@ -1007,10 +1007,10 @@ pm_view <- function(gd, n = 25) {
   
   # Fallback: no dplyr installed — show something useful, don't crash.
   cli::cli_inform(c(
-    "!" = "{.pkg dplyr} not detected; showing a base preview from {.fn predict_mutations}.",
+    "!" = "{.pkg dplyr} not detected; showing a base preview from {.fn predict_variants}.",
     "i" = "Install with: {.code install.packages('dplyr')} to enable tibble output and focused columns."
   ))
-  df <- predict_mutations(gd)
+  df <- predict_variants(gd)
   # Be defensive: if the object is huge, head() keeps it polite.
   print(utils::head(df, n))
   invisible(df)

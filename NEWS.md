@@ -2,13 +2,21 @@
 
 * Updated use_cases_gd_consequence_enrichment_parallel.R to use clusters on Windows
 
+### Breaking Changes
+
+#### Function Renaming: predict_mutations → predict_variants
+
+* **BREAKING**: Renamed `predict_mutations()` to `predict_variants()`
+* Updated all documentation, README, vignettes, and internal references
+* Users must update their code: change `predict_mutations(gd)` to `predict_variants(gd)`
+
 
 # micromicon 0.3.2
 
 ## Architectural Focus
 
-* Made `predict_mutations()` and `compute_effects()` official S3 generics
-* Reorganized code base to better conform with clean architecture design 
+* Made `predict_variants()` and `compute_effects()` official S3 generics
+* Reorganized code base to better conform with clean architecture design
 
 # micromicon 0.3.0
 
@@ -16,11 +24,11 @@
 
 ### New Function: pm_enrich_consequences()
 
-* **NEW**: `pm_enrich_consequences()` enriches `predict_mutations()` output with molecular consequences
+* **NEW**: `pm_enrich_consequences()` enriches `predict_variants()` output with molecular consequences
 * Supports all mutation types: SNP, DEL, INS, SUB
 * Provides DNA sequences (reference and mutant), amino acid sequences, and consequence classification
 * Consequence types: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion, complex
-* Works directly with `predict_mutations()` output (handles arrows in gene names, position-based fallback)
+* Works directly with `predict_variants()` output (handles arrows in gene names, position-based fallback)
 * Includes QC tracking system with `qc_note` column for validation
 
 ### Production Hardening

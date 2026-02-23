@@ -20,7 +20,7 @@
 #' gd <- read_variants(ref, "annotated.gd")
 #'
 #' # 4. Analyse mutations
-#' pm  <- predict_mutations(gd)
+#' pm  <- predict_variants(gd)
 #' eff <- compute_effects(gd, pm)
 #' ```
 #'
@@ -89,7 +89,7 @@ micromicon_functions <- function() {
   ), width)
   
   .micromicon_section("Variants", list(
-    c("predict_mutations()",        "tidy mutation table (GenomeDiff parser)"),
+    c("predict_variants()",         "tidy variant table (GenomeDiff parser)"),
     c("compute_effects()",          "molecular consequences of variants"),
     c("validate_variant_in_gene()", "check whether a variant resides in a gene")
   ), width)

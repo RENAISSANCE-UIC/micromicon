@@ -49,6 +49,6 @@ ref <- read_genome("reference.gbk")
 gd <- read_variants(ref, "annotated.gd")
 
 # Inspect mutations
-predict_mutations(gd)
+predict_variants(gd)
 }
 }

@@ -19,7 +19,7 @@
 Cleaned gene name, or NA if not resolvable
 }
 \description{
-Cleans gene name from predict_mutations() output (removes arrows, whitespace)
+Cleans gene name from predict_variants() output (removes arrows, whitespace)
 and resolves to actual gene identifier. Falls back to position-based lookup.
 }
 \keyword{internal}

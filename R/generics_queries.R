@@ -381,13 +381,13 @@ extract_sequences_by_name <- extract_by_name
 #'
 #' @return A data frame of mutations with friendly preview
 #' @export
-predict_mutations <- function(gd, ...) {
-  UseMethod("predict_mutations")
+predict_variants <- function(gd, ...) {
+  UseMethod("predict_variants")
 }
 
-#' Public wrapper: predict mutations (opinionated defaults; args pass-through)
+#' Public wrapper: predict variants (opinionated defaults; args pass-through)
 #'
-#' Calls predict_mutations_int(), announces row count, and prints a preview:
+#' Calls predict_variants_int(), announces row count, and prints a preview:
 #' - If dplyr is installed: prints tibble (contract unaffected).
 #' - If dplyr is not installed: prints base data.frame.
 #' Any preview/logging errors are swallowed; the table is still returned.
@@ -399,9 +399,9 @@ predict_mutations <- function(gd, ...) {
 #' @param join one of c("slash","pipe","newline") for multi-item fields (default "slash")
 #' @return data.frame/tibble with predicted mutations (superset schema)
 #' @export
-#' @rdname predict_mutations
+#' @rdname predict_variants
 #' @export
-predict_mutations.genome_entity_gd <- function(gd, ...,
+predict_variants.genome_entity_gd <- function(gd, ...,
                                                min_freq = 0,
                                                include_structural = TRUE,
                                                join = c("slash", "pipe", "newline")) {
@@ -409,7 +409,7 @@ predict_mutations.genome_entity_gd <- function(gd, ...,
   join <- match.arg(join)
   
   # Build once via internal, regardless of downstream printing path
-  tbl <- predict_mutations_int(
+  tbl <- predict_variants_int(
     gd,
     min_freq = min_freq,
     include_structural = include_structural,
@@ -423,7 +423,7 @@ predict_mutations.genome_entity_gd <- function(gd, ...,
       n <- NROW(tbl)
       # row count announcement
       cli::cli_inform(c(
-        "i" = sprintf("predict_mutations: %d row%s.", n, if (n == 1L) "" else "s")
+        "i" = sprintf("predict_variants: %d row%s.", n, if (n == 1L) "" else "s")
       ))
       
       # choose printing strategy
@@ -459,9 +459,9 @@ predict_mutations.genome_entity_gd <- function(gd, ...,
 }
 
 #' @export
-predict_mutations.default <- function(gd, ...) {
+predict_variants.default <- function(gd, ...) {
   cli::cli_abort(c(
-    "{.fn predict_mutations} requires a {.cls genome_entity_gd} as its first argument.",
+    "{.fn predict_variants} requires a {.cls genome_entity_gd} as its first argument.",
     "i" = "Load your variant calls first with {.fn read_variants}."
   ))
 }
@@ -469,13 +469,12 @@ predict_mutations.default <- function(gd, ...) {
 #' Compute Mutation Effects
 #'
 #' @description
-#' Enriches mutation table with molecular consequences. Automatically selects
-#' the best implementation based on operating system:
-#' - Linux/macOS: Uses parallel processing for speed
-#' - Windows: Uses fast serial processing (parallel not supported)
+#' Enriches a variant table with molecular consequences. Uses parallel
+#' processing where available (fork-based on Linux/macOS; PSOCK cluster on
+#' Windows), falling back to serial execution if cluster creation fails.
 #'
 #' @param gd A genome data object
-#' @param pm_tbl A data frame from \code{predict_mutations()}
+#' @param pm_tbl A data frame from \code{predict_variants()}
 #' @param ... Additional arguments passed to methods
 #'
 #' @return Enriched data frame with consequence columns
@@ -486,19 +485,14 @@ compute_effects <- function(gd, pm_tbl, ...) {
 
 #' @export
 compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...) {
-  # Dispatch to parallel on Linux/macOS, fast serial on Windows
-  if (.Platform$OS.type == "windows") {
-    pm_enrich_consequences_fast(gd, pm_tbl, ...)
-  } else {
-    pm_enrich_consequences_parallel(gd, pm_tbl, ...)
-  }
+  pm_enrich_consequences_parallel(gd, pm_tbl, ...)
 }
 
 #' @export
 compute_effects.default <- function(gd, pm_tbl, ...) {
   cli::cli_abort(c(
     "{.fn compute_effects} requires a {.cls genome_entity_gd} as its first argument.",
-    "i" = "Load your variant calls first with {.fn read_variants}, then call {.fn predict_mutations} to get a mutation table."
+    "i" = "Load your variant calls first with {.fn read_variants}, then call {.fn predict_variants} to get a variant table."
   ))
 }
 
@@ -607,7 +601,7 @@ get_roi_features.default <- function(x, ...) {
 #' gd <- read_variants(ref, "annotated.gd")
 #'
 #' # Inspect mutations
-#' predict_mutations(gd)
+#' predict_variants(gd)
 #' }
 read_variants <- function(x, path, format = "gd", ...) {
   UseMethod("read_variants")

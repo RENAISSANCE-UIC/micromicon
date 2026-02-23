@@ -33,7 +33,7 @@ This vignette focuses on **Variation Analysis Mode**, which integrates mutation 
 `genome_entity_gd` is a **subclass** of `genome_entity`:
 
 - All `genome_entity` functions work on `genome_entity_gd` (inheritance)
-- `genome_entity_gd`-specific functions (like `predict_mutations()`) **don't work** on plain `genome_entity`
+- `genome_entity_gd`-specific functions (like `predict_variants()`) **don't work** on plain `genome_entity`
 
 ```{r class-hierarchy}
 library(micromicon)
@@ -94,7 +94,7 @@ Get a summary table of predicted mutations (reproduces breseq's "Predicted Mutat
 
 ```{r predicted-mutations}
 # Get mutations table
-mutations <- predict_mutations(gd)
+mutations <- predict_variants(gd)
 
 # View structure
 head(mutations)
@@ -197,7 +197,7 @@ entity <- read_genome(fasta = "reference.fasta",
 gd <- parse_gd_annotated("output/annotated.gd", entity)
 
 # 3. Get mutation summary
-mutations <- predict_mutations(gd)
+mutations <- predict_variants(gd)
 
 # 4. Identify genes with mutations
 mutated_genes <- unique(mutations$gene[!is.na(mutations$gene)])
@@ -254,7 +254,7 @@ for (sample in samples) {
 }
 
 # Get mutations for each sample
-mut_list <- lapply(gd_list, predict_mutations)
+mut_list <- lapply(gd_list, predict_variants)
 
 # Find shared mutations
 shared_genes <- Reduce(intersect,
@@ -299,7 +299,7 @@ Export mutation data for other tools:
 
 ```{r export}
 # Export mutations as CSV
-mutations <- predict_mutations(gd)
+mutations <- predict_variants(gd)
 write.csv(mutations, "mutations.csv", row.names = FALSE)
 
 # Export VCF (future feature)
@@ -312,7 +312,7 @@ write.csv(mutations, "mutations.csv", row.names = FALSE)
 
 - Seamless integration of breseq mutation data with reference genomes
 - All genome navigation functions work unchanged (inheritance)
-- Mutation-specific functions like `predict_mutations()`
+- Mutation-specific functions like `predict_variants()`
 - Provenance tracking for reproducibility
 
 **Next steps**:

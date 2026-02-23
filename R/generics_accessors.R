@@ -8,7 +8,7 @@ get_features <- function(x, ...) {
 }
 
 #' @export
-get_features.genome_entity <- function(x, format = c("data.frame", "GRanges"), type = NULL, ...) {
+get_features.genome_entity <- function(x, format = c("tibble", "data.frame", "GRanges"), type = NULL, ...) {
   format <- match.arg(format)
   validate_genome_entity(x)
 
@@ -18,7 +18,9 @@ get_features.genome_entity <- function(x, format = c("data.frame", "GRanges"), t
     feats <- feats[feats$type == type, ]
   }
 
-  if (format == "data.frame") {
+  if (format == "tibble") {
+    return(tibble::as_tibble(feats))
+  } else if (format == "data.frame") {
     return(feats)
   } else {
     bio_gateway <- create_bioconductor_gateway()

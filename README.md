@@ -98,7 +98,7 @@ blast_protein(protein, database = "swissprot")
 
 Implemented as `genome_entity_gd`, which inherits from the `genome_entity` object, this allows the reference to be supplemented with genomic variation events documented in the `annotated.gd` output from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing). 
 
-By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predict_mutations()` require mutation data.
+By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predict_variants()` require mutation data.
 
 ```r
 # Parse breseq output with reference genome
@@ -121,7 +121,7 @@ map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
 # Variation-specific: Get predicted mutations data frame
-mutation_table <- predict_mutations(gd)  # Reproduces breseq "Predicted Mutations" table
+mutation_table <- predict_variants(gd)  # Reproduces breseq "Predicted Mutations" table
 
 # Enrich mutations with molecular consequences
 consequence_table <- compute_effects(gd, mutation_table)
@@ -344,7 +344,7 @@ get_features(gd)           # Works
 get_gene_aa(gd, "ampC")  # Works
 
 # New methods for subclass
-predict_mutations(gd)  # gd-specific function
+predict_variants(gd)  # gd-specific function
 ```
 
 ### Custom Genome Sources
@@ -372,7 +372,7 @@ get_features(remote_genome)  # Dispatches to your method
 `micromicon` currently supports:
 - **Variant-aware workflows**: Track mutations via `genome_entity_gd`
 - **breseq integration**: Parse `annotated.gd` files with `parse_gd_annotated()`
-- **Mutation tables**: Generate predicted mutations summaries with `predict_mutations()`
+- **Mutation tables**: Generate predicted mutations summaries with `predict_variants()`
 - **Consequence enrichment**: Molecular impact analysis with `compute_effects()` for SNP/DEL/INS/SUB
 - **Cross-platform optimization**: Auto-detects OS for parallel (Linux/macOS) or serial (Windows) processing
 - **Unified interface**: All navigation functions work on both modes

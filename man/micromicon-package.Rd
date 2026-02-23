@@ -23,7 +23,7 @@ get_gene_dna(ref, "dnaA")
 gd <- read_variants(ref, "annotated.gd")
 
 # 4. Analyse mutations
-pm  <- predict_mutations(gd)
+pm  <- predict_variants(gd)
 eff <- compute_effects(gd, pm)
 }\if{html}{\out{</div>}}
 

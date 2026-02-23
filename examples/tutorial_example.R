@@ -78,16 +78,16 @@ cat("Creating mock mutation data for demonstration...\n\n")
 
 # Note: In real usage, you would do:
 # gd <- read_genomedata("file.gd", ref_dir = "reference/")
-# mutations <- predict_mutations(gd)
+# mutations <- predict_variants(gd)
 # enriched <- pm_enrich_consequences(gd, mutations)
 
 # For this tutorial, we'll show the expected structure:
 cat("Expected workflow:\n")
 cat("  1. gd <- read_genomedata('data.gd', ref_dir = 'reference/')\n")
-cat("  2. mutations <- predict_mutations(gd)\n")
+cat("  2. mutations <- predict_variants(gd)\n")
 cat("  3. enriched <- pm_enrich_consequences(gd, mutations)\n\n")
 
-cat("Expected input (mutations table from predict_mutations):\n")
+cat("Expected input (mutations table from predict_variants):\n")
 example_mutations <- data.frame(
   type = c("SNP", "SNP", "SNP", "SNP"),
   seq_id = c("NC_000913", "NC_000913", "NC_000913", "NC_000913"),

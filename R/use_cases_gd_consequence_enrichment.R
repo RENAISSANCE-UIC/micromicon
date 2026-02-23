@@ -1,7 +1,7 @@
 #' Enrich Mutation Table with Consequences
 #'
 #' @description
-#' Adds molecular consequence annotations to a `predict_mutations()` table.
+#' Adds molecular consequence annotations to a `predict_variants()` table.
 #' Supports SNPs, deletions (DEL), insertions (INS), substitutions (SUB), and
 #' structural variants (MOB, AMP, CON, INV).
 #'
@@ -10,7 +10,7 @@
 #' Structural variants receive reference sequences only (no allele computation).
 #'
 #' @param gd A GenomeData object
-#' @param pm_tbl A data.frame from `predict_mutations()`, containing at minimum:
+#' @param pm_tbl A data.frame from `predict_variants()`, containing at minimum:
 #'   `type`, `seq_id`, `position`, `mutation`, `gene`
 #' @param flank Integer, number of bases to extract upstream/downstream for
 #'   intergenic regions (default: 50)
@@ -56,7 +56,7 @@
 #' @examples
 #' \dontrun{
 #' gd <- read_genomedata("data/sample.gd", ref_dir = "data/reference")
-#' mutations <- predict_mutations(gd)
+#' mutations <- predict_variants(gd)
 #' enriched <- pm_enrich_consequences(gd, mutations, flank = 50)
 #' }
 #'
@@ -547,7 +547,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #' Clean and Resolve Gene Name
 #'
 #' @description
-#' Cleans gene name from predict_mutations() output (removes arrows, whitespace)
+#' Cleans gene name from predict_variants() output (removes arrows, whitespace)
 #' and resolves to actual gene identifier. Falls back to position-based lookup.
 #'
 #' @param gd GenomeData object
@@ -1125,7 +1125,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #' Parse Position String
 #'
 #' @description
-#' Parses position strings from predict_mutations() output, handling:
+#' Parses position strings from predict_variants() output, handling:
 #' - Comma-formatted numbers (e.g., "1,234,567")
 #' - breseq P:k format where P is genomic position, k is offset
 #'
@@ -1240,53 +1240,4 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     alt_base,
     substr(seq, pos + 1, nchar(seq))
   )
-}
-#' @rdname compute_effects
-#' @keywords internal
-compute_effects.genome_entity_gd <- function(gd, pm_tbl, ...,
-                                              flank = 50L,
-                                              quiet = FALSE) {
-  gd_assert(gd, "gd")
-  stopifnot(is.data.frame(pm_tbl))
-
-  # Detect operating system
-  is_windows <- .Platform$OS.type == "windows"
-
-  if (is_windows) {
-    # Windows: use fast serial version
-    if (!quiet) {
-      cli::cli_inform(c(
-        "i" = "compute_effects(): Using fast serial implementation",
-        "!" = "Parallel processing not supported on Windows",
-        "i" = "Consider running on Linux/macOS for faster parallel processing"
-      ))
-    }
-
-    result <- pm_enrich_consequences_fast(
-      gd = gd,
-      pm_tbl = pm_tbl,
-      flank = flank,
-      quiet = quiet,
-      ...
-    )
-
-  } else {
-    # Linux/macOS: use parallel version
-    if (!quiet) {
-      cli::cli_inform(c(
-        "i" = "compute_effects(): Using parallel implementation for faster processing"
-      ))
-    }
-
-    result <- pm_enrich_consequences_parallel(
-      gd = gd,
-      pm_tbl = pm_tbl,
-      flank = flank,
-      quiet = quiet,
-      use_parallel = TRUE,  # Enable parallel by default
-      ...
-    )
-  }
-
-  result
 }

@@ -15,7 +15,7 @@
 Integer position, or list(position, offset) if return_offset=TRUE. NA if parse fails.
 }
 \description{
-Parses position strings from predict_mutations() output, handling:
+Parses position strings from predict_variants() output, handling:
 \itemize{
 \item Comma-formatted numbers (e.g., "1,234,567")
 \item breseq P:k format where P is genomic position, k is offset

@@ -21,7 +21,7 @@ library(micromicon)
 # ============================================================================
 # Step 2: Get predicted mutations table
 # ============================================================================
-# mutations <- predict_mutations(gd)
+# mutations <- predict_variants(gd)
 #
 # This returns a table like:
 # | evidence | type | seq_id    | position | mutation | freq  | annotation | gene  | description        |

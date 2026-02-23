@@ -7,7 +7,7 @@
 #' - Minimal sequence operations
 #'
 #' @param gd A GenomeData object
-#' @param pm_tbl A data.frame from `predict_mutations()`
+#' @param pm_tbl A data.frame from `predict_variants()`
 #' @param flank Integer, flanking bases for intergenic regions (default: 50)
 #' @param quiet Logical, suppress messages (default: FALSE)
 #'
