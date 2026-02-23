@@ -28,17 +28,6 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
   # Check platform and adjust settings
   is_windows <- .Platform$OS.type == "windows"
 
-  if (use_parallel && is_windows && mc.cores > 1) {
-    if (!quiet) {
-      cli::cli_warn(c(
-        "!" = "Parallel processing not supported on Windows",
-        "i" = "Falling back to sequential processing - this may take a while",
-        "i" = "Consider running on Linux/macOS for {mc.cores}x speedup"
-      ))
-    }
-    use_parallel <- FALSE
-  }
-
   if (!use_parallel) {
     mc.cores <- 1
   }
@@ -115,34 +104,101 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
       start_time <- Sys.time()
     }
 
-    enriched_groups <- parallel::mclapply(
-      gene_names,
-      function(gene) {
-        if (is.na(gene) || !nzchar(gene)) {
-          return(gene_groups[[gene]])
+    if (!is_windows) {
+      # ---------- UNIX fork backend ----------
+      enriched_groups <- parallel::mclapply(
+        gene_names,
+        function(gene) {
+          if (is.na(gene) || !nzchar(gene)) {
+            return(gene_groups[[gene]])
+          }
+
+          .pf_enrich_gene_batch(
+            gd,
+            gene_groups[[gene]],
+            flank,
+            quiet = TRUE,
+            gene_dna_cache,
+            gene_aa_cache,
+            gene_meta_cache
+          )
+        },
+        mc.cores = mc.cores,
+        mc.preschedule = FALSE
+      )
+    } else {
+      # ---------- Windows PSOCK backend ----------
+      # Forked workers inherit memory; PSOCK workers don't, so caches are
+      # created fresh per-worker inside the worker function.
+      cl <- NULL
+      try({
+        cl <- parallel::makeCluster(mc.cores, type = "PSOCK")
+      }, silent = TRUE)
+
+      if (!is.null(cl)) {
+        on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)
+
+        parallel::clusterEvalQ(cl, { NULL })
+        parallel::clusterExport(
+          cl,
+          varlist = c("gene_groups", "gd", "flank", ".pf_enrich_gene_batch"),
+          envir = environment()
+        )
+        parallel::clusterSetRNGStream(cl)
+
+        worker_fun_win <- function(gene, gene_groups, gd, flank) {
+          if (is.na(gene) || !nzchar(gene)) {
+            return(gene_groups[[gene]])
+          }
+          gene_dna_cache  <- new.env(parent = emptyenv())
+          gene_aa_cache   <- new.env(parent = emptyenv())
+          gene_meta_cache <- new.env(parent = emptyenv())
+
+          tryCatch(
+            .pf_enrich_gene_batch(
+              gd,
+              gene_groups[[gene]],
+              flank,
+              quiet = TRUE,
+              gene_dna_cache,
+              gene_aa_cache,
+              gene_meta_cache
+            ),
+            error = function(e) {
+              result <- gene_groups[[gene]]
+              attr(result, "pf_worker_error") <- conditionMessage(e)
+              result
+            }
+          )
         }
 
-        .pf_enrich_gene_batch(
-          gd,
-          gene_groups[[gene]],
-          flank,
-          quiet = TRUE,  # Suppress messages in parallel
-          gene_dna_cache,
-          gene_aa_cache,
-          gene_meta_cache
+        enriched_groups <- parallel::parLapplyLB(
+          cl,
+          gene_names,
+          worker_fun_win,
+          gene_groups = gene_groups,
+          gd = gd,
+          flank = flank
         )
-      },
-      mc.cores = mc.cores,
-      mc.preschedule = FALSE  # Dynamic scheduling for load balancing
-    )
+      } else {
+        if (!quiet) {
+          cli::cli_warn(c(
+            "!" = "Windows cluster creation failed; falling back to sequential processing"
+          ))
+        }
+        use_parallel <- FALSE
+      }
+    }
 
-    if (!quiet) {
+    if (use_parallel && !quiet) {
       elapsed <- round(as.numeric(difftime(Sys.time(), start_time, units = "secs")), 1)
       cli::cli_inform(c(
         "v" = "Parallel processing completed in {elapsed}s"
       ))
     }
-  } else {
+  }
+
+  if (!use_parallel) {
     # SEQUENTIAL PROCESSING: With progress bar
     enriched_groups <- vector("list", length(gene_names))
 

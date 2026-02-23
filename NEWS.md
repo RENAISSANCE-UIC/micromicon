@@ -1,5 +1,10 @@
 # micromicon 0.3.2
 
+* Updated use_cases_gd_consequence_enrichment_parallel.R to use clusters on Windows
+
+
+# micromicon 0.3.2
+
 ## Architectural Focus
 
 * Made `predict_mutations()` and `compute_effects()` official S3 generics
