@@ -59,15 +59,19 @@ execute_build_indices <- function(features_df, metadata_df) {
       vals <- features_df[[col]]
       for (i in seq_len(nrow(features_df))) {
         val <- vals[[i]]
-        if (is.na(val) || !nzchar(val)) next
-        if (!exists(val, envir = cds_hash, inherits = FALSE)) {
-          assign(val, i, envir = cds_hash)
-        } else if (is_cds[[i]]) {
-          existing_row <- get(val, envir = cds_hash, inherits = FALSE)
-          if (!is_cds[[existing_row]]) {
-            assign(val, i, envir = cds_hash)  # upgrade non-CDS to CDS
+        # GFF3 list-columns (e.g. Alias) may be length-0 or multi-value vectors
+        if (is.null(val) || length(val) == 0) next
+        for (v in val) {
+          if (is.na(v) || !nzchar(v)) next
+          if (!exists(v, envir = cds_hash, inherits = FALSE)) {
+            assign(v, i, envir = cds_hash)
+          } else if (is_cds[[i]]) {
+            existing_row <- get(v, envir = cds_hash, inherits = FALSE)
+            if (!is_cds[[existing_row]]) {
+              assign(v, i, envir = cds_hash)  # upgrade non-CDS to CDS
+            }
+            # first CDS match wins; do not overwrite CDS with later CDS
           }
-          # first CDS match wins; do not overwrite CDS with later CDS
         }
       }
     }
