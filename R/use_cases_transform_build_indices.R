@@ -40,9 +40,43 @@ execute_build_indices <- function(features_df, metadata_df) {
     }
   }
 
+  # Build cds_hash: O(1) environment mapping any gene identifier to its feature
+  # row index. CDS features take priority over other types; first CDS match wins
+  # when multiple CDS share the same identifier.
+  cds_hash <- new.env(hash = TRUE, parent = emptyenv())
+  if (nrow(features_df) > 0) {
+    id_cols <- intersect(
+      c("locus_tag", "gene", "Name", "Alias", "ID"),
+      names(features_df)
+    )
+    is_cds <- if ("type" %in% names(features_df)) {
+      !is.na(features_df$type) & features_df$type == "CDS"
+    } else {
+      rep(FALSE, nrow(features_df))
+    }
+
+    for (col in id_cols) {
+      vals <- features_df[[col]]
+      for (i in seq_len(nrow(features_df))) {
+        val <- vals[[i]]
+        if (is.na(val) || !nzchar(val)) next
+        if (!exists(val, envir = cds_hash, inherits = FALSE)) {
+          assign(val, i, envir = cds_hash)
+        } else if (is_cds[[i]]) {
+          existing_row <- get(val, envir = cds_hash, inherits = FALSE)
+          if (!is_cds[[existing_row]]) {
+            assign(val, i, envir = cds_hash)  # upgrade non-CDS to CDS
+          }
+          # first CDS match wins; do not overwrite CDS with later CDS
+        }
+      }
+    }
+  }
+
   list(
     seqnames = seqnames_unique,
     locus_tag_index = locus_tag_index,
-    gene_index = gene_index
+    gene_index = gene_index,
+    cds_hash = cds_hash
   )
 }

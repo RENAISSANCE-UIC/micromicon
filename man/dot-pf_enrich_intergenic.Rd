@@ -4,7 +4,7 @@
 \alias{.pf_enrich_intergenic}
 \title{Fast Intergenic Enrichment}
 \usage{
-.pf_enrich_intergenic(gd, row, flank, quiet)
+.pf_enrich_intergenic(gd, row, flank, quiet, dna_window = NULL)
 }
 \description{
 Fast Intergenic Enrichment

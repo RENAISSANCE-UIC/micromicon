@@ -32,11 +32,34 @@ new_genome_entity <- function(sequences_list = list(
                                indices_list = list(
                                  seqnames = character(),
                                  locus_tag_index = integer(),
-                                 gene_index = list()
+                                 gene_index = list(),
+                                 cds_hash = new.env(hash = TRUE, parent = emptyenv())
                                )) {
   # Normalize inputs to expected structure
   if (is.null(sequences_list$dna_bio)) sequences_list$dna_bio <- NULL
   if (is.null(sequences_list$indexed_fa)) sequences_list$indexed_fa <- NULL
+
+  # Precompute reverse complement of each contig for fast minus-strand slicing.
+  # Uses chartr() for vectorised complementation and intToUtf8/utf8ToInt for
+  # in-place reversal — much faster than strsplit+rev for multi-megabase sequences.
+  if (is.null(sequences_list$dna_rev)) {
+    if (length(sequences_list$dna_raw) > 0) {
+      sequences_list$dna_rev <- vapply(
+        sequences_list$dna_raw,
+        function(seq) {
+          comp <- chartr(
+            "ACGTNRYSWKMBVDHacgtnryswkmbvdh",
+            "TGCANYRSWMKVBHDtgcanyrswmkvbhd",
+            seq
+          )
+          intToUtf8(rev(utf8ToInt(comp)))
+        },
+        character(1L)
+      )
+    } else {
+      sequences_list$dna_rev <- character()
+    }
+  }
 
   structure(
     list(

@@ -271,12 +271,17 @@ gd_snp_effect_row <- function(gd, seq_id, position, gene) {
 #' @keywords internal
 gd_resolve_feature <- function(gd, symbol) {
   gd_assert(gd, "gd")
-  # First try CDS exact match
+  # Fast path: O(1) lookup via cds_hash (prefers CDS, built at load time)
+  h <- gd$indices$cds_hash
+  if (!is.null(h) && exists(symbol, envir = h, inherits = FALSE)) {
+    row_idx <- get(symbol, envir = h, inherits = FALSE)
+    return(gd$features[row_idx, , drop = FALSE])
+  }
+  # Slow path: regex search (fallback for objects without cds_hash)
   cds <- try(search_features(gd, type = "CDS", pattern = paste0("^", symbol, "$")), silent = TRUE)
   if (!inherits(cds, "try-error") && !is.null(cds) && nrow(cds) >= 1L) {
     return(cds[1L, , drop = FALSE])
   }
-  # Fall back to gene exact match
   gen <- try(search_features(gd, type = "gene", pattern = paste0("^", symbol, "$")), silent = TRUE)
   if (!inherits(gen, "try-error") && !is.null(gen) && nrow(gen) >= 1L) {
     return(gen[1L, , drop = FALSE])

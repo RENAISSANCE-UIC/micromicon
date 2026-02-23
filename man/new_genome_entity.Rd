@@ -9,7 +9,7 @@ new_genome_entity(
   features_df = data.frame(),
   metadata_df = data.frame(),
   indices_list = list(seqnames = character(), locus_tag_index = integer(), gene_index =
-    list())
+    list(), cds_hash = new.env(hash = TRUE, parent = emptyenv()))
 )
 }
 \arguments{

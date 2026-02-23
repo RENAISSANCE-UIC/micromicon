@@ -445,7 +445,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
 #' Fast Intergenic Enrichment
 #'
 #' @keywords internal
-.pf_enrich_intergenic <- function(gd, row, flank, quiet) {
+.pf_enrich_intergenic <- function(gd, row, flank, quiet, dna_window = NULL) {
   # Extract DNA window (use proper position parser to handle colons)
   pos <- .pm_parse_position(as.character(row$position))
   seq_id <- as.character(row$seq_id)
@@ -453,10 +453,12 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   start_pos <- max(1L, pos - flank)
   end_pos <- pos + flank
 
-  dna_window <- tryCatch(
-    get_roi_dna(gd, chrom = seq_id, start = start_pos, end = end_pos, strand = "+"),
-    error = function(e) NA_character_
-  )
+  if (is.null(dna_window)) {
+    dna_window <- tryCatch(
+      get_roi_dna(gd, chrom = seq_id, start = start_pos, end = end_pos, strand = "+"),
+      error = function(e) NA_character_
+    )
+  }
 
   row$dna_ref <- dna_window
   row$region <- "intergenic"

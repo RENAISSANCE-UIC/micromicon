@@ -34,12 +34,18 @@ get_gene_dna.genome_entity <- function(x, gene, format = c("character", "DNAStri
     cli::cli_abort("Gene coordinates out of bounds: {feat$start}-{feat$end}")
   }
 
-  # Extract sequence
-  dna <- substr(full_seq, feat$start, feat$end)
-
-  # Handle strand (reverse complement if minus strand)
+  # Extract sequence, using precomputed reverse complement for minus-strand genes
+  # when available (avoids per-call reverse_complement() on potentially long genes).
   if (!is.na(feat$strand) && feat$strand == "-") {
-    dna <- reverse_complement(dna)
+    dna_rev <- x$sequences$dna_rev[[feat$seqname]]
+    if (!is.null(dna_rev)) {
+      L <- nchar(full_seq)
+      dna <- substr(dna_rev, L - feat$end + 1L, L - feat$start + 1L)
+    } else {
+      dna <- reverse_complement(substr(full_seq, feat$start, feat$end))
+    }
+  } else {
+    dna <- substr(full_seq, feat$start, feat$end)
   }
 
   if (format == "DNAString") {
@@ -98,12 +104,21 @@ get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_co
     cli::cli_warn("Feature is not a CDS (type = '{feat$type}'). Translation may be incorrect.")
   }
 
-  # Get DNA sequence
+  # Fast path: use pre-stored GenBank /translation= when available and no
+  # caller overrides are in play (genetic_code = NULL, fix_start_codon = TRUE).
+  # GenBank translations are authoritative: already M-normalised, correct
+  # genetic code, and exclude the stop codon.
+  if (is.null(genetic_code) && isTRUE(fix_start_codon) &&
+      "translation" %in% names(feat) &&
+      !is.na(feat$translation) && nzchar(feat$translation)) {
+    return(as.character(feat$translation))
+  }
+
+  # Slow path: extract DNA and translate
   dna <- get_gene_dna(x, gene, format = "character")
 
   # Determine genetic code
   if (is.null(genetic_code)) {
-    # Check if feature has transl_table attribute
     if ("transl_table" %in% names(feat) && !is.na(feat$transl_table)) {
       genetic_code <- as.character(feat$transl_table)
     } else {
@@ -111,17 +126,13 @@ get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_co
     }
   }
 
-  # Translate (internal call - suppress message)
   aa <- translate_dna(dna, frame = 1, genetic_code = genetic_code, .internal = TRUE)
 
   # Fix alternative start codons (GTG, TTG, CTG → M in bacteria)
   if (fix_start_codon && nchar(dna) >= 3) {
     start_codon <- toupper(substr(dna, 1, 3))
-    # Alternative start codons in bacteria: GTG, TTG, CTG, ATT, ATC, ATA
     alt_starts <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
-
     if (start_codon %in% alt_starts && nchar(aa) > 0) {
-      # Replace first amino acid with M (methionine)
       substr(aa, 1, 1) <- "M"
     }
   }
@@ -169,6 +180,79 @@ get_roi_dna.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
 #' @export
 get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
   cli::cli_abort("get_roi_dna() not implemented for class {.cls {class(x)[1]}}")
+}
+
+
+#' Get DNA Sequences for Multiple Regions of Interest (vectorised)
+#'
+#' @description
+#' Extract DNA sequences for a batch of genomic regions in a single call.
+#' Rows sharing the same contig are processed together with a single
+#' \code{substring()} call, making this much faster than calling
+#' \code{get_roi_dna()} in a loop.  Minus-strand regions use the precomputed
+#' \code{sequences$dna_rev} when available (built by \code{new_genome_entity}).
+#'
+#' @param x A genome_entity object
+#' @param chrom Character vector of contig/chromosome names (length n)
+#' @param start Integer vector of start positions, 1-based inclusive (length n)
+#' @param end Integer vector of end positions, 1-based inclusive (length n)
+#' @param strand Character vector of strand values ("+" or "-"); recycled to
+#'   length n (default "+")
+#'
+#' @return Character vector of length n
+#' @export
+get_roi_dna_vec <- function(x, chrom, start, end, strand = "+", ...) {
+  UseMethod("get_roi_dna_vec")
+}
+
+#' @export
+get_roi_dna_vec.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
+  validate_genome_entity(x)
+
+  n <- length(chrom)
+  result <- character(n)
+  strand <- rep_len(strand, n)
+
+  plus_idx  <- which(strand != "-")
+  minus_idx <- which(strand == "-")
+
+  # Plus strand: group by contig, one substring() call per contig
+  if (length(plus_idx) > 0) {
+    for (sn in unique(chrom[plus_idx])) {
+      rows <- plus_idx[chrom[plus_idx] == sn]
+      seq  <- x$sequences$dna_raw[[sn]]
+      result[rows] <- if (is.null(seq)) NA_character_ else
+        substring(seq, start[rows], end[rows])
+    }
+  }
+
+  # Minus strand: use precomputed dna_rev for vectorised slicing when available
+  if (length(minus_idx) > 0) {
+    for (sn in unique(chrom[minus_idx])) {
+      rows    <- minus_idx[chrom[minus_idx] == sn]
+      seq     <- x$sequences$dna_raw[[sn]]
+      if (is.null(seq)) {
+        result[rows] <- NA_character_
+      } else {
+        dna_rev <- x$sequences$dna_rev[[sn]]
+        if (!is.null(dna_rev)) {
+          L <- nchar(seq)
+          result[rows] <- substring(dna_rev, L - end[rows] + 1L, L - start[rows] + 1L)
+        } else {
+          for (i in rows) {
+            result[i] <- reverse_complement(substr(seq, start[i], end[i]))
+          }
+        }
+      }
+    }
+  }
+
+  result
+}
+
+#' @export
+get_roi_dna_vec.default <- function(x, chrom, start, end, strand = "+", ...) {
+  cli::cli_abort("get_roi_dna_vec() not implemented for class {.cls {class(x)[1]}}")
 }
 
 
@@ -231,11 +315,8 @@ translate_dna <- function(dna, frame = 1, genetic_code = "11", .internal = FALSE
   n_codons <- floor(nchar(dna) / 3)
   if (n_codons == 0) return("")
 
-  codons <- character(n_codons)
-  for (i in seq_len(n_codons)) {
-    start <- (i - 1) * 3 + 1
-    codons[i] <- substr(dna, start, start + 2)
-  }
+  starts <- seq(1L, n_codons * 3L, by = 3L)
+  codons <- substring(dna, starts, starts + 2L)
 
   # Translate
   aa <- codon_table[codons]
@@ -515,6 +596,14 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
 
   # Case 3: Character (gene name or locus_tag)
   if (is.character(gene) && length(gene) == 1) {
+    # Fast path: O(1) lookup via cds_hash (built at load time)
+    h <- entity$indices$cds_hash
+    if (!is.null(h) && exists(gene, envir = h, inherits = FALSE)) {
+      row_idx <- get(gene, envir = h, inherits = FALSE)
+      return(entity$features[row_idx, , drop = FALSE])
+    }
+
+    # Slow path: sequential scan (fallback for objects without cds_hash)
     # Try locus_tag first (more specific)
     if ("locus_tag" %in% names(entity$features)) {
       matches <- which(entity$features$locus_tag == gene)

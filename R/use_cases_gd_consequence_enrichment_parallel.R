@@ -251,11 +251,44 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
   }
 
   # Handle mutations that weren't enriched (intergenic or failed gene enrichment)
-  # These will have region = NA still
+  # These will have region = NA still.
+  # DNA windows are batch-extracted first with get_roi_dna_vec(), then the
+  # per-row mutation logic runs with a progress bar.
   unenriched_idx <- which(is.na(out$region))
   if (length(unenriched_idx) > 0) {
-    for (i in unenriched_idx) {
-      out[i, ] <- .pf_enrich_intergenic(gd, out[i, , drop = FALSE], flank, quiet)
+    positions <- vapply(
+      as.character(out$position[unenriched_idx]),
+      .pm_parse_position,
+      integer(1L)
+    )
+    start_pos <- pmax(1L, positions - flank)
+    end_pos   <- positions + flank
+
+    dna_windows <- tryCatch(
+      get_roi_dna_vec(
+        gd,
+        chrom  = as.character(out$seq_id[unenriched_idx]),
+        start  = start_pos,
+        end    = end_pos,
+        strand = rep("+", length(unenriched_idx))
+      ),
+      error = function(e) rep(NA_character_, length(unenriched_idx))
+    )
+
+    if (!quiet) {
+      pb <- txtProgressBar(min = 0, max = length(unenriched_idx), style = 3)
+    }
+    for (j in seq_along(unenriched_idx)) {
+      i <- unenriched_idx[j]
+      out[i, ] <- .pf_enrich_intergenic(
+        gd, out[i, , drop = FALSE], flank, quiet,
+        dna_window = dna_windows[j]
+      )
+      if (!quiet) setTxtProgressBar(pb, j)
+    }
+    if (!quiet) {
+      close(pb)
+      cat("\n")
     }
   }
 
