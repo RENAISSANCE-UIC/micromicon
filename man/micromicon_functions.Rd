@@ -2,18 +2,31 @@
 % Please edit documentation in R/micromicon-package.R
 \name{micromicon_functions}
 \alias{micromicon_functions}
-\title{List All User-Facing Functions}
+\title{Print the micromicon function index in the console}
 \usage{
 micromicon_functions()
 }
 \value{
-Called for its side effect (printing). Returns \code{invisible(NULL)}.
+Invisibly returns \code{NULL}. Called for its side-effect of printing.
 }
 \description{
-Prints a categorised, formatted overview of every exported function in the
-micromicon package. Useful for discovering what is available without leaving
-the console.
+Renders a tidy, ANSI-aware, dependency-free index of the package’s
+core capabilities. Prints to stdout (no tinted message background),
+wraps descriptions to the current console width, and optionally
+uses ANSI bold and a single function name color.
 }
+\section{Styling}{
+
+Set options to adjust styling at runtime:
+\itemize{
+\item \code{options(micromicon.bold = TRUE)} to toggle bold headers.
+\item \code{options(micromicon.color.enabled = TRUE)} to enable colors.
+\item \code{options(micromicon.color.code = 39)} to set the xterm-256 color.
+\item \code{options(micromicon.ascii = FALSE)} for ASCII-only symbols.
+}
+}
+
 \examples{
 micromicon_functions()
+
 }
