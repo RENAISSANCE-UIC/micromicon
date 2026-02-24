@@ -4,25 +4,25 @@ test_that("has_bioconductor works", {
   expect_length(result, 1)
 })
 
-test_that("sequences accessor works with character format", {
+test_that("get_contig_sequences accessor works with character format", {
   # Create test entity with sequences
   dna <- c(seq1 = "ATCGATCG", seq2 = "GGCCTTAA")
   entity <- new_genome_entity(
     sequences_list = list(dna_raw = dna, dna_bio = NULL, indexed_fa = NULL)
   )
 
-  seqs <- sequences(entity, format = "character")
+  seqs <- get_contig_sequences(entity, format = "character")
   expect_type(seqs, "character")
   expect_equal(names(seqs), c("seq1", "seq2"))
   expect_equal(seqs["seq1"], c(seq1 = "ATCGATCG"))
 })
 
-test_that("sequences accessor errors without Bioconductor", {
+test_that("get_contig_sequences accessor errors without Bioconductor", {
   entity <- new_genome_entity()
 
   if (!has_bioconductor()) {
     expect_error(
-      sequences(entity, format = "DNAStringSet"),
+      get_contig_sequences(entity, format = "DNAStringSet"),
       "DNAStringSet format requires Bioconductor"
     )
   }
@@ -56,7 +56,7 @@ test_that("metadata accessor works", {
   expect_s3_class(meta, "data.frame")
 })
 
-test_that("seqnames accessor works", {
+test_that("get_contig_names accessor works", {
   entity <- new_genome_entity(
     indices = list(
       seqnames = c("chr1", "chr2"),
@@ -66,7 +66,7 @@ test_that("seqnames accessor works", {
     )
   )
 
-  names <- seqnames(entity)
+  names <- get_contig_names(entity)
   expect_type(names, "character")
   expect_equal(names, c("chr1", "chr2"))
 })

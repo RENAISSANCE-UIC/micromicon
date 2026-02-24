@@ -175,7 +175,7 @@ Extract DNA sequences by coordinates:
 # Extract CDS nucleotide sequence
 ampC_dna <- extract_by_coords(
   genome,
-  seqname = ampC_cds$seqname,
+  contig = ampC_cds$seqname,
   start = ampC_cds$start,
   end = ampC_cds$end
 )
@@ -202,7 +202,7 @@ region_end <- ampC_cds$end + padding
 
 region_seq <- extract_by_coords(
   genome,
-  seqname = ampC_cds$seqname,
+  contig = ampC_cds$seqname,
   start = region_start,
   end = region_end
 )
@@ -217,7 +217,7 @@ Find features in the expanded region:
 ```{r region-features}
 region_features <- search_features(
   genome,
-  seqname = ampC_cds$seqname,
+  contig = ampC_cds$seqname,
   start = region_start,
   end = region_end
 )
@@ -316,7 +316,7 @@ protein_seq <- gene_cds$translation
 # 4. Extract nucleotide sequence
 dna_seq <- extract_by_coords(
   genome,
-  seqname = gene_cds$seqname,
+  contig = gene_cds$seqname,
   start = gene_cds$start,
   end = gene_cds$end
 )
@@ -342,7 +342,7 @@ genome |>
   search_features(pattern = "ampC", type = "CDS") |>
   extract_by_coords(
     genome = genome,
-    seqname = .$seqname,
+    contig = .$seqname,
     start = .$start,
     end = .$end
   )

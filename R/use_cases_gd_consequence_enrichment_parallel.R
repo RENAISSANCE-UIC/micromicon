@@ -267,7 +267,7 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
     dna_windows <- tryCatch(
       get_roi_dna_vec(
         gd,
-        chrom  = as.character(out$seq_id[unenriched_idx]),
+        contig = as.character(out$seq_id[unenriched_idx]),
         start  = start_pos,
         end    = end_pos,
         strand = rep("+", length(unenriched_idx))

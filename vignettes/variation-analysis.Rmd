@@ -164,7 +164,7 @@ upstream <- get_feature_fasta(gd, "acrB_1",
                              flank_downstream = 2000)
 
 # Get regions of interest
-roi_seq <- get_roi_dna(gd, seqname = "1",
+roi_seq <- get_roi_dna(gd, contig = "1",
                       start = 1834322, end = 1837471)
 ```
 

@@ -62,20 +62,20 @@ feat_filter <- function(df, type = NULL, name = NULL, id = NULL, attr = list()) 
 
 #' Create Standardized ROI Specification
 #'
-#' @param seqname Character; sequence name
+#' @param contig Character; contig/sequence name
 #' @param start Integer; start position (1-based)
 #' @param end Integer; end position (1-based, inclusive)
 #' @param strand Character; strand (default "+")
 #' @return roi_spec object with validated coordinates
 #' @keywords internal
-roi_coords <- function(seqname, start, end, strand = "+") {
+roi_coords <- function(contig, start, end, strand = "+") {
   # Validate
-  validate_genomic_coordinates(start, end, seqname)
+  validate_genomic_coordinates(start, end, contig)
   if (!is.null(strand)) validate_strand(strand)
 
   structure(
     list(
-      seqname = seqname,
+      contig = contig,
       start = as.integer(start),
       end = as.integer(end),
       strand = strand
@@ -91,7 +91,7 @@ roi_coords <- function(seqname, start, end, strand = "+") {
 #' @param ... Additional arguments (ignored)
 #' @keywords internal
 print.roi_spec <- function(x, ...) {
-  cat("ROI: ", x$seqname, ":", x$start, "-", x$end,
+  cat("ROI: ", x$contig, ":", x$start, "-", x$end,
       " (", x$strand, ")\n", sep = "")
   invisible(x)
 }

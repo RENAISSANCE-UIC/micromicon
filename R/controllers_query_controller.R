@@ -19,16 +19,16 @@
 #' Extract Sequence from Genomic Coordinates
 #'
 #' @param genome_obj Genome object from init_genome() (expects $fa, $fasta (optional), $seqnames)
-#' @param seqname Chromosome/contig name or numeric-like index (e.g., "1")
+#' @param contig Contig/chromosome name or numeric-like index (e.g., "1")
 #' @param start Start coordinate (1-based, inclusive)
 #' @param end End coordinate (1-based, inclusive)
 #' @param strand Strand ("+", "-" or "*"); default "+"
-#' @param auto_resolve If TRUE, resolve seqname to a valid FASTA header (default TRUE)
+#' @param auto_resolve If TRUE, resolve contig to a valid FASTA header (default TRUE)
 #' @param clamp If TRUE, clamp coordinates into contig bounds with a warning (default FALSE)
 #' @return DNAStringSet of length 1 with the extracted sequence
 #' @keywords internal
 extract_sequence_by_coords <- function(genome_obj,
-                                       seqname,
+                                       contig,
                                        start,
                                        end,
                                        strand = "+",
@@ -59,43 +59,43 @@ extract_sequence_by_coords <- function(genome_obj,
   
   fa_headers <- genome_obj$seqnames
   
-  # --- resolver: map seqname -> a valid FASTA header ---
+  # --- resolver: map contig -> a valid FASTA header ---
   .resolve_seqname <- function(snm) {
     q <- as.character(snm)
-    
+
     # 1) exact
     if (q %in% fa_headers) return(q)
-    
+
     # 2) case-insensitive exact
     m <- match(tolower(q), tolower(fa_headers))
     if (!is.na(m)) return(fa_headers[m])
-    
+
     # 3) numeric-like -> positional header (e.g., "1" -> first FASTA header)
     if (grepl("^[0-9]+$", q)) {
       i <- as.integer(q)
       if (!is.na(i) && i >= 1 && i <= length(fa_headers)) {
-        cli::cli_alert_info("Interpreting seqname {.val {q}} as positional index -> {.val {fa_headers[i]}}")
+        cli::cli_alert_info("Interpreting contig {.val {q}} as positional index -> {.val {fa_headers[i]}}")
         return(fa_headers[i])
       }
     }
-    
+
     # 4) prefix match (case-insensitive)
     starts <- which(startsWith(tolower(fa_headers), tolower(q)))
     if (length(starts) == 1L) return(fa_headers[starts])
-    
+
     # 5) fuzzy match (small distance)
     close <- try(agrep(q, fa_headers, ignore.case = TRUE, max.distance = 0.1), silent = TRUE)
     if (!inherits(close, "try-error") && length(close) == 1L) return(fa_headers[close])
-    
+
     # Fail with a crisp diagnostic
     cli::cli_abort(c(
-      "x" = "Unknown seqname.",
+      "x" = "Unknown contig.",
       "i" = paste0("Requested: ", q),
       "i" = paste0("Available FASTA headers: ", paste(fa_headers, collapse = ", "))
     ))
   }
-  
-  target <- if (isTRUE(auto_resolve)) .resolve_seqname(seqname) else as.character(seqname)
+
+  target <- if (isTRUE(auto_resolve)) .resolve_seqname(contig) else as.character(contig)
   
   # --- determine contig length for bound checks (prefer in-memory DNAStringSet if present) ---
   lengths <- NULL
@@ -249,18 +249,18 @@ get_genomic_context <- function(genome_obj,
 #' Analyze Region of Interest
 #'
 #' @param genome_obj Genome object from init_genome() (expects $gff and $seqnames)
-#' @param seqname Chromosome/contig name (can be numeric-like, e.g., "1")
+#' @param contig Contig/chromosome name (can be numeric-like, e.g., "1")
 #' @param start Start coordinate (1-based)
 #' @param end End coordinate (1-based)
 #' @param flank Flanking region size (default = 0)
 #' @param feature_type Feature type to extract (default = "CDS")
 #' @param tidy Return tibble (TRUE) or GRanges (FALSE)
-#' @param auto_resolve If TRUE, resolve seqname against GFF seqlevels (default TRUE)
+#' @param auto_resolve If TRUE, resolve contig against GFF seqlevels (default TRUE)
 #' @param drop_extdb If TRUE, prefer human labels over extdb placeholders (default TRUE)
 #' @return GRanges or tibble with features in ROI
 #' @keywords internal
 analyze_roi <- function(genome_obj,
-                        seqname,
+                        contig,
                         start,
                         end,
                         flank = 0,
@@ -284,7 +284,7 @@ analyze_roi <- function(genome_obj,
 
   gff <- genome_obj$gff
   
-  # --------- resolver: map user seqname -> a level present in the GFF ---------
+  # --------- resolver: map user contig -> a level present in the GFF ---------
   .resolve_seqname_gff <- function(q, levels) {
     q <- as.character(q)
     # exact
@@ -296,7 +296,7 @@ analyze_roi <- function(genome_obj,
     if (grepl("^[0-9]+$", q)) {
       i <- as.integer(q)
       if (!is.na(i) && i >= 1L && i <= length(levels)) {
-        cli::cli_alert_info("Interpreting seqname {.val {q}} as positional index in GFF -> {.val {levels[i]}}")
+        cli::cli_alert_info("Interpreting contig {.val {q}} as positional index in GFF -> {.val {levels[i]}}")
         return(levels[i])
       }
     }
@@ -307,12 +307,12 @@ analyze_roi <- function(genome_obj,
     close <- try(agrep(q, levels, ignore.case = TRUE, max.distance = 0.1), silent = TRUE)
     if (!inherits(close, "try-error") && length(close) == 1L) return(levels[close])
     cli::cli_abort(c(
-      "x" = "Unknown seqname for GFF.",
+      "x" = "Unknown contig for GFF.",
       "i" = paste0("Requested: ", q),
       "i" = paste0("GFF seqlevels: ", paste(GenomeInfoDb::seqlevels(gff), collapse = ", "))
     ))
   }
-  
+
   # --------- tidy normalization for PGAP fields ---------
   .tidy_features_pgappref <- function(gr, drop_extdb = TRUE) {
     n <- length(gr)
@@ -370,20 +370,20 @@ analyze_roi <- function(genome_obj,
     cli::cli_abort("Start/end must be positive integers with start <= end.")
   }
   
-  # Resolve seqname against the GFF vocabulary
+  # Resolve contig against the GFF vocabulary
   target <- if (isTRUE(auto_resolve)) {
-    .resolve_seqname_gff(seqname, GenomeInfoDb::seqlevels(gff))
+    .resolve_seqname_gff(contig, GenomeInfoDb::seqlevels(gff))
   } else {
-    as.character(seqname)
+    as.character(contig)
   }
-  
+
   roi <- GenomicRanges::GRanges(
     seqnames = target,
     ranges   = IRanges::IRanges(start = max(1L, s - f), end = e + f)
   )
-  
+
   cli::cli_inform(sprintf("Analyzing region: %s:%d-%d (\u00B1%d bp)",
-                          as.character(seqname), s, e, f))
+                          as.character(contig), s, e, f))
   
   # ------------------- overlap -------------------
   roi_feats <- IRanges::subsetByOverlaps(gff, roi)
@@ -467,7 +467,7 @@ search_features_legacy_internal <- function(genome_obj,
 #' Extract FASTA Sequence from Region of Interest
 #'
 #' @param genome_obj Genome object from init_genome()
-#' @param seqname Chromosome/contig name
+#' @param contig Contig/chromosome name
 #' @param start Start coordinate
 #' @param end End coordinate
 #' @param flank Flanking region size in bp (default = 0)
@@ -482,20 +482,20 @@ search_features_legacy_internal <- function(genome_obj,
 #' \dontrun{
 #' # Basic extraction
 #' roi_seq <- get_roi_fasta(genome, "1", 1828501, 1978000)
-#' 
+#'
 #' # With flanking sequence
 #' roi_seq <- get_roi_fasta(genome, "1", 1828501, 1978000, flank = 5000)
-#' 
+#'
 #' # Minus strand with reverse complement
 #' roi_seq <- get_roi_fasta(genome, "1", 1828501, 1978000, strand = "-")
-#' 
+#'
 #' # Save to file
-#' get_roi_fasta(genome, "1", 1828501, 1978000, 
-#'               flank = 10000, 
+#' get_roi_fasta(genome, "1", 1828501, 1978000,
+#'               flank = 10000,
 #'               output_file = "roi_region.fasta")
 #' }
 get_roi_fasta <- function(genome_obj,
-                          seqname,
+                          contig,
                           start,
                           end,
                           flank = 0,
@@ -541,46 +541,46 @@ get_roi_fasta <- function(genome_obj,
     cli::cli_abort("No sequence data available in genome_obj (neither $fa nor $fasta)")
   }
 
-  if (!seqname %in% names(seq_lengths)) {
-    cli::cli_abort("Seqname '{seqname}' not found in FASTA. Available: {paste(names(seq_lengths), collapse = ', ')}")
+  if (!contig %in% names(seq_lengths)) {
+    cli::cli_abort("Contig '{contig}' not found in FASTA. Available: {paste(names(seq_lengths), collapse = ', ')}")
   }
 
-  # Adjust end if it exceeds chromosome length
-  max_length <- seq_lengths[seqname]
+  # Adjust end if it exceeds contig length
+  max_length <- seq_lengths[contig]
   if (actual_end > max_length) {
     cli::cli_warn("End coordinate ({actual_end}) exceeds sequence length ({max_length}). Adjusting to {max_length}")
     actual_end <- max_length
   }
-  
+
   # Generate sequence name if not provided
   if (is.null(seq_name)) {
     if (flank > 0) {
-      seq_name <- sprintf("%s:%d-%d_flank%d(%s)", 
-                          seqname, start, end, flank, strand)
+      seq_name <- sprintf("%s:%d-%d_flank%d(%s)",
+                          contig, start, end, flank, strand)
     } else {
-      seq_name <- sprintf("%s:%d-%d(%s)", 
-                          seqname, start, end, strand)
+      seq_name <- sprintf("%s:%d-%d(%s)",
+                          contig, start, end, strand)
     }
   }
-  
+
   # Create GRanges object for extraction
   roi <- GenomicRanges::GRanges(
-    seqnames = seqname,
+    seqnames = contig,
     ranges = IRanges::IRanges(start = actual_start, end = actual_end),
     strand = strand
   )
 
   # Extract sequence
-  cli::cli_inform("Extracting sequence from {seqname}:{start}-{end} (+/-{flank} bp, strand: {strand})")
+  cli::cli_inform("Extracting sequence from {contig}:{start}-{end} (+/-{flank} bp, strand: {strand})")
 
   # Use fa (FaFile) if available, otherwise use fasta (DNAStringSet)
   if (!is.null(genome_obj$fa)) {
     seq <- Biostrings::getSeq(genome_obj$fa, roi)
   } else {
     # For DNAStringSet, extract the specific sequence then get subsequence
-    chr_seq <- genome_obj$fasta[[seqname]]
+    chr_seq <- genome_obj$fasta[[contig]]
     if (is.null(chr_seq)) {
-      cli::cli_abort("Sequence '{seqname}' not found in DNAStringSet")
+      cli::cli_abort("Sequence '{contig}' not found in DNAStringSet")
     }
     # Extract the region (accounting for strand)
     seq <- Biostrings::subseq(chr_seq, start = actual_start, end = actual_end)
@@ -676,7 +676,7 @@ get_roi_fasta_batch <- function(genome_obj,
     # Extract sequence
     seq <- get_roi_fasta(
       genome_obj = genome_obj,
-      seqname = row$seqname,
+      contig = row$seqname,
       start = row$start,
       end = row$end,
       flank = flank,
@@ -818,7 +818,7 @@ get_feature_fasta <- function(genome_obj,
     # Extract sequence
     seq <- get_roi_fasta(
       genome_obj = genome_obj,
-      seqname = as.character(GenomicRanges::seqnames(feat)),
+      contig = as.character(GenomicRanges::seqnames(feat)),
       start = max(1, new_start),
       end = new_end,
       strand = as.character(GenomicRanges::strand(feat)),
@@ -844,7 +844,7 @@ get_feature_fasta <- function(genome_obj,
 #' Quick wrapper: Extract ROI with Annotations
 #'
 #' @param genome_obj Genome object from init_genome()
-#' @param seqname Chromosome/contig name
+#' @param contig Contig/chromosome name
 #' @param start Start coordinate
 #' @param end End coordinate
 #' @param flank Flanking region size (default = 0)
@@ -854,7 +854,7 @@ get_feature_fasta <- function(genome_obj,
 #' @return List with sequence (if requested) and features (if requested)
 #' @keywords internal
 extract_roi_complete <- function(genome_obj,
-                                 seqname,
+                                 contig,
                                  start,
                                  end,
                                  flank = 0,
@@ -868,26 +868,26 @@ extract_roi_complete <- function(genome_obj,
   }
 
   result <- list()
-  
+
   # Extract sequence if requested
   if (get_sequence) {
     cli::cli_alert_info("Extracting sequence")
     result$sequence <- get_roi_fasta(
       genome_obj = genome_obj,
-      seqname = seqname,
+      contig = contig,
       start = start,
       end = end,
       flank = flank,
       output_file = output_fasta
     )
   }
-  
+
   # Get features if requested
   if (get_features) {
     cli::cli_alert_info("Finding overlapping features")
     result$features <- analyze_roi(
       genome_obj = genome_obj,
-      seqname = seqname,
+      contig = contig,
       start = start,
       end = end,
       flank = flank

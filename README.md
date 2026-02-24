@@ -66,7 +66,7 @@ entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
 # or: entity <- read_genome("reference.gbk")
 
 # Look at scaffold names (chromosomes, plasmids, contigs)
-get_genome_seqnames(entity) # Get scaffold/contig/chromosome/plasmid names
+get_contig_names(entity)  # Get scaffold/contig/chromosome/plasmid names
 
 # Inspect genome structure
 get_genome_metadata(entity)  # View genome-level metadata
@@ -118,10 +118,11 @@ class(gd) # [1] "genome_entity_gd" "genome_entity"
 summary(gd)
 
 # All genome navigation functions work on gd objects
+search_features(gd)
 get_gene_aa(gd, gene = "ampC")
 get_gene_dna(gd, "acrB_1")
-get_roi_dna(gd, seqname = "1", start = 1834322, end = 1837471)
-get_roi_fasta(gd, seqname = "1", start = 1834322, end = 1837471)
+get_roi_dna(gd, contig = "1", start = 1834322, end = 1837471)
+get_roi_fasta(gd, contig = "1", start = 1834322, end = 1837471)
 map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
@@ -136,6 +137,9 @@ consequence_table <- annotate_variants(gd, mutation_table)
 # Consequences: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion
 # Auto-detects OS: uses parallel processing on Linux/macOS, serial on Windows
 
+# Filter on features of interest
+filter_variants(consequence_table, min_freq = 0.9)
+filter_variants(consequence_table, gene = "marR")
 
 ```
 
@@ -202,7 +206,7 @@ dna_genes <- search_features(genome, pattern = "dna")
 
 # Features in a region
 region <- search_features(genome,
-  seqname = "chr1",                 # <- look these up for your genome using get_genome_seqnames(genome)
+  contig = "chr1",                 # <- look these up for your genome using get_contig_names(genome)
   start = 1000,
   end = 5000
 )
@@ -215,7 +219,7 @@ Pull sequences by coordinates or feature names using numerous accessors:
 ```r
 # By coordinates
 seqA <- extract_by_coords(genome, "chr1", 1000, 2000)
-seqB <- get_roi_fasta(gd, seqname = "chr1", start = 3000, end = 4000)
+seqB <- get_roi_fasta(gd, contig = "chr1", start = 3000, end = 4000)
 
 # By gene name
 ampC_seq <- extract_by_name(genome, "ampC")

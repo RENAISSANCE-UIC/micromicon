@@ -17,17 +17,17 @@ NULL
 #'
 #' @param start Integer start position (1-based)
 #' @param end Integer end position (1-based, inclusive)
-#' @param seqname Character sequence name (for error messages)
+#' @param contig Character contig/sequence name (for error messages)
 #' @param max_length Integer maximum sequence length (optional)
 #'
 #' @return TRUE if valid, stops with error if invalid
 #' @keywords internal
-validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length = NULL) {
+validate_genomic_coordinates <- function(start, end, contig = NULL, max_length = NULL) {
   # Rule 1: Start must be positive (1-based coordinates)
   if (any(start < 1, na.rm = TRUE)) {
     msg <- "Genomic coordinates must be positive (1-based indexing)"
-    if (!is.null(seqname)) {
-      msg <- paste0(msg, " for sequence '", seqname, "'")
+    if (!is.null(contig)) {
+      msg <- paste0(msg, " for contig '", contig, "'")
     }
     cli::cli_abort(msg)
   }
@@ -35,8 +35,8 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
   # Rule 2: Start must be <= end
   if (any(start > end, na.rm = TRUE)) {
     msg <- "Start coordinate must be <= end coordinate"
-    if (!is.null(seqname)) {
-      msg <- paste0(msg, " for sequence '", seqname, "'")
+    if (!is.null(contig)) {
+      msg <- paste0(msg, " for contig '", contig, "'")
     }
     cli::cli_abort(msg)
   }
@@ -45,8 +45,8 @@ validate_genomic_coordinates <- function(start, end, seqname = NULL, max_length 
   if (!is.null(max_length)) {
     if (any(end > max_length, na.rm = TRUE)) {
       msg <- paste0("Coordinates exceed sequence length (", max_length, " bp)")
-      if (!is.null(seqname)) {
-        msg <- paste0(msg, " for sequence '", seqname, "'")
+      if (!is.null(contig)) {
+        msg <- paste0(msg, " for contig '", contig, "'")
       }
       cli::cli_abort(msg)
     }

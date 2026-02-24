@@ -153,7 +153,7 @@ get_gene_aa.default <- function(x, gene, ...) {
 #' This is a convenience wrapper around extract_by_coords.
 #'
 #' @param x A genome_entity object
-#' @param chrom Chromosome/contig name
+#' @param contig Contig/chromosome name
 #' @param start Start position (1-based, inclusive)
 #' @param end End position (1-based, inclusive)
 #' @param strand Strand ("+" or "-", default = "+")
@@ -161,16 +161,16 @@ get_gene_aa.default <- function(x, gene, ...) {
 #'
 #' @return Character vector (DNA sequence)
 #' @export
-get_roi_dna <- function(x, chrom, start, end, strand = "+", ...) {
+get_roi_dna <- function(x, contig, start, end, strand = "+", ...) {
   UseMethod("get_roi_dna")
 }
 
 #' @export
-get_roi_dna.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
+get_roi_dna.genome_entity <- function(x, contig, start, end, strand = "+", ...) {
   validate_genome_entity(x)
 
   # Use existing extract_by_coords generic
-  result <- extract_by_coords(x, seqname = chrom, start = start, end = end,
+  result <- extract_by_coords(x, contig = contig, start = start, end = end,
                               strand = strand, translate = FALSE)
 
   # Return just the sequence (strip names)
@@ -178,7 +178,7 @@ get_roi_dna.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
 }
 
 #' @export
-get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
+get_roi_dna.default <- function(x, contig, start, end, strand = "+", ...) {
   cli::cli_abort("get_roi_dna() not implemented for class {.cls {class(x)[1]}}")
 }
 
@@ -193,7 +193,7 @@ get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
 #' \code{sequences$dna_rev} when available (built by \code{new_genome_entity}).
 #'
 #' @param x A genome_entity object
-#' @param chrom Character vector of contig/chromosome names (length n)
+#' @param contig Character vector of contig/chromosome names (length n)
 #' @param start Integer vector of start positions, 1-based inclusive (length n)
 #' @param end Integer vector of end positions, 1-based inclusive (length n)
 #' @param strand Character vector of strand values ("+" or "-"); recycled to
@@ -201,15 +201,15 @@ get_roi_dna.default <- function(x, chrom, start, end, strand = "+", ...) {
 #'
 #' @return Character vector of length n
 #' @export
-get_roi_dna_vec <- function(x, chrom, start, end, strand = "+", ...) {
+get_roi_dna_vec <- function(x, contig, start, end, strand = "+", ...) {
   UseMethod("get_roi_dna_vec")
 }
 
 #' @export
-get_roi_dna_vec.genome_entity <- function(x, chrom, start, end, strand = "+", ...) {
+get_roi_dna_vec.genome_entity <- function(x, contig, start, end, strand = "+", ...) {
   validate_genome_entity(x)
 
-  n <- length(chrom)
+  n <- length(contig)
   result <- character(n)
   strand <- rep_len(strand, n)
 
@@ -218,8 +218,8 @@ get_roi_dna_vec.genome_entity <- function(x, chrom, start, end, strand = "+", ..
 
   # Plus strand: group by contig, one substring() call per contig
   if (length(plus_idx) > 0) {
-    for (sn in unique(chrom[plus_idx])) {
-      rows <- plus_idx[chrom[plus_idx] == sn]
+    for (sn in unique(contig[plus_idx])) {
+      rows <- plus_idx[contig[plus_idx] == sn]
       seq  <- x$sequences$dna_raw[[sn]]
       result[rows] <- if (is.null(seq)) NA_character_ else
         substring(seq, start[rows], end[rows])
@@ -228,8 +228,8 @@ get_roi_dna_vec.genome_entity <- function(x, chrom, start, end, strand = "+", ..
 
   # Minus strand: use precomputed dna_rev for vectorised slicing when available
   if (length(minus_idx) > 0) {
-    for (sn in unique(chrom[minus_idx])) {
-      rows    <- minus_idx[chrom[minus_idx] == sn]
+    for (sn in unique(contig[minus_idx])) {
+      rows    <- minus_idx[contig[minus_idx] == sn]
       seq     <- x$sequences$dna_raw[[sn]]
       if (is.null(seq)) {
         result[rows] <- NA_character_
@@ -251,7 +251,7 @@ get_roi_dna_vec.genome_entity <- function(x, chrom, start, end, strand = "+", ..
 }
 
 #' @export
-get_roi_dna_vec.default <- function(x, chrom, start, end, strand = "+", ...) {
+get_roi_dna_vec.default <- function(x, contig, start, end, strand = "+", ...) {
   cli::cli_abort("get_roi_dna_vec() not implemented for class {.cls {class(x)[1]}}")
 }
 
@@ -471,7 +471,7 @@ gene_info.genome_entity <- function(x, gene, ...) {
 
   # Build info list
   info <- list(
-    chrom = feat$seqname,
+    contig = feat$seqname,
     start = feat$start,
     end = feat$end,
     strand = if (!is.na(feat$strand)) feat$strand else "+",

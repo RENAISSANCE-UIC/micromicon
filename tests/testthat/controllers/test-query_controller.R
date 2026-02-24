@@ -122,7 +122,7 @@ test_that("search_features filters by seqname", {
   )
 
   # Act
-  chr1_genes <- search_features(entity, seqname = "chr1")
+  chr1_genes <- search_features(entity, contig = "chr1")
 
   # Assert
   expect_equal(nrow(chr1_genes), 1)

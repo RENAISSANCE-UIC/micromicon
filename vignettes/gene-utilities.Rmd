@@ -41,7 +41,7 @@ The gene utility functions include:
 - **`get_gene_dna()`** - Extract DNA sequence for a gene in 5'-to-3' canonical orientation
 - **`get_gene_aa()`** - Get translated amino acid sequence for a CDS
 - **`get_roi_dna()`** - Extract DNA for an arbitrary genomic region
-- **`sequences()`** - List all scaffold (contig/chromosome/plasmid) sequences
+- **`get_contig_sequences()`** - List all scaffold (contig/chromosome/plasmid) sequences
 
 ### Coordinate Mapping
 
@@ -54,7 +54,7 @@ The gene utility functions include:
 ### Genome Metadata
 
 - **`get_genome_metadata()`** - Get organism name, length, topology, etc.
-- **`get_genome_seqnames()`** - List contig / chromosome names
+- **`get_contig_names()`** - List contig / chromosome names
 
 ### Variants & mutations 
 
@@ -114,10 +114,10 @@ Extract DNA for any arbitrary genomic region:
 
 ```{r get-roi, eval=FALSE}
 # Get 100 bp region from position 1000-1099 on plus strand
-roi <- get_roi_dna(entity, chrom = "chromosome", start = 1000, end = 1099, strand = "+")
+roi <- get_roi_dna(entity, contig = "chromosome", start = 1000, end = 1099, strand = "+")
 
 # Get region on minus strand (automatically reverse complements)
-roi_minus <- get_roi_dna(entity, chrom = "chromosome", start = 1000, end = 1099, strand = "-")
+roi_minus <- get_roi_dna(entity, contig = "chromosome", start = 1000, end = 1099, strand = "-")
 ```
 
 ## Translation
@@ -335,7 +335,7 @@ For more details on working with breseq data, see `vignette("variation-analysis"
 ## See Also
 
 - `features()` - Access genome features
-- `sequences()` - Access genome sequences
+- `get_contig_sequences()` - Access genome sequences
 - `search_features()` - Search for features by pattern
 - `extract_by_coords()` - Extract sequences by coordinates
 - `parse_gd_annotated()` - Parse breseq genome diffs

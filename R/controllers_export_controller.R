@@ -45,7 +45,7 @@
 #' write_fasta(genome, "output.fasta")
 #'
 #' # Export specific sequences
-#' seqs <- sequences(genome)
+#' seqs <- get_contig_sequences(genome)
 #' write_fasta(seqs[1:5], "subset.fasta")
 #' }
 write_fasta <- function(x, file, wrap_width = 80, ...) {

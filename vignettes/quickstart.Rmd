@@ -71,7 +71,7 @@ head(get_genome_metadata(genome))
 head(get_features(genome))
 
 # Access sequences using accessor
-names(sequences(genome))
+get_contig_names(genome)
 ```
 
 ## Extract Gene by Name
@@ -93,7 +93,7 @@ You can also extract sequences using genomic coordinates:
 # ampC is located at positions 301-1434
 ampC_region <- extract_by_coords(
   genome,
-  seqname = "TEST000002",
+  contig = "TEST000002",
   start = 301,
   end = 1434
 )
@@ -135,7 +135,7 @@ Get a gene with surrounding context:
 flank_size <- 200
 ampC_with_flanks <- extract_by_coords(
   genome,
-  seqname = "TEST000002",
+  contig = "TEST000002",
   start = 301 - flank_size,  # 200bp upstream
   end = 1434 + flank_size    # 200bp downstream
 )
@@ -264,7 +264,7 @@ names(sequences) <- genes$gene
 # Find features in a specific region
 region_features <- search_features(
   genome,
-  seqname = "TEST000002",
+  contig = "TEST000002",
   start = 1,
   end = 1000
 )

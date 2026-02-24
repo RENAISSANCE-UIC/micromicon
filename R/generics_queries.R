@@ -15,7 +15,7 @@
 #'   Searches across ID, Name, Alias, gene, locus_tag, and product fields
 #'   (case-insensitive). Compatible with various GFF3 annotation sources
 #'   including breseq, Prokka, and NCBI.
-#' @param seqname Character; filter by sequence name
+#' @param contig Character; filter by contig/sequence name
 #' @param start Integer; filter features starting at or after this position
 #' @param end Integer; filter features ending at or before this position
 #' @param strand Character; filter by strand ("+", "-")
@@ -35,7 +35,7 @@
 #' cds <- search_features(genome, type = "CDS")
 #'
 #' # Find CDS on chr1
-#' cds_chr1 <- search_features(genome, type = "CDS", seqname = "chr1")
+#' cds_chr1 <- search_features(genome, type = "CDS", contig = "chr1")
 #'
 #' # Find features matching pattern (searches gene names, products, etc.)
 #' dna_features <- search_features(genome, pattern = "dna")
@@ -46,7 +46,7 @@ search_features <- function(x, ...) {
 
 #' @export
 search_features.genome_entity <- function(x, type = NULL, pattern = NULL,
-                                         seqname = NULL, start = NULL,
+                                         contig = NULL, start = NULL,
                                          end = NULL, strand = NULL, ...) {
   validate_genome_entity(x)
 
@@ -67,8 +67,8 @@ search_features.genome_entity <- function(x, type = NULL, pattern = NULL,
     feats <- feats[matches, ]
   }
 
-  if (!is.null(seqname) && "seqname" %in% names(feats)) {
-    feats <- feats[feats$seqname == seqname, ]
+  if (!is.null(contig) && "seqname" %in% names(feats)) {
+    feats <- feats[feats$seqname == contig, ]
   }
 
   if (!is.null(start) && "start" %in% names(feats)) {
@@ -102,13 +102,13 @@ extract_by_coords <- function(x, ...) {
 }
 
 #' @export
-extract_by_coords.genome_entity <- function(x, seqname, start, end,
+extract_by_coords.genome_entity <- function(x, contig, start, end,
                                            strand = "+",
                                            translate = FALSE,
                                            names = NULL, ...) {
   validate_genome_entity(x)
   options <- list(strand = strand, translate = translate, names = names)
-  execute_extract_sequences_by_coords(x, seqname, start, end, options)
+  execute_extract_sequences_by_coords(x, contig, start, end, options)
 }
 
 #' @export
@@ -505,7 +505,7 @@ annotate_variants.default <- function(gd, pm_tbl, ...) {
 #' by S3 dispatch inheritance, on \code{genome_entity_gd} objects as well.
 #'
 #' @param x A genome_entity (or genome_entity_gd) object
-#' @param seqname Character; chromosome/contig name (numeric-like strings such
+#' @param contig Character; contig/chromosome name (numeric-like strings such
 #'   as \code{"1"} are resolved automatically against the GFF seqlevels)
 #' @param start Integer; start coordinate (1-based, inclusive)
 #' @param end Integer; end coordinate (1-based, inclusive)
@@ -513,7 +513,7 @@ annotate_variants.default <- function(gd, pm_tbl, ...) {
 #'   (default 0)
 #' @param feature_type Character; keep only features of this type, e.g.
 #'   \code{"CDS"} (default). Pass \code{NULL} to return all feature types.
-#' @param auto_resolve Logical; attempt to reconcile seqname to a GFF seqlevel
+#' @param auto_resolve Logical; attempt to reconcile contig to a GFF seqlevel
 #'   when an exact match is not found (default TRUE)
 #' @param drop_extdb Logical; replace \code{extdb:*} placeholder names with
 #'   gene/locus_tag labels when available (default TRUE)
@@ -538,7 +538,7 @@ get_roi_features <- function(x, ...) {
 }
 
 #' @export
-get_roi_features.genome_entity <- function(x, seqname, start, end,
+get_roi_features.genome_entity <- function(x, contig, start, end,
                                            flank = 0,
                                            feature_type = "CDS",
                                            auto_resolve = TRUE,
@@ -546,7 +546,7 @@ get_roi_features.genome_entity <- function(x, seqname, start, end,
                                            ...) {
   analyze_roi(
     genome_obj   = x,
-    seqname      = seqname,
+    contig       = contig,
     start        = start,
     end          = end,
     flank        = flank,

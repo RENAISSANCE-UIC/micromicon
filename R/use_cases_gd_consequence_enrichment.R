@@ -422,7 +422,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
     end_pos <- pos_parsed + flank
 
     dna_window <- tryCatch(
-      get_roi_dna(gd, chrom = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
+      get_roi_dna(gd, contig = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
       error = function(e) NA_character_
     )
 
@@ -711,7 +711,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       end_pos <- pos_parsed + flank
 
       dna_window <- tryCatch(
-        get_roi_dna(gd, chrom = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
+        get_roi_dna(gd, contig = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
         error = function(e) NA_character_
       )
 
@@ -818,7 +818,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       end_pos <- pos_parsed + flank
 
       dna_window <- tryCatch(
-        get_roi_dna(gd, chrom = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
+        get_roi_dna(gd, contig = seq_id_chr, start = start_pos, end = end_pos, strand = "+"),
         error = function(e) NA_character_
       )
 

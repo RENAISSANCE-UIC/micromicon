@@ -41,7 +41,7 @@ entity_to_legacy_genome_obj <- function(entity) {
   gff <- get_features(entity, format = "GRanges")
 
   # Get DNAStringSet (create if needed)
-  fasta <- sequences(entity, format = "DNAStringSet")
+  fasta <- get_contig_sequences(entity, format = "DNAStringSet")
 
   # Create FaFile if we have a fasta_used path (only present for GFF+FASTA workflows)
   fa <- NULL

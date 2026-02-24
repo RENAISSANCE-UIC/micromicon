@@ -73,7 +73,7 @@ micromicon_functions <- function() {
     c("get_gene_dna()", "CDS nucleotide sequence"),
     c("get_gene_aa()",  "translated amino acid sequence"),
     c("get_roi_dna()",  "arbitrary region sequence"),
-    c("sequences()",    "all sequences (chromosomes / contigs)")
+    c("get_contig_sequences()", "all sequences (chromosomes / contigs)")
   ), width)
   
   .micromicon_section("Coordinate mapping", list(
@@ -85,7 +85,7 @@ micromicon_functions <- function() {
   
   .micromicon_section("Metadata", list(
     c("get_genome_metadata()", "organism, topology, span, and provenance"),
-    c("get_genome_seqnames()", "contig / chromosome names")
+    c("get_contig_names()", "contig / chromosome names")
   ), width)
   
   .micromicon_section("Variants", list(

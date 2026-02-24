@@ -157,7 +157,7 @@ validate_genome_entity <- function(x) {
         validate_genomic_coordinates(
           start = feat$start,
           end = feat$end,
-          seqname = feat$seqname,
+          contig = feat$seqname,
           max_length = seq_lengths[[feat$seqname]]
         ),
         error = function(e) {

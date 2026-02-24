@@ -12,7 +12,7 @@ test_that("sequences returns character vector", {
   )
 
   # Act
-  seqs <- sequences(entity)
+  seqs <- get_contig_sequences(entity)
 
   # Assert
   expect_type(seqs, "character")
@@ -107,7 +107,7 @@ test_that("seqnames returns character vector", {
   )
 
   # Act
-  names <- seqnames(entity)
+  names <- get_contig_names(entity)
 
   # Assert
   expect_type(names, "character")
@@ -120,8 +120,8 @@ test_that("accessor functions validate input", {
   not_entity <- list(foo = "bar")
 
   # Act & Assert
-  expect_error(sequences(not_entity), "genome_entity")
+  expect_error(get_contig_sequences(not_entity), "genome_entity")
   expect_error(get_features(not_entity), "genome_entity")
   expect_error(metadata(not_entity), "genome_entity")
-  expect_error(seqnames(not_entity), "genome_entity")
+  expect_error(get_contig_names(not_entity), "genome_entity")
 })

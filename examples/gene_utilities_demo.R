@@ -48,7 +48,7 @@ if (nrow(cds_features) > 0) {
   cat("3. Get DNA for a region of interest (ROI):\n")
   roi_start <- first_cds$start
   roi_end <- first_cds$start + 99
-  roi <- get_roi_dna(entity, chrom = first_cds$seqname,
+  roi <- get_roi_dna(entity, contig = first_cds$seqname,
                      start = roi_start, end = roi_end, strand = "+")
   cat(sprintf("   Region: %s:%d-%d\n", first_cds$seqname, roi_start, roi_end))
   cat(sprintf("   Sequence: %s\n\n", roi))
@@ -94,7 +94,7 @@ if (nrow(cds_features) > 0) {
 
   # 8. Validate a variant
   cat("8. Validate variant in gene:\n")
-  seqs <- sequences(entity)
+  seqs <- get_contig_sequences(entity)
   ref_base <- substr(seqs[[first_cds$seqname]], first_cds$start, first_cds$start)
   result <- validate_variant_in_gene(entity, 1, first_cds$start, ref_base)
   cat(sprintf("   Position: %d, Ref: %s\n", first_cds$start, ref_base))

@@ -455,7 +455,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
 
   if (is.null(dna_window)) {
     dna_window <- tryCatch(
-      get_roi_dna(gd, chrom = seq_id, start = start_pos, end = end_pos, strand = "+"),
+      get_roi_dna(gd, contig = seq_id, start = start_pos, end = end_pos, strand = "+"),
       error = function(e) NA_character_
     )
   }

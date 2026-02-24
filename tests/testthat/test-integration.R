@@ -9,7 +9,7 @@ test_that("End-to-end GenBank workflow works", {
   expect_true(length(entity$sequences$dna_raw) > 0)
 
   # Access data
-  seqs <- sequences(entity)
+  seqs <- get_contig_sequences(entity)
   expect_type(seqs, "character")
 
   feats <- get_features(entity)
@@ -18,7 +18,7 @@ test_that("End-to-end GenBank workflow works", {
   meta <- metadata(entity)
   expect_s3_class(meta, "data.frame")
 
-  names <- seqnames(entity)
+  names <- get_contig_names(entity)
   expect_type(names, "character")
 
   # Print/summary should work
@@ -137,7 +137,7 @@ test_that("Error handling works correctly", {
 
   # Invalid input to accessors
   expect_error(
-    sequences(list(not_an_entity = TRUE)),
+    get_contig_sequences(list(not_an_entity = TRUE)),
     "not implemented for class"
   )
 })
@@ -194,7 +194,7 @@ test_that("Query functions work with use cases", {
   # Test use case layer directly
   result <- execute_extract_sequences_by_coords(
     entity,
-    seqname = "chr1",
+    contig = "chr1",
     start = 1,
     end = 4,
     list()

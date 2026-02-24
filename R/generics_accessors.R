@@ -40,17 +40,17 @@ get_features.default <- function(x, ...) {
 }
 
 
-#' Access Sequences
+#' Get Contig Sequences
 #'
 #' @param x Object to extract sequences from
 #' @param ... Additional arguments
 #' @export
-sequences <- function(x, ...) {
-  UseMethod("sequences")
+get_contig_sequences <- function(x, ...) {
+  UseMethod("get_contig_sequences")
 }
 
 #' @export
-sequences.genome_entity <- function(x, format = c("character", "DNAStringSet"), ...) {
+get_contig_sequences.genome_entity <- function(x, format = c("character", "DNAStringSet"), ...) {
   format <- match.arg(format)
   validate_genome_entity(x)
 
@@ -69,8 +69,8 @@ sequences.genome_entity <- function(x, format = c("character", "DNAStringSet"), 
 }
 
 #' @export
-sequences.default <- function(x, ...) {
-  cli::cli_abort("sequences() not implemented for class {.cls {class(x)[1]}}")
+get_contig_sequences.default <- function(x, ...) {
+  cli::cli_abort("get_contig_sequences() not implemented for class {.cls {class(x)[1]}}")
 }
 
 
@@ -95,43 +95,35 @@ get_genome_metadata.default <- function(x, ...) {
 }
 
 
-#' Get Sequence Names (Scaffolds/Contigs/Chromosomes/Plasmids)
+#' Get Contig Names
 #'
 #' @description
-#' Convenience function to quickly retrieve the names of all sequences
-#' (scaffolds, contigs, chromosomes, plasmids) in a genome object.
-#'
-#' This is equivalent to `unique(genome$features$seqname)` but more convenient
-#' and standardized across genome objects.
+#' Retrieve the names of all contigs, chromosomes, scaffolds, or plasmids
+#' in a genome object.
 #'
 #' @param x A genome object (e.g., genome_entity)
 #' @param ... Additional arguments passed to methods
 #'
-#' @return Character vector of unique sequence names
+#' @return Character vector of contig/sequence names
 #'
 #' @examples
 #' \dontrun{
 #' gd <- read_genome("genome.gbk")
-#'
-#' # Full function name
-#' get_genome_seqnames(gd)
-#'
-#' # Short alias
-#' seqnames(gd)
+#' get_contig_names(gd)
 #' }
 #'
 #' @export
-get_genome_seqnames <- function(x, ...) {
-  UseMethod("get_genome_seqnames")
+get_contig_names <- function(x, ...) {
+  UseMethod("get_contig_names")
 }
 
 #' @export
-get_genome_seqnames.genome_entity <- function(x, ...) {
+get_contig_names.genome_entity <- function(x, ...) {
   validate_genome_entity(x)
   x$indices$seqnames
 }
 
 #' @export
-get_genome_seqnames.default <- function(x, ...) {
-  cli::cli_abort("get_genome_seqnames() not implemented for class {.cls {class(x)[1]}}")
+get_contig_names.default <- function(x, ...) {
+  cli::cli_abort("get_contig_names() not implemented for class {.cls {class(x)[1]}}")
 }

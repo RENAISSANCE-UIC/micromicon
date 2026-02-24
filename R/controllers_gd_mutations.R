@@ -1027,12 +1027,12 @@ pm_focus_gene <- function(gd, gene) {
   out
 }
 
-#' Focus by genomic range (inclusive) on a specific seq_id, using the *contracted* table.
-#' Behavior: position-only filtering (no 'end' dependence), exact seq_id match.
+#' Focus by genomic range (inclusive) on a specific contig, using the *contracted* table.
+#' Behavior: position-only filtering (no 'end' dependence), exact contig match.
 #' @keywords internal
-pm_focus_roi <- function(gd, seq_id, start, end) {
+pm_focus_roi <- function(gd, contig, start, end) {
   gd_assert(gd)
-  stopifnot(!missing(seq_id), !missing(start), !missing(end))
+  stopifnot(!missing(contig), !missing(start), !missing(end))
   
   tb <- pm_tbl(gd)  # 8-col contracted view
   
@@ -1059,15 +1059,15 @@ pm_focus_roi <- function(gd, seq_id, start, end) {
   
   pos <- .parse_int(tb$position)
   sid <- as.character(tb$seq_id)
-  target_sid <- as.character(seq_id)
-  
+  target_sid <- as.character(contig)
+
   hit <- (!is.na(pos)) & (sid == target_sid) & (pos >= start) & (pos <= end)
   if (length(hit) == 0L) hit <- rep(FALSE, nrow(tb))  # 0-row safety
-  
+
   out <- tb[hit, , drop = FALSE]
-  
+
   cli::cli_inform(c(
-    "i" = paste0("pm_focus_roi: seq_id=", target_sid, " [", start, ", ", end, "] → ",
+    "i" = paste0("pm_focus_roi: contig=", target_sid, " [", start, ", ", end, "] → ",
                  nrow(out), " row(s).")
   ))
   

@@ -29,7 +29,7 @@
 #'   \code{"synonymous"}, \code{"missense"}, \code{"nonsense"},
 #'   \code{"frameshift"}, \code{"inframe_deletion"},
 #'   \code{"inframe_insertion"}.
-#' @param seq_id Character scalar; keep only rows on this contig or chromosome
+#' @param contig Character scalar; keep only rows on this contig or chromosome
 #'   (exact match).
 #'
 #' @return A data frame with the same columns as \code{tbl}, containing only
@@ -56,7 +56,7 @@ filter_variants <- function(tbl,
                             min_freq    = NULL,
                             type        = NULL,
                             consequence = NULL,
-                            seq_id      = NULL) {
+                            contig      = NULL) {
   stopifnot(is.data.frame(tbl))
 
   keep <- rep(TRUE, nrow(tbl))
@@ -98,10 +98,10 @@ filter_variants <- function(tbl,
       (tolower(tbl$consequence) %in% tolower(consequence))
   }
 
-  # --- seq_id: exact match -----------------------------------------------------
-  if (!is.null(seq_id)) {
-    stopifnot(is.character(seq_id), length(seq_id) == 1L)
-    keep <- keep & !is.na(tbl$seq_id) & (tbl$seq_id == seq_id)
+  # --- contig: exact match -----------------------------------------------------
+  if (!is.null(contig)) {
+    stopifnot(is.character(contig), length(contig) == 1L)
+    keep <- keep & !is.na(tbl$seq_id) & (tbl$seq_id == contig)
   }
 
   tbl[keep, , drop = FALSE]

@@ -64,12 +64,12 @@ test_that("get_roi_dna extracts arbitrary regions", {
   skip_if(!file.exists("inst/extdata/test.gbk"), "Test file not found")
 
   entity <- read_genome("inst/extdata/test.gbk")
-  seqs <- sequences(entity)
+  seqs <- get_contig_sequences(entity)
   seqname <- names(seqs)[1]
   seq_len <- nchar(seqs[1])
 
   # Extract a region
-  roi <- get_roi_dna(entity, chrom = seqname, start = 1, end = 100, strand = "+")
+  roi <- get_roi_dna(entity, contig = seqname, start = 1, end = 100, strand = "+")
   expect_type(roi, "character")
   expect_equal(nchar(roi), 100)
 
@@ -78,7 +78,7 @@ test_that("get_roi_dna extracts arbitrary regions", {
   expect_equal(roi, expected)
 
   # Test minus strand (should reverse complement)
-  roi_minus <- get_roi_dna(entity, chrom = seqname, start = 1, end = 100, strand = "-")
+  roi_minus <- get_roi_dna(entity, contig = seqname, start = 1, end = 100, strand = "-")
   expect_type(roi_minus, "character")
   expect_equal(nchar(roi_minus), 100)
   expect_false(roi == roi_minus)  # Should be different
@@ -210,7 +210,7 @@ test_that("validate_variant_in_gene validates correctly", {
   feat <- cds_features[1, ]
 
   # Get the actual reference base at gene start
-  seqs <- sequences(entity)
+  seqs <- get_contig_sequences(entity)
   ref_base <- substr(seqs[[feat$seqname]], feat$start, feat$start)
 
   # Valid variant (correct position and ref base)
