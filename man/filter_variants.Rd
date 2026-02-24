@@ -4,21 +4,27 @@
 \alias{filter_variants}
 \title{Filter a Variants Table}
 \usage{
-filter_variants(tbl, gene = NULL, min_freq = NULL, type = NULL,
-  consequence = NULL, seq_id = NULL)
+filter_variants(
+  tbl,
+  gene = NULL,
+  min_freq = NULL,
+  type = NULL,
+  consequence = NULL,
+  seq_id = NULL
+)
 }
 \arguments{
 \item{tbl}{A data frame returned by \code{predict_variants()} or
 \code{annotate_variants()}.}
 
 \item{gene}{Character scalar; case-insensitive partial match against the
-\code{gene} column. Strand arrows (\code{→}/\code{←}) are stripped before
+\code{gene} column. Strand arrows (6quqxsCkRJ6DDsDlA6HIUCzOaFJMdoDv-2\code{←}) are stripped before
 matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
 \code{gene = "mdt"} matches any \emph{mdt*} gene.}
 
 \item{min_freq}{Numeric (0–1); retain rows whose allele frequency is at
 least this value. The display string (e.g. \code{"85.1\%"}) is converted
-automatically. Structural variants reported at 100\% always pass this
+automatically. Structural variants reported at 100\\% always pass this
 filter.}
 
 \item{type}{Character vector; keep only rows whose \code{type} matches one
@@ -30,7 +36,8 @@ of the supplied values (case-insensitive). Common values:
 matches one of the supplied values (case-insensitive). Requires
 \code{annotate_variants()} to have been run first. Common values:
 \code{"synonymous"}, \code{"missense"}, \code{"nonsense"},
-\code{"frameshift"}, \code{"inframe_deletion"}, \code{"inframe_insertion"}.}
+\code{"frameshift"}, \code{"inframe_deletion"},
+\code{"inframe_insertion"}.}
 
 \item{seq_id}{Character scalar; keep only rows on this contig or chromosome
 (exact match).}
@@ -62,4 +69,5 @@ filter_variants(variants, type = c("SNP", "DEL"))
 annotated <- annotate_variants(gd, variants)
 filter_variants(annotated, gene = "marR", consequence = "missense")
 }
+
 }

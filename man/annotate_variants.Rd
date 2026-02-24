@@ -2,7 +2,7 @@
 % Please edit documentation in R/generics_queries.R
 \name{annotate_variants}
 \alias{annotate_variants}
-\title{Annotate Variants with Molecular Consequences}
+\title{Compute Mutation Effects}
 \usage{
 annotate_variants(gd, pm_tbl, ...)
 }
