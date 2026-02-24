@@ -90,7 +90,8 @@ micromicon_functions <- function() {
   
   .micromicon_section("Variants", list(
     c("predict_variants()",         "tidy variant table (GenomeDiff parser)"),
-    c("annotate_variants()",         "molecular consequences of variants"),
+    c("annotate_variants()",        "molecular consequences of variants"),
+    c("filter_variants()",          "filter by gene, frequency, type, or consequence"),
     c("validate_variant_in_gene()", "check whether a variant resides in a gene")
   ), width)
   
