@@ -58,18 +58,23 @@ Built on the `genome_entity` S3 object, intended for reference navigation: seque
 ```r
 library(micromicon)
 
+# View micromicon functions
+micromicon_functions()
+
 # Read reference genome (GenBank or GFF3+FASTA)
 entity <- read_genome(fasta = "reference.fasta", gff = "reference.gff3")
 # or: entity <- read_genome("reference.gbk")
 
 # Look at scaffold names (chromosomes, plasmids, contigs)
-get_genome_seqnames(entity)
+get_genome_seqnames(entity) # Get scaffold/contig/chromosome/plasmid names
 
 # Inspect genome structure
-seqnames(entity)  # Get scaffold/contig/chromosome/plasmid names
 get_genome_metadata(entity)  # View genome-level metadata
 
 # Search and query features
+search_features(entity)
+
+# Filter specific features
 ampC <- search_features(entity, pattern = "ampC", type = "CDS")
 acrB <- search_features(entity, pattern = "acrB", type = "CDS")
 
@@ -83,8 +88,8 @@ get_feature_fasta(entity, "acrB_1",
                   flank_downstream = 2000)
 
 # Extract regions of interest
-get_roi_dna(entity, seqname = "1", start = 1834322, end = 1837471)
-get_roi_fasta(entity, seqname = "1", start = 1834322, end = 1837471)
+get_roi_dna(entity, contig = "1", start = 1834322, end = 1837471)
+get_roi_fasta(entity, contig = "1", start = 1834322, end = 1837471)
 
 # Coordinate mapping (genomic ↔ CDS coordinates)
 ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
@@ -130,6 +135,8 @@ consequence_table <- annotate_variants(gd, mutation_table)
 # Supports: SNP, DEL, INS, SUB mutation types (coding and intergenic)
 # Consequences: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion
 # Auto-detects OS: uses parallel processing on Linux/macOS, serial on Windows
+
+
 ```
 
 ### Format Conversion Rules
