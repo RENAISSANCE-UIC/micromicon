@@ -22,7 +22,7 @@ Searches across ID, Name, Alias, gene, locus_tag, and product fields
 (case-insensitive). Compatible with various GFF3 annotation sources
 including breseq, Prokka, and NCBI.}
 
-\item{seqname}{Character; filter by sequence name}
+\item{contig}{Character; filter by contig/sequence name}
 
 \item{start}{Integer; filter features starting at or after this position}
 
@@ -49,7 +49,7 @@ unique(genome$features$type)
 cds <- search_features(genome, type = "CDS")
 
 # Find CDS on chr1
-cds_chr1 <- search_features(genome, type = "CDS", seqname = "chr1")
+cds_chr1 <- search_features(genome, type = "CDS", contig = "chr1")
 
 # Find features matching pattern (searches gene names, products, etc.)
 dna_features <- search_features(genome, pattern = "dna")

@@ -4,12 +4,12 @@
 \alias{get_roi_dna}
 \title{Get DNA Sequence for a Region of Interest (ROI)}
 \usage{
-get_roi_dna(x, chrom, start, end, strand = "+", ...)
+get_roi_dna(x, contig, start, end, strand = "+", ...)
 }
 \arguments{
 \item{x}{A genome_entity object}
 
-\item{chrom}{Chromosome/contig name}
+\item{contig}{Contig/chromosome name}
 
 \item{start}{Start position (1-based, inclusive)}
 

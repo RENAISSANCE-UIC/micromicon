@@ -6,7 +6,7 @@
 \usage{
 analyze_roi(
   genome_obj,
-  seqname,
+  contig,
   start,
   end,
   flank = 0,
@@ -19,7 +19,7 @@ analyze_roi(
 \arguments{
 \item{genome_obj}{Genome object from init_genome() (expects $gff and $seqnames)}
 
-\item{seqname}{Chromosome/contig name (can be numeric-like, e.g., "1")}
+\item{contig}{Contig/chromosome name (can be numeric-like, e.g., "1")}
 
 \item{start}{Start coordinate (1-based)}
 
@@ -31,7 +31,7 @@ analyze_roi(
 
 \item{tidy}{Return tibble (TRUE) or GRanges (FALSE)}
 
-\item{auto_resolve}{If TRUE, resolve seqname against GFF seqlevels (default TRUE)}
+\item{auto_resolve}{If TRUE, resolve contig against GFF seqlevels (default TRUE)}
 
 \item{drop_extdb}{If TRUE, prefer human labels over extdb placeholders (default TRUE)}
 }

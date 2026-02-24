@@ -4,14 +4,14 @@
 \alias{validate_genomic_coordinates}
 \title{Validate Genomic Coordinates}
 \usage{
-validate_genomic_coordinates(start, end, seqname = NULL, max_length = NULL)
+validate_genomic_coordinates(start, end, contig = NULL, max_length = NULL)
 }
 \arguments{
 \item{start}{Integer start position (1-based)}
 
 \item{end}{Integer end position (1-based, inclusive)}
 
-\item{seqname}{Character sequence name (for error messages)}
+\item{contig}{Character contig/sequence name (for error messages)}
 
 \item{max_length}{Integer maximum sequence length (optional)}
 }

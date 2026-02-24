@@ -65,7 +65,7 @@ genome <- read_genome("data.gbk")
 write_fasta(genome, "output.fasta")
 
 # Export specific sequences
-seqs <- sequences(genome)
+seqs <- get_contig_sequences(genome)
 write_fasta(seqs[1:5], "subset.fasta")
 }
 }

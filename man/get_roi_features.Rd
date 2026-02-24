@@ -11,7 +11,7 @@ get_roi_features(x, ...)
 
 \item{...}{Additional arguments (currently unused)}
 
-\item{seqname}{Character; chromosome/contig name (numeric-like strings such
+\item{contig}{Character; contig/chromosome name (numeric-like strings such
 as \code{"1"} are resolved automatically against the GFF seqlevels)}
 
 \item{start}{Integer; start coordinate (1-based, inclusive)}
@@ -24,7 +24,7 @@ as \code{"1"} are resolved automatically against the GFF seqlevels)}
 \item{feature_type}{Character; keep only features of this type, e.g.
 \code{"CDS"} (default). Pass \code{NULL} to return all feature types.}
 
-\item{auto_resolve}{Logical; attempt to reconcile seqname to a GFF seqlevel
+\item{auto_resolve}{Logical; attempt to reconcile contig to a GFF seqlevel
 when an exact match is not found (default TRUE)}
 
 \item{drop_extdb}{Logical; replace \code{extdb:*} placeholder names with

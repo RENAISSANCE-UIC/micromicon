@@ -4,10 +4,10 @@
 \alias{roi_coords}
 \title{Create Standardized ROI Specification}
 \usage{
-roi_coords(seqname, start, end, strand = "+")
+roi_coords(contig, start, end, strand = "+")
 }
 \arguments{
-\item{seqname}{Character; sequence name}
+\item{contig}{Character; contig/sequence name}
 
 \item{start}{Integer; start position (1-based)}
 

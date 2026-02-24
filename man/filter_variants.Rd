@@ -10,7 +10,7 @@ filter_variants(
   min_freq = NULL,
   type = NULL,
   consequence = NULL,
-  seq_id = NULL
+  contig = NULL
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ filter_variants(
 \code{annotate_variants()}.}
 
 \item{gene}{Character scalar; case-insensitive partial match against the
-\code{gene} column. Strand arrows (6quqxsCkRJ6DDsDlA6HIUCzOaFJMdoDv-2\code{←}) are stripped before
+\code{gene} column. Strand arrows (4iNReIWu0XyhXS0SXp2M97KTEeNRU8so-2\code{←}) are stripped before
 matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
 \code{gene = "mdt"} matches any \emph{mdt*} gene.}
 
@@ -39,7 +39,7 @@ matches one of the supplied values (case-insensitive). Requires
 \code{"frameshift"}, \code{"inframe_deletion"},
 \code{"inframe_insertion"}.}
 
-\item{seq_id}{Character scalar; keep only rows on this contig or chromosome
+\item{contig}{Character scalar; keep only rows on this contig or chromosome
 (exact match).}
 }
 \value{

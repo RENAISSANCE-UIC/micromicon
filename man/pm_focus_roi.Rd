@@ -2,13 +2,13 @@
 % Please edit documentation in R/controllers_gd_mutations.R
 \name{pm_focus_roi}
 \alias{pm_focus_roi}
-\title{Focus by genomic range (inclusive) on a specific seq_id, using the \emph{contracted} table.
-Behavior: position-only filtering (no 'end' dependence), exact seq_id match.}
+\title{Focus by genomic range (inclusive) on a specific contig, using the \emph{contracted} table.
+Behavior: position-only filtering (no 'end' dependence), exact contig match.}
 \usage{
-pm_focus_roi(gd, seq_id, start, end)
+pm_focus_roi(gd, contig, start, end)
 }
 \description{
-Focus by genomic range (inclusive) on a specific seq_id, using the \emph{contracted} table.
-Behavior: position-only filtering (no 'end' dependence), exact seq_id match.
+Focus by genomic range (inclusive) on a specific contig, using the \emph{contracted} table.
+Behavior: position-only filtering (no 'end' dependence), exact contig match.
 }
 \keyword{internal}

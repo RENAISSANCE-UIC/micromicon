@@ -6,7 +6,7 @@
 \usage{
 extract_roi_complete(
   genome_obj,
-  seqname,
+  contig,
   start,
   end,
   flank = 0,
@@ -18,7 +18,7 @@ extract_roi_complete(
 \arguments{
 \item{genome_obj}{Genome object from init_genome()}
 
-\item{seqname}{Chromosome/contig name}
+\item{contig}{Contig/chromosome name}
 
 \item{start}{Start coordinate}
 

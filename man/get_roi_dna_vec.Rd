@@ -4,12 +4,12 @@
 \alias{get_roi_dna_vec}
 \title{Get DNA Sequences for Multiple Regions of Interest (vectorised)}
 \usage{
-get_roi_dna_vec(x, chrom, start, end, strand = "+", ...)
+get_roi_dna_vec(x, contig, start, end, strand = "+", ...)
 }
 \arguments{
 \item{x}{A genome_entity object}
 
-\item{chrom}{Character vector of contig/chromosome names (length n)}
+\item{contig}{Character vector of contig/chromosome names (length n)}
 
 \item{start}{Integer vector of start positions, 1-based inclusive (length n)}
 

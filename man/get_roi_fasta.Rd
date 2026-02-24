@@ -6,7 +6,7 @@
 \usage{
 get_roi_fasta(
   genome_obj,
-  seqname,
+  contig,
   start,
   end,
   flank = 0,
@@ -19,7 +19,7 @@ get_roi_fasta(
 \arguments{
 \item{genome_obj}{Genome object from init_genome()}
 
-\item{seqname}{Chromosome/contig name}
+\item{contig}{Contig/chromosome name}
 
 \item{start}{Start coordinate}
 
@@ -53,8 +53,8 @@ roi_seq <- get_roi_fasta(genome, "1", 1828501, 1978000, flank = 5000)
 roi_seq <- get_roi_fasta(genome, "1", 1828501, 1978000, strand = "-")
 
 # Save to file
-get_roi_fasta(genome, "1", 1828501, 1978000, 
-              flank = 10000, 
+get_roi_fasta(genome, "1", 1828501, 1978000,
+              flank = 10000,
               output_file = "roi_region.fasta")
 }
 }

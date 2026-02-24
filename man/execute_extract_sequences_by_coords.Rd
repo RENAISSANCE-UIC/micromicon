@@ -6,7 +6,7 @@
 \usage{
 execute_extract_sequences_by_coords(
   entity,
-  seqname,
+  contig,
   start,
   end,
   options = list()
@@ -15,7 +15,7 @@ execute_extract_sequences_by_coords(
 \arguments{
 \item{entity}{A genome_entity object}
 
-\item{seqname}{Character, sequence name(s)}
+\item{contig}{Character, contig/sequence name(s)}
 
 \item{start}{Integer, start position(s) (1-based, inclusive)}
 
