@@ -589,7 +589,21 @@ get_roi_features.default <- function(x, ...) {
 #'   inconsistencies; if \code{FALSE}, warn and continue.
 #' @param ... Additional arguments passed to the format-specific parser.
 #'
-#' @return A \code{genome_entity_gd} object.
+#' @return
+#' A \code{genome_entity_gd} object. In interactive sessions, also prints a
+#' formatted summary to the console:
+#' \itemize{
+#'   \item \strong{File} — basename of the variant file
+#'   \item \strong{Mutations} — total count and breakdown by type
+#'     (SNP, DEL, INS, SUB, MOB, AMP, CON, INV)
+#'   \item \strong{Next} — three suggested follow-on function calls
+#' }
+#'
+#' @seealso
+#' \code{\link{predict_variants}()} to build the tidy mutation table;
+#' \code{\link{annotate_variants}()} to add molecular consequences;
+#' \code{\link{filter_variants}()} to subset by gene, type, or consequence.
+#'
 #' @export
 #'
 #' @examples
@@ -600,8 +614,10 @@ get_roi_features.default <- function(x, ...) {
 #' # Then load variants against it
 #' gd <- read_variants(ref, "annotated.gd")
 #'
-#' # Inspect mutations
-#' predict_variants(gd)
+#' # Canonical next steps
+#' pm  <- predict_variants(gd)
+#' eff <- annotate_variants(gd, pm)
+#' filter_variants(gd, pm, gene = "mutL")
 #' }
 read_variants <- function(x, path, format = "gd", ...) {
   UseMethod("read_variants")
@@ -626,5 +642,62 @@ read_variants.default <- function(x, ...) {
 }
 
 .read_variants_gd <- function(entity, path, strict = TRUE, ...) {
-  parse_gd_annotated(gd_path = path, entity = entity, strict = strict, ...)
+  gd <- parse_gd_annotated(gd_path = path, entity = entity, strict = strict, ...)
+  .read_variants_report(gd, path)
+  gd
+}
+
+#' @keywords internal
+#' @noRd
+.read_variants_report <- function(gd, path) {
+  if (!interactive()) return(invisible(NULL))
+
+  w   <- .micromicon_console_width()
+  col <- getOption("micromicon.color.code", 39L)
+
+  # ── Mutation counts ───────────────────────────────────────────────────────
+
+  mut_idx    <- gd$provenance$by_kind$mutation_idx
+  mut_events <- gd$events[mut_idx]
+  n_mut      <- length(mut_events)
+  mut_types  <- vapply(mut_events, `[[`, character(1L), "type")
+  type_tbl   <- table(mut_types)
+
+  get_n <- function(key) {
+    v <- type_tbl[key]
+    if (length(v) == 0L || is.na(v)) 0L else as.integer(v)
+  }
+
+  type_order <- c("SNP", "DEL", "INS", "SUB", "MOB", "AMP", "CON", "INV")
+  parts <- character()
+  for (tp in type_order) {
+    n <- get_n(tp)
+    if (n > 0L) parts <- c(parts, paste0(formatC(n, format = "d", big.mark = ","), " ", tp))
+  }
+  n_other <- sum(vapply(setdiff(names(type_tbl), type_order), get_n, integer(1L)))
+  if (n_other > 0L) parts <- c(parts, paste0(n_other, " other"))
+
+  mut_str <- paste0(
+    formatC(n_mut, format = "d", big.mark = ","),
+    if (length(parts) > 0L) paste0("  \u2014  ", paste(parts, collapse = "  \u00b7  ")) else ""
+  )
+
+  # ── Print ─────────────────────────────────────────────────────────────────
+
+  lbl <- function(x) sprintf("  %-11s", x)
+
+  .micromicon_rule_title("Variants loaded", w)
+  cat(lbl("File"),      basename(path), "\n", sep = "")
+  cat(lbl("Mutations"), mut_str, "\n", sep = "")
+  cat("\n")
+
+  fn1 <- sprintf("%-34s", "predict_variants(gd)")
+  fn2 <- sprintf("%-34s", "annotate_variants(gd, pm)")
+  fn3 <- sprintf("%-34s", "filter_variants(gd, pm)")
+  cat(lbl("Next"), .micromicon_col256(fn1, col), "build the mutation table\n",        sep = "")
+  cat(lbl(""),     .micromicon_col256(fn2, col), "add molecular consequences\n",      sep = "")
+  cat(lbl(""),     .micromicon_col256(fn3, col), "subset by gene, type, or consequence\n", sep = "")
+
+  .micromicon_rule_full(w)
+  invisible(NULL)
 }

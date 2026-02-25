@@ -98,7 +98,12 @@ micromicon_functions <- function() {
   .micromicon_section("Export", list(
     c("export_genome()", "write genome as GFF3, FASTA, or GenBank")
   ), width)
-  
+
+  .micromicon_section("Help", list(
+    c("micromicon_welcome()",   "reprint the startup screen and quick-start hints"),
+    c("micromicon_functions()", "this index")
+  ), width)
+
   .micromicon_rule_full(width)
   cat(.micromicon_bold("\u2139"), " For details: use ?<function> or see ?micromicon.\n", sep = "")
   invisible(NULL)

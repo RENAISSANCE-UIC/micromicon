@@ -26,7 +26,22 @@
 #'   "auto" (default), "genbank", or "gff3_fasta"
 #' @param ... Additional arguments passed to use cases (e.g., auto_harmonize, verbose)
 #'
-#' @return A genome_entity object
+#' @return
+#' A \code{genome_entity} object. In interactive sessions, also prints a
+#' formatted summary to the console:
+#' \itemize{
+#'   \item \strong{Organism} — scientific name (GenBank sources only)
+#'   \item \strong{Source} — file format detected or specified
+#'   \item \strong{Contigs} — count, total base pairs, and topology
+#'   \item \strong{Features} — total count and breakdown by type (CDS, rRNA, tRNA, other)
+#'   \item \strong{Next} — three suggested follow-on function calls
+#' }
+#' Suppress the summary in scripts with \code{options(micromicon.quiet = TRUE)}
+#' (not yet implemented) or by running in a non-interactive session.
+#'
+#' @seealso \code{\link{read_variants}()} to load variant calls against the
+#'   returned genome; \code{\link{get_features}()} to browse the annotation table.
+#'
 #' @export
 #'
 #' @examples
@@ -110,7 +125,98 @@ read_genome <- function(path = NULL, gff = NULL, fasta = NULL,
     )
   }
 
+  .read_genome_report(entity, format)
   entity
+}
+
+# Post-load summary -------------------------------------------------------
+
+#' @keywords internal
+#' @noRd
+.read_genome_report <- function(entity, format) {
+  if (!interactive()) return(invisible(NULL))
+
+  w   <- .micromicon_console_width()
+  col <- getOption("micromicon.color.code", 39L)
+
+  # ── Compute stats ────────────────────────────────────────────────────────
+
+  n_contigs <- length(entity$indices$seqnames)
+  total_bp  <- sum(nchar(entity$sequences$dna_raw))
+  bp_fmt    <- formatC(total_bp, format = "d", big.mark = ",")
+
+  feat_types <- if (nrow(entity$features) > 0) {
+    table(entity$features$type)
+  } else {
+    table(character())
+  }
+
+  get_n <- function(key) {
+    v <- feat_types[key]
+    if (length(v) == 0L || is.na(v)) 0L else as.integer(v)
+  }
+  n_total <- sum(feat_types)
+  n_cds   <- get_n("CDS")
+  n_rrna  <- get_n("rRNA")
+  n_trna  <- get_n("tRNA")
+  n_other <- n_total - n_cds - n_rrna - n_trna
+
+  # Topology
+  tops     <- entity$metadata$topology
+  tops     <- tops[!is.na(tops) & nzchar(tops)]
+  topology <- if (length(tops) > 0L) tops[[1L]] else NA_character_
+
+  # Contigs line
+  contig_str <- paste0(
+    formatC(n_contigs, format = "d", big.mark = ","),
+    if (n_contigs == 1L) " contig" else " contigs",
+    "  \u00b7  ", bp_fmt, " bp",
+    if (!is.na(topology)) paste0("  \u00b7  ", topology) else ""
+  )
+
+  # Feature breakdown
+  parts <- character()
+  if (n_cds   > 0L) parts <- c(parts, paste0(formatC(n_cds,   format = "d", big.mark = ","), " CDS"))
+  if (n_rrna  > 0L) parts <- c(parts, paste0(formatC(n_rrna,  format = "d", big.mark = ","), " rRNA"))
+  if (n_trna  > 0L) parts <- c(parts, paste0(formatC(n_trna,  format = "d", big.mark = ","), " tRNA"))
+  if (n_other > 0L) parts <- c(parts, paste0(formatC(n_other, format = "d", big.mark = ","), " other"))
+
+  feat_str <- paste0(
+    formatC(n_total, format = "d", big.mark = ","),
+    "  \u2014  ",
+    if (length(parts) > 0L) paste(parts, collapse = "  \u00b7  ") else "none"
+  )
+
+  # Organism (GenBank only)
+  organism <- NULL
+  if (format == "genbank") {
+    orgs     <- entity$metadata$organism
+    orgs     <- orgs[!is.na(orgs) & nzchar(orgs)]
+    if (length(orgs) > 0L) organism <- orgs[[1L]]
+  }
+
+  fmt_label <- switch(format, genbank = "GenBank", gff3_fasta = "GFF3 + FASTA", format)
+
+  # ── Print ────────────────────────────────────────────────────────────────
+
+  lbl <- function(x) sprintf("  %-11s", x)
+
+  .micromicon_rule_title("Genome loaded", w)
+  if (!is.null(organism)) cat(lbl("Organism"), organism, "\n", sep = "")
+  cat(lbl("Source"),   fmt_label, "\n", sep = "")
+  cat(lbl("Contigs"),  contig_str, "\n", sep = "")
+  cat(lbl("Features"), feat_str, "\n", sep = "")
+  cat("\n")
+
+  fn1 <- sprintf("%-34s", "get_features(ref)")
+  fn2 <- sprintf("%-34s", 'get_gene_dna(ref, "dnaA")')
+  fn3 <- sprintf("%-34s", 'read_variants(ref, "out.gd")')
+  cat(lbl("Next"), .micromicon_col256(fn1, col), "browse the annotation\n", sep = "")
+  cat(lbl(""),     .micromicon_col256(fn2, col), "fetch a gene sequence\n",  sep = "")
+  cat(lbl(""),     .micromicon_col256(fn3, col), "load variant calls\n",     sep = "")
+
+  .micromicon_rule_full(w)
+  invisible(NULL)
 }
 
 #' Read GenBank File

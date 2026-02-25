@@ -57,7 +57,7 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
   verbose <- options$verbose %||% TRUE
 
   # Step 1: Read GFF3 via gateway
-  if (verbose) cli::cli_inform("Reading GFF3 file...")
+  if (verbose) cli::cli_inform("Reading annotation \u00b7 {basename(gff_path)}")
   features_df <- gff_gateway$read(gff_path)
 
   if (!is.data.frame(features_df)) {
@@ -72,7 +72,7 @@ execute_import_gff_fasta <- function(gff_gateway, fasta_gateway,
   }
 
   # Step 2: Read FASTA via gateway
-  if (verbose) cli::cli_inform("Reading FASTA file...")
+  if (verbose) cli::cli_inform("Reading sequences  \u00b7 {basename(fasta_path)}")
   dna_raw <- fasta_gateway$read(fasta_path)
 
   if (!is.character(dna_raw) || is.null(names(dna_raw))) {

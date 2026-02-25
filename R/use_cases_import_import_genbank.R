@@ -41,6 +41,7 @@
 #' }
 execute_import_genbank <- function(gateway, file_path, options = list()) {
   # Step 1: Read raw data via gateway
+  cli::cli_inform("Reading GenBank \u00b7 {basename(file_path)}")
   gbk_list <- gateway$read(file_path)
 
   if (!is.list(gbk_list) || length(gbk_list) == 0) {

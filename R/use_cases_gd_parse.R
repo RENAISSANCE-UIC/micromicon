@@ -27,6 +27,7 @@ parse_gd_annotated <- function(gd_path, entity, strict = TRUE,
                                gbk_path = NULL) {
   if (!file.exists(gd_path)) cli::cli_abort("File does not exist: {gd_path}")
   stopifnot(inherits(entity, "genome_entity"))
+  cli::cli_inform("Reading variants \u00b7 {basename(gd_path)}")
 
   contig_lengths <- setNames(as.numeric(entity$metadata$length_bp), entity$metadata$seqname)
   ref_manifest   <- reference_manifest_from_genome_entity(entity, fasta_path, gff3_path, gbk_path)

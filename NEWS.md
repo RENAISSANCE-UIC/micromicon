@@ -1,3 +1,40 @@
+# micromicon 0.3.5
+
+## UX: On-load experience
+
+* **NEW**: `micromicon_welcome()` — reprints the startup screen at any time;
+  useful for revisiting quick-start hints without restarting R.
+* **NEW**: `.onAttach()` startup screen displayed on `library(micromicon)`.
+  Shows the version, a two-line getting-started example, and a pointer to
+  `micromicon_functions()`. Suppressed during `devtools::load_all()` and
+  non-interactive sessions.
+
+## UX: Informative load summaries
+
+* `read_genome()` now prints a formatted console summary after loading:
+  organism name (GenBank only), source format, contig count and total bp,
+  feature breakdown (CDS / rRNA / tRNA / other), and three suggested
+  next-step function calls. Silent in non-interactive sessions.
+* `read_variants()` now prints a formatted console summary after parsing:
+  source filename, total mutation count and breakdown by type
+  (SNP / DEL / INS / SUB / MOB / AMP / CON / INV), and three suggested
+  next steps. Silent in non-interactive sessions.
+
+## Documentation
+
+* `get_features()` — rewrote roxygen docs. Now includes a column-by-column
+  table of guaranteed return fields, per-format notes for `format=`,
+  practical examples (census, CDS filter, strand balance, GRanges handoff),
+  and `@seealso` links to `search_features()`, `get_roi_features()`, and
+  `gene_info()`.
+* `read_genome()` — `@return` now documents the interactive console summary.
+  Added `@seealso` links.
+* `read_variants()` — `@return` now documents the interactive console summary.
+  Added `@seealso` links and expanded `@examples` to show the canonical
+  three-step workflow.
+* `micromicon_functions()` — added a **Help** section listing
+  `micromicon_welcome()` and `micromicon_functions()` itself.
+
 # micromicon 0.3.4
 
 ## New Functions
