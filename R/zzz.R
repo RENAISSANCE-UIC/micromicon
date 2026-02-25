@@ -8,6 +8,15 @@
 #' @keywords internal
 #' @noRd
 .onAttach <- function(libname, pkgname) {
+  # Suppress during devtools::load_all() — the package is already reachable
+  # via :: in that context; the greeting would be noise on every reload.
+  # pkgload::is_loading() is TRUE for the duration of load_all().
+  if (isNamespaceLoaded("pkgload") &&
+      isTRUE(tryCatch(pkgload::is_loading(pkgname), error = function(e) FALSE))) {
+    return(invisible(NULL))
+  }
+
+  # Suppress in non-interactive sessions (Rscript, CI, R CMD INSTALL subprocesses).
   if (!interactive()) return(invisible(NULL))
 
   ver <- tryCatch(
