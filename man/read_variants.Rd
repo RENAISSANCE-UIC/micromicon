@@ -20,7 +20,14 @@ genome diff). Will be extended to support \code{"vcf"} in a future release.}
 inconsistencies; if \code{FALSE}, warn and continue.}
 }
 \value{
-A \code{genome_entity_gd} object.
+A \code{genome_entity_gd} object. In interactive sessions, also prints a
+formatted summary to the console:
+\itemize{
+\item \strong{File} — basename of the variant file
+\item \strong{Mutations} — total count and breakdown by type
+(SNP, DEL, INS, SUB, MOB, AMP, CON, INV)
+\item \strong{Next} — three suggested follow-on function calls
+}
 }
 \description{
 Parses a variant file against an existing reference genome and returns a
@@ -48,7 +55,14 @@ ref <- read_genome("reference.gbk")
 # Then load variants against it
 gd <- read_variants(ref, "annotated.gd")
 
-# Inspect mutations
-predict_variants(gd)
+# Canonical next steps
+pm  <- predict_variants(gd)
+eff <- annotate_variants(gd, pm)
+filter_variants(gd, pm, gene = "mutL")
 }
+}
+\seealso{
+\code{\link{predict_variants}()} to build the tidy mutation table;
+\code{\link{annotate_variants}()} to add molecular consequences;
+\code{\link{filter_variants}()} to subset by gene, type, or consequence.
 }

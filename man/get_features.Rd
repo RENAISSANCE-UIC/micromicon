@@ -2,15 +2,90 @@
 % Please edit documentation in R/generics_accessors.R
 \name{get_features}
 \alias{get_features}
-\title{Access Features}
+\alias{get_features.genome_entity}
+\title{Retrieve all annotated features from a genome object}
 \usage{
 get_features(x, ...)
+
+\method{get_features}{genome_entity}(
+  x,
+  format = c("tibble", "data.frame", "GRanges"),
+  type = NULL,
+  ...
+)
 }
 \arguments{
-\item{x}{Object to extract features from}
+\item{x}{A \code{genome_entity} returned by \code{\link{read_genome}()}.
+Works equally on \code{genome_entity_gd} objects.}
 
-\item{...}{Additional arguments}
+\item{...}{Reserved for future arguments; currently ignored.}
+
+\item{format}{Output format. One of:
+\describe{
+\item{\code{"tibble"}}{A tidy tibble (default). Best for interactive exploration
+and downstream \code{dplyr} pipelines.}
+\item{\code{"data.frame"}}{A plain base-R \code{data.frame}.}
+\item{\code{"GRanges"}}{A \code{GenomicRanges::GRanges} object for Bioconductor
+workflows. Requires \code{BiocManager::install("GenomicRanges")}.}
+}}
+
+\item{type}{Character. Restrict output to a single feature type, e.g.
+\code{"CDS"}, \code{"rRNA"}, \code{"tRNA"}, or \code{"gene"}.
+\code{NULL} (default) returns every feature type.}
+}
+\value{
+A tibble (or data.frame / GRanges, per \code{format}) with one row per
+genomic feature. The seven columns listed in the Description are always
+present; annotation-specific extras (\code{protein_id}, \code{note}, etc.)
+appear when the source file supplies them.
 }
 \description{
-Access Features
+Returns the complete feature table of a loaded genome — every annotated
+element (genes, CDS, rRNAs, tRNAs, misc features) with its coordinates,
+strand, type, and available identifiers.
+
+This is the canonical first stop after \code{\link{read_genome}()}: take
+stock of what the annotation contains before querying individual elements.
+The returned tibble has one row per feature. Columns present depend on
+the source format, but the following are always available:\tabular{lll}{
+   Column \tab Type \tab Description \cr
+   \code{seqname} \tab character \tab Contig or chromosome name \cr
+   \code{start}, \code{end} \tab integer \tab 1-based, inclusive coordinates \cr
+   \code{strand} \tab character \tab \code{"+"}, \code{"-"}, or \code{"*"} \cr
+   \code{type} \tab character \tab Feature type (\code{CDS}, \code{gene}, \code{rRNA}, \code{tRNA}, …) \cr
+   \code{gene} \tab character \tab Gene symbol, when present in the annotation \cr
+   \code{locus_tag} \tab character \tab Systematic locus identifier \cr
+   \code{product} \tab character \tab Functional description \cr
+}
+}
+\examples{
+\dontrun{
+ref <- read_genome("reference.gbk")
+
+# Census: what feature types does this annotation contain?
+feats <- get_features(ref)
+table(feats$type)
+
+# Protein-coding genes only
+cds <- get_features(ref, type = "CDS")
+nrow(cds)
+
+# Quick annotation overview
+cds[, c("gene", "locus_tag", "product")]
+
+# Strand balance
+table(cds$strand)
+
+# Ribosomal RNA loci — useful for coverage QC
+get_features(ref, type = "rRNA")
+
+# Hand off to a Bioconductor workflow
+get_features(ref, format = "GRanges")
+}
+
+}
+\seealso{
+\code{\link{search_features}()} to filter by name, type, or coordinates;
+\code{\link{get_roi_features}()} for features overlapping a specific window;
+\code{\link{gene_info}()} for structured metadata on a single named gene.
 }
