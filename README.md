@@ -95,6 +95,10 @@ get_roi_fasta(entity, contig = "1", start = 1834322, end = 1837471)
 ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
 genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
 
+# Integration with CGView.js
+plot_cgview(entity, contig = "1")
+plot_cgview(entity, viewer = "browser")
+
 # BLAST proteins (PROVISIONAL, requires local database)
 blast_protein(protein, database = "swissprot")
 ```
