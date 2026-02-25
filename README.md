@@ -96,8 +96,8 @@ ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
 genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
 
 # Integration with CGView.js
-plot_cgview(entity, contig = "1")
-plot_cgview(entity, viewer = "browser")
+plot_cgview(entity, contig = "1")            # Launches in viewer
+plot_cgview(entity, viewer = "browser")      # Launches in broswer
 
 # BLAST proteins (PROVISIONAL, requires local database)
 blast_protein(protein, database = "swissprot")
@@ -144,6 +144,10 @@ consequence_table <- annotate_variants(gd, mutation_table)
 # Filter on features of interest
 filter_variants(consequence_table, min_freq = 0.9)
 filter_variants(consequence_table, gene = "marR")
+
+# Integration with CGView.js
+plot_cgview(gd)
+plot_cgview(gd, paired = TRUE, viewer = "browser")
 
 ```
 
