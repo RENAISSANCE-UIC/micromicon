@@ -1,0 +1,11 @@
+dependencies:
+  - name: d3
+    version: 7.9.0
+    src: htmlwidgets/lib/d3
+    script: d3.min.js
+
+  - name: cgview
+    version: 1.8.0
+    src: htmlwidgets/lib/cgview
+    script: cgview.min.js
+    stylesheet: cgview.css

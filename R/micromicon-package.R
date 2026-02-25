@@ -99,6 +99,10 @@ micromicon_functions <- function() {
     c("export_genome()", "write genome as GFF3, FASTA, or GenBank")
   ), width)
 
+  .micromicon_section("Plotting", list(
+    c("plot_cgview()", "interactive circular genome map via CGView.js")
+  ), width)
+
   .micromicon_section("Help", list(
     c("micromicon_welcome()",   "reprint the startup screen and quick-start hints"),
     c("micromicon_functions()", "this index")
