@@ -14,9 +14,10 @@ plot_cgview(entity, ...)
   contig = NULL,
   feature_types = c("CDS", "tRNA", "rRNA"),
   palette = NULL,
-  width = NULL,
+  width = 2000,
   height = 2000,
   elementId = NULL,
+  viewer = c("pane", "browser"),
   ...
 )
 
@@ -29,9 +30,10 @@ plot_cgview(entity, ...)
   right_title = "Variants",
   gap = "12px",
   palette = NULL,
-  width = NULL,
+  width = 2000,
   height = 2000,
   elementId = NULL,
+  viewer = c("pane", "browser"),
   ...
 )
 
@@ -52,6 +54,10 @@ Default: \code{c("CDS", "tRNA", "rRNA")}.}
 \item{width, height}{Widget dimensions (px). height defaults to 2000.}
 
 \item{elementId}{Optional fixed HTML element id.}
+
+\item{viewer}{Where to display the plot. \code{"pane"} (default) opens in the
+RStudio Viewer pane; \code{"browser"} saves to a temporary HTML file and
+opens it in the system browser at full window width.}
 
 \item{paired}{Logical. FALSE (default) = single map with mutations overlaid.
 TRUE = side-by-side reference vs variants panels.}
