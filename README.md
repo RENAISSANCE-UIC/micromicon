@@ -266,6 +266,17 @@ write_fasta(genome, "output.fasta")
 # write_genbank(genome, "output.gbk")  # Does not exist
 ```
 
+### Visualization 
+
+Circular genome visualization is powered by 'CGView.js', rendered as an interactive htmlwidget via `plot_cgview()`. Single-contig maps display annotated features (CDS, tRNA, rRNA) colour-coded by type. 
+
+When working with a `genome_entity_gd object`, genomic differences can be overlaid on the reference map or shown as a side-by-side reference/variants panels (paired = TRUE). Plots open in the RStudio Viewer pane by default; pass viewer = "browser" to launch a full-width view in the system browser.
+
+```r
+plot_cgview(genome, contig = "1")
+plot_cgview(genome, viewer = "browser")
+```
+
 ### Local BLASTP Integration (PROVISIONAL)
 
 Compare proteins against local databases:
