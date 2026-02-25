@@ -276,6 +276,8 @@ When working with a `genome_entity_gd object`, genomic differences can be overla
 plot_cgview(genome, contig = "1")
 plot_cgview(genome, viewer = "browser")
 ```
+ ![](man/figures/CGViewer_Integration.png)
+
 
 ### Local BLASTP Integration (PROVISIONAL)
 
