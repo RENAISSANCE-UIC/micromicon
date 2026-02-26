@@ -20,6 +20,7 @@ We wanted a free, open-source toolkit that worked naturally for R users and lowe
 
 ```r
 # Install from GitHub
+
 devtools::install_github("RENAISSANCE-UIC/micromicon")
 
 # Or from local source
