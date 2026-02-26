@@ -475,7 +475,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - Bioconductor ecosystem (GenomicRanges, Biostrings, rtracklayer)
 - NCBI BLAST+ toolkit
 - Clean Architecture principles by Robert C. Martin ("Uncle Bob")
-- [CGView.js](https://js.cgview.ca/index.html) — the interactive circular genome viewer powering `plot_cgview()`, developed by Jason Grant and the CGView team
+- [CGView.js](https://js.cgview.ca/index.html) — the interactive circular genome viewer powering `plot_cgview()`, developed by Paul Stothard and the CGView team
 
 ---
 
