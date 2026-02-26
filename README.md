@@ -405,7 +405,7 @@ get_features(remote_genome)  # Dispatches to your method
 `micromicon` currently supports:
 - **Variant-aware workflows**: Track mutations via `genome_entity_gd`
 - **Visualization**: Integration with `CGView.js` via `plot_cgview()`
-- **breseq integration**: Parse `annotated.gd` files `read_variants()`
+- **breseq integration**: Parse `annotated.gd` files using `read_variants()`
 - **Mutation tables**: Generate predicted mutations summaries with `predict_variants()`
 - **Consequence enrichment**: Molecular impact analysis with `annotate_variants()` for SNP/DEL/INS/SUB
 - **Cross-platform optimization**: Auto-detects OS for parallel (Linux/macOS) or serial (Windows) processing
