@@ -271,7 +271,7 @@ write_fasta(genome, "output.fasta")
 
 Circular genome visualization is powered by 'CGView.js', rendered as an interactive htmlwidget via `plot_cgview()`. Single-contig maps display annotated features (CDS, tRNA, rRNA) color-coded by type. 
 
-When working with a `genome_entity_gd object`, genomic differences can be overlaid on the reference map or shown as side-by-side reference/variants panels (paired = TRUE). Plots open in the RStudio Viewer pane by default; pass viewer = "browser" to launch a full-width view in the system browser.
+When working with a `genome_entity_gd object`, genomic differences can be overlaid on the reference map or shown as juxtaposed reference/variants panels (paired = TRUE). Plots open in the RStudio Viewer pane by default; pass viewer = "browser" to launch a full-width view in the system browser.
 
 ```r
 plot_cgview(genome, contig = "1")
