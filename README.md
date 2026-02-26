@@ -51,7 +51,7 @@ BiocManager::install(c(
 
 ### Genome Navigation Mode
 
-##### NOTE: Visualization interfaces are in development, coming soon 
+##### NOTE: Visualization interfaces are in actuve development 
 
 Built on the `genome_entity` S3 object, intended for reference navigation: sequences, features, metadata, and indices. Here, the user can browse the microbial genomic features, pull and inspect sequences, and mine the genomic complement in context. 
 
