@@ -2,9 +2,12 @@
 % Please edit documentation in R/generics_gene_utilities.R
 \name{get_gene_aa}
 \alias{get_gene_aa}
+\alias{get_gene_aa.genome_entity}
 \title{Get Amino Acid Sequence for a Gene}
 \usage{
 get_gene_aa(x, gene, ...)
+
+\method{get_gene_aa}{genome_entity}(x, gene, genetic_code = NULL, fix_start_codon = TRUE, ...)
 }
 \arguments{
 \item{x}{A genome_entity object}

@@ -2,10 +2,20 @@
 % Please edit documentation in R/generics_queries.R
 \name{extract_by_name}
 \alias{extract_by_name}
+\alias{extract_by_name.genome_entity}
 \alias{extract_sequences_by_name}
 \title{Extract Sequences by Name}
 \usage{
 extract_by_name(x, ...)
+
+\method{extract_by_name}{genome_entity}(
+  x,
+  pattern,
+  translate = FALSE,
+  genetic_code = "11",
+  auto_harmonize = TRUE,
+  ...
+)
 
 extract_sequences_by_name(x, ...)
 }

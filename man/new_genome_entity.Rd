@@ -13,18 +13,18 @@ new_genome_entity(
 )
 }
 \arguments{
-\item{sequences}{List with components:
+\item{sequences_list}{List with components:
 \itemize{
 \item dna_raw (character): Named character vector of DNA sequences
 \item dna_bio (DNAStringSet or NULL): Biostrings representation (optional)
 \item indexed_fa (FaFile or NULL): Indexed FASTA file handle (optional)
 }}
 
-\item{features}{data.frame with genomic features (seqname, start, end, strand, type, ...)}
+\item{features_df}{data.frame with genomic features (seqname, start, end, strand, type, ...)}
 
-\item{metadata}{data.frame with sequence metadata (seqname, length, topology, molecule_type, ...)}
+\item{metadata_df}{data.frame with sequence metadata (seqname, length, topology, molecule_type, ...)}
 
-\item{indices}{List with components:
+\item{indices_list}{List with components:
 \itemize{
 \item seqnames (character): Vector of sequence names
 \item locus_tag_index (named integer): Map locus_tag to feature row

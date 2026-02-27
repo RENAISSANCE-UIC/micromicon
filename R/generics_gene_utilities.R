@@ -92,6 +92,7 @@ get_gene_aa <- function(x, gene, ...) {
   UseMethod("get_gene_aa")
 }
 
+#' @rdname get_gene_aa
 #' @export
 get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_codon = TRUE, ...) {
   validate_genome_entity(x)
@@ -198,6 +199,7 @@ get_roi_dna.default <- function(x, contig, start, end, strand = "+", ...) {
 #' @param end Integer vector of end positions, 1-based inclusive (length n)
 #' @param strand Character vector of strand values ("+" or "-"); recycled to
 #'   length n (default "+")
+#' @param ... Additional arguments (currently unused)
 #'
 #' @return Character vector of length n
 #' @export

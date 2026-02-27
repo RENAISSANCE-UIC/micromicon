@@ -2,9 +2,22 @@
 % Please edit documentation in R/generics_queries.R
 \name{get_roi_features}
 \alias{get_roi_features}
+\alias{get_roi_features.genome_entity}
 \title{Get Features Overlapping a Region of Interest}
 \usage{
 get_roi_features(x, ...)
+
+\method{get_roi_features}{genome_entity}(
+  x,
+  contig,
+  start,
+  end,
+  flank = 0,
+  feature_type = "CDS",
+  auto_resolve = TRUE,
+  drop_extdb = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{A genome_entity (or genome_entity_gd) object}

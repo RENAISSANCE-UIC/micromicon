@@ -4,10 +4,17 @@
 #' S3 method implementations for the export_genome() generic.
 #' Provides polymorphic export functionality for different genome object types.
 #'
+#' @param x Genome object to export
+#' @param file Output file path
+#' @param format Export format ("auto", "fasta", "gff3"). Default "auto" detects from file extension.
+#' @param ... Additional arguments passed to format-specific exporters
+#'
 #' @name export_genome-methods
 NULL
 
 #' @rdname export_genome-methods
+#' @param wrap_width Integer; line wrap width for FASTA output (default 80)
+#' @param source Character; source field written into GFF3 output (default "micromicon")
 #' @export
 export_genome.genome_entity <- function(x, file, format = c("auto", "fasta", "gff3"),
                                        wrap_width = 80, source = "micromicon", ...) {

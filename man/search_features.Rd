@@ -2,9 +2,21 @@
 % Please edit documentation in R/generics_queries.R
 \name{search_features}
 \alias{search_features}
+\alias{search_features.genome_entity}
 \title{Search Features}
 \usage{
 search_features(x, ...)
+
+\method{search_features}{genome_entity}(
+  x,
+  type = NULL,
+  pattern = NULL,
+  contig = NULL,
+  start = NULL,
+  end = NULL,
+  strand = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A genome_entity (or genome_entity_gd) object}

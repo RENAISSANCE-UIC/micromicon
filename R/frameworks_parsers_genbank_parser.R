@@ -552,8 +552,9 @@ parse_gbk_record <- function(lines) {
   )
 }
 
-# Public API: read a .gb/.gbk path (or vector of paths) and parse
-read_gbk <- function(path) {
+# Internal helper: read a .gb/.gbk path and return raw parsed records.
+# Callers outside this file should use the controller's read_gbk() or the gateway directly.
+.parse_gbk_file <- function(path) {
   stopifnot(length(path) == 1)
   lines <- readLines(path, warn = FALSE)
   # Normalize tabs to spaces

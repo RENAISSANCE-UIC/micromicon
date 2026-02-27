@@ -8,13 +8,13 @@
 #' core business concept of a "genome" independent of any particular file format
 #' or framework.
 #'
-#' @param sequences List with components:
+#' @param sequences_list List with components:
 #'   - dna_raw (character): Named character vector of DNA sequences
 #'   - dna_bio (DNAStringSet or NULL): Biostrings representation (optional)
 #'   - indexed_fa (FaFile or NULL): Indexed FASTA file handle (optional)
-#' @param features data.frame with genomic features (seqname, start, end, strand, type, ...)
-#' @param metadata data.frame with sequence metadata (seqname, length, topology, molecule_type, ...)
-#' @param indices List with components:
+#' @param features_df data.frame with genomic features (seqname, start, end, strand, type, ...)
+#' @param metadata_df data.frame with sequence metadata (seqname, length, topology, molecule_type, ...)
+#' @param indices_list List with components:
 #'   - seqnames (character): Vector of sequence names
 #'   - locus_tag_index (named integer): Map locus_tag to feature row
 #'   - gene_index (named integer): Map gene name to feature row

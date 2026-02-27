@@ -17,6 +17,8 @@ get_roi_dna_vec(x, contig, start, end, strand = "+", ...)
 
 \item{strand}{Character vector of strand values ("+" or "-"); recycled to
 length n (default "+")}
+
+\item{...}{Additional arguments (currently unused)}
 }
 \value{
 Character vector of length n

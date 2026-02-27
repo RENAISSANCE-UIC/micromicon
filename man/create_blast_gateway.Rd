@@ -9,29 +9,9 @@ create_blast_gateway(blast_type = "blastp")
 \arguments{
 \item{blast_type}{Type of BLAST to configure (default "blastp"). Reserved
 for future extensibility (blastn, blastx, etc.)}
-
-\item{db}{BLAST database prefix (e.g., "swissprot" or absolute "/path/to/swissprot")}
-
-\item{dbdir}{Directory containing BLAST DBs; if db is relative, dbdir is prepended}
-
-\item{blastp_bin}{Full path to blastp binary (preferred explicit control)}
-
-\item{blastp_dir}{Directory containing blastp; used if blastp_bin is NULL}
-
-\item{evalue}{E-value threshold}
-
-\item{threads}{Integer number of threads}
-
-\item{fields}{Vector of outfmt 6 columns}
-
-\item{validate_db}{Logical; check DB via blastdbcmd before running}
-
-\item{more_args}{Character vector of additional BLASTP args}
 }
 \value{
 Gateway object (list with BLAST methods)
-
-tibble of hits; aborts with rich diagnostics on failure
 }
 \description{
 Creates a gateway for running BLAST searches against local databases.

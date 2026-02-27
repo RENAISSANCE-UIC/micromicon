@@ -4,7 +4,7 @@
 \alias{read_gbk}
 \title{Read GenBank File}
 \usage{
-read_gbk(path)
+read_gbk(path, return_entity = TRUE, ...)
 }
 \arguments{
 \item{path}{Path to GenBank file}

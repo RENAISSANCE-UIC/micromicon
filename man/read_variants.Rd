@@ -2,9 +2,12 @@
 % Please edit documentation in R/generics_queries.R
 \name{read_variants}
 \alias{read_variants}
+\alias{read_variants.genome_entity}
 \title{Read Variant Calls Against a Reference Genome}
 \usage{
 read_variants(x, path, format = "gd", ...)
+
+\method{read_variants}{genome_entity}(x, path, format = "gd", strict = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{genome_entity} object (the reference genome).}

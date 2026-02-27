@@ -44,6 +44,7 @@ search_features <- function(x, ...) {
   UseMethod("search_features")
 }
 
+#' @rdname search_features
 #' @export
 search_features.genome_entity <- function(x, type = NULL, pattern = NULL,
                                          contig = NULL, start = NULL,
@@ -152,6 +153,7 @@ extract_by_name <- function(x, ...) {
   UseMethod("extract_by_name")
 }
 
+#' @rdname extract_by_name
 #' @export
 extract_by_name.genome_entity <- function(x, pattern,
                                          translate = FALSE,
@@ -537,6 +539,7 @@ get_roi_features <- function(x, ...) {
   UseMethod("get_roi_features")
 }
 
+#' @rdname get_roi_features
 #' @export
 get_roi_features.genome_entity <- function(x, contig, start, end,
                                            flank = 0,
@@ -623,6 +626,7 @@ read_variants <- function(x, path, format = "gd", ...) {
   UseMethod("read_variants")
 }
 
+#' @rdname read_variants
 #' @export
 read_variants.genome_entity <- function(x, path, format = "gd",
                                         strict = TRUE, ...) {

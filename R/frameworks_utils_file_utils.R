@@ -128,24 +128,3 @@ get_file_ext <- function(path) {
 }
 
 
-#' Detect file format from extension
-#'
-#' @description
-#' Detects file format (genbank, fasta, gff3) from file extension.
-#'
-#' @param path Character string file path
-#' @return Character string format name or NA if unknown
-#' @keywords internal
-detect_format_from_extension <- function(path) {
-  ext <- tolower(get_file_ext(path))
-
-  if (ext %in% c(".gbk", ".gb", ".genbank")) {
-    return("genbank")
-  } else if (ext %in% c(".fasta", ".fa", ".fna", ".faa")) {
-    return("fasta")
-  } else if (ext %in% c(".gff", ".gff3")) {
-    return("gff3")
-  } else {
-    return(NA_character_)
-  }
-}

@@ -122,16 +122,16 @@ create_blast_gateway <- function(blast_type = "blastp") {
     # Run BLASTP with explicit binary and DB paths
     #
     # @param query_faa Path to query FASTA/FAA file
-    #' @param db BLAST database prefix (e.g., "swissprot" or absolute "/path/to/swissprot")
-    #' @param dbdir Directory containing BLAST DBs; if db is relative, dbdir is prepended
-    #' @param blastp_bin Full path to blastp binary (preferred explicit control)
-    #' @param blastp_dir Directory containing blastp; used if blastp_bin is NULL
-    #' @param evalue E-value threshold
-    #' @param threads Integer number of threads
-    #' @param fields Vector of outfmt 6 columns
-    #' @param validate_db Logical; check DB via blastdbcmd before running
-    #' @param more_args Character vector of additional BLASTP args
-    #' @return tibble of hits; aborts with rich diagnostics on failure
+    # @param db BLAST database prefix (e.g., "swissprot" or absolute "/path/to/swissprot")
+    # @param dbdir Directory containing BLAST DBs; if db is relative, dbdir is prepended
+    # @param blastp_bin Full path to blastp binary (preferred explicit control)
+    # @param blastp_dir Directory containing blastp; used if blastp_bin is NULL
+    # @param evalue E-value threshold
+    # @param threads Integer number of threads
+    # @param fields Vector of outfmt 6 columns
+    # @param validate_db Logical; check DB via blastdbcmd before running
+    # @param more_args Character vector of additional BLASTP args
+    # @return tibble of hits; aborts with rich diagnostics on failure
     blastp_capture = function(
         query_faa,
         db = "swissprot",

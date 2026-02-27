@@ -17,6 +17,19 @@
 
 \method{export_genome}{default}(x, file, format = c("auto", "fasta", "gff3"), ...)
 }
+\arguments{
+\item{x}{Genome object to export}
+
+\item{file}{Output file path}
+
+\item{format}{Export format ("auto", "fasta", "gff3"). Default "auto" detects from file extension.}
+
+\item{wrap_width}{Integer; line wrap width for FASTA output (default 80)}
+
+\item{source}{Character; source field written into GFF3 output (default "micromicon")}
+
+\item{...}{Additional arguments passed to format-specific exporters}
+}
 \description{
 S3 method implementations for the export_genome() generic.
 Provides polymorphic export functionality for different genome object types.
