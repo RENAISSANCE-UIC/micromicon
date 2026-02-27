@@ -4,7 +4,7 @@
 <table>
   <tr>
     <td>
-      <img src="man/figures/micRomicon.png" width="180">
+      <img src="man/figures/micRomicon.png" width="250">
     </td>
     <td style="vertical-align: top;">
       <p>
