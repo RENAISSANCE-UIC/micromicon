@@ -473,6 +473,10 @@ Ackerman, W. (2026). micRomicon: An ostensibly format-agnostic microbial genomic
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## Funding
+
+The authors gratefully acknowledge support from the University of Illinois Chicago Institute for Health Data Science Research and from the *What If…* Awards for Creative Medical Research.
+
 ## Acknowledgments
 
 `micromicon` builds on the shoulders of:
