@@ -18,7 +18,7 @@ filter_variants(
 \code{annotate_variants()}.}
 
 \item{gene}{Character scalar; case-insensitive partial match against the
-\code{gene} column. Strand arrows (aQBtopnGG5YBH9ZYDtcuDXlMzwl936Mr-2\code{←}) are stripped before
+\code{gene} column. Strand arrows (lWosaPl4mBq7mkron5u0LYSD58b2f1l7-2\code{←}) are stripped before
 matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
 \code{gene = "mdt"} matches any \emph{mdt*} gene.}
 
