@@ -2,7 +2,7 @@
 
 <img src="man/figures/micRomicon.png" alt="micromicon logo"
      align="left" width="220" style="margin-right: 20px;"/>
-This is the repo for `micromicon`, a clean-architecture toolkit for reading, representing, and examining microbial genomes in R. Whether working with reference genomes (GenBank, GFF3+FASTA) or genomic variance data (breseq `annotated.gd` files), `micromicon` provides a unified interface for genome navigation and variation analysis. 
+This is the repo for `micromicon`, a clean-architecture, low cognitive overhead toolkit for reading, representing, and examining microbial genomes in R. Whether working with reference genomes (GenBank, GFF3+FASTA) or genomic variance data (breseq `annotated.gd` files), `micromicon` provides a unified interface for genome navigation and variation analysis. 
 
 The package supports two complementary modes: 
 
