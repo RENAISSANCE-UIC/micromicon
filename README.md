@@ -296,13 +296,7 @@ protein <- ampC$translation
 # BLASTP against local SwissProt
 hits <- blast_protein(protein, database = "swissprot")
 
-# Filter high-quality matches
-top_hits <- reduce_hits(hits,
-  min_qcov = 80,
-  min_pident = 50,
-  besthit = FALSE,
-  max_per_query = 5
-)
+ptint(hits) 
 ```
 
 **Requirements**: Local BLAST+ and database. See [BLAST Setup Guide](BLAST_SETUP.md).
