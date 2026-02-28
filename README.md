@@ -422,7 +422,7 @@ Planned features:
 - **Comparative genomics**: Multi-genome operations and phylogenetic integration
 - **VCF support**: Import variant calls from other pipelines
 - **Time-series analysis**: Track evolutionary dynamics across multiple samples
-- **Visualization**: Remember [ApE](https://jorgensen.biology.utah.edu/wayned/ape/), A Plasmid Editor by Davis and Jorgensen)? What if this, but for microbial genomics using modern tooling?
+- **Visualization**: Remember [ApE](https://jorgensen.biology.utah.edu/wayned/ape/), A Plasmid Editor by Davis and Jorgensen? What if this, but for microbial genomics using modern tooling?
 
 ## Dependencies
 
