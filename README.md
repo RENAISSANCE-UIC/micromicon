@@ -4,13 +4,13 @@
      align="left" width="220" style="margin-right: 20px;"/>
 This is the repo for `micromicon`, a clean-architecture, low-cognitive-overhead toolkit for reading, representing, and examining microbial genomes in R. Whether working with reference genomes (GenBank, GFF3+FASTA) or genomic variance data (breseq `annotated.gd` files), `micromicon` provides a unified interface for genome navigation and variation analysis. 
 
-This library is intended for use with haploid microbial genomic data (<20 Mb).
+This library is intended for use with haploid microbial genomic data (~5-20 Mbp).
 
 The package supports two complementary modes: 
 
 * **Genome Navigation Mode** (based around the `genome_entity` object) for reference sequence exploration.
 
-* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing genomic alterations from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing).
+* **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing genomic alterations derived from resequencing data processed using the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing).
 
 [<a href="https://doi.org/10.5281/zenodo.18665300"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg)
 
