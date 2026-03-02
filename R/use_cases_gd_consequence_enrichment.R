@@ -1,54 +1,41 @@
-#' Enrich Mutation Table with Consequences
+#' Enrich Mutation Table with Molecular Sequences
 #'
 #' @description
-#' Adds molecular consequence annotations to a `predict_variants()` table.
-#' Supports SNPs, deletions (DEL), insertions (INS), substitutions (SUB), and
-#' structural variants (MOB, AMP, CON, INV).
+#' Internal implementation of \code{\link{annotate_variants}()}.  Adds
+#' reference and alternate DNA / protein sequences to a
+#' \code{predict_variants()} table and carries the \code{var_type} consequence
+#' forward as \code{consequence}.
 #'
-#' For coding region mutations, computes reference/alternate sequences and
-#' consequences. For intergenic mutations, extracts flanking DNA windows.
-#' Structural variants receive reference sequences only (no allele computation).
+#' Sequences are computed from the genome object for SNP, DEL, INS, and SUB
+#' mutations.  Intergenic mutations receive a flanking DNA window.  Structural
+#' variants (MOB, AMP, INV, CON) receive reference sequences only;
+#' \code{dna_alt}, \code{aa_alt}, and \code{codon_alt} are \code{NA}.
 #'
-#' @param gd A GenomeData object
-#' @param pm_tbl A data.frame from `predict_variants()`, containing at minimum:
-#'   `type`, `seq_id`, `position`, `mutation`, `gene`
-#' @param flank Integer, number of bases to extract upstream/downstream for
-#'   intergenic regions (default: 50)
-#' @param quiet Logical, suppress informational messages (default: FALSE)
+#' @param gd A \code{genome_entity_gd} object.
+#' @param pm_tbl A data.frame from \code{predict_variants()}.
+#' @param flank Integer; bases to extract on each side of an intergenic
+#'   mutation.  Default: \code{50}.
+#' @param quiet Logical; suppress progress messages.  Default: \code{FALSE}.
 #'
-#' @return A data.frame with additional columns:
-#' \itemize{
-#'   \item \code{dna_ref} - Reference DNA sequence (full CDS for coding; window for intergenic)
-#'   \item \code{dna_alt} - Alternate DNA sequence with mutation applied
-#'   \item \code{aa_ref} - Reference amino acid sequence (coding only)
-#'   \item \code{aa_alt} - Alternate amino acid sequence (coding only)
-#'   \item \code{codon_ref} - Reference codon at mutation site (coding only)
-#'   \item \code{codon_alt} - Alternate codon at mutation site (coding only)
-#'   \item \code{codon_new} - Alias for codon_alt (for consistency with gd_verify_snp)
-#'   \item \code{consequence} - Mutation effect: "synonymous", "missense", "nonsense" (coding only)
-#'   \item \code{region} - "coding" or "intergenic"
-#'   \item \code{strand} - Gene strand (coding only)
-#'   \item \code{qc_note} - Quality control notes (offset warnings, fallbacks, normalizations)
+#' @return The input \code{pm_tbl} with added columns:
+#' \describe{
+#'   \item{\code{dna_ref}}{Reference DNA (full CDS or intergenic window).}
+#'   \item{\code{dna_alt}}{Alternate DNA with mutation applied (\code{NA} for
+#'     structural variants).}
+#'   \item{\code{aa_ref}}{Reference protein sequence (coding only).}
+#'   \item{\code{aa_alt}}{Alternate protein sequence, truncated at first stop
+#'     codon (coding only).}
+#'   \item{\code{codon_ref}}{Reference codon at mutation site (SNPs only).}
+#'   \item{\code{codon_alt}}{Alternate codon at mutation site (SNPs only).}
+#'   \item{\code{consequence}}{Passed through from \code{pm_tbl$var_type};
+#'     \code{NA} if \code{var_type} is absent.}
+#'   \item{\code{region}}{\code{"coding"} or \code{"intergenic"}.}
+#'   \item{\code{strand}}{Gene strand for coding mutations; \code{NA}
+#'     otherwise.}
+#'   \item{\code{qc_note}}{Quality-control notes; \code{NA} when clean.}
 #' }
 #'
-#' @details
-#' This function leverages existing micromicon utilities:
-#' \itemize{
-#'   \item \code{gd_verify_snp()} - Computes SNP effects for coding regions
-#'   \item \code{gd_locate()} - Classifies regions as coding vs intergenic
-#'   \item \code{get_gene_dna()}, \code{get_gene_aa()} - Extract gene sequences
-#'   \item \code{get_roi_dna()} - Extract arbitrary genomic windows
-#'   \item \code{translate_dna()} - Translate CDS to protein
-#' }
-#'
-#' **Supported mutation types:**
-#' \itemize{
-#'   \item \strong{SNP}: synonymous, missense, nonsense
-#'   \item \strong{DEL}: inframe_deletion, frameshift
-#'   \item \strong{INS}: inframe_insertion, frameshift
-#'   \item \strong{SUB}: complex (partial support)
-#'   \item \strong{MOB/AMP/CON/INV}: structural variants (reference sequences only)
-#' }
+#' @keywords internal
 #'
 #' **Note**: Only coding region mutations get amino acid sequences. Intergenic
 #' mutations only receive DNA sequences (no protein translation).
@@ -93,8 +80,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   out$aa_alt <- rep(NA_character_, n_rows)
   out$codon_ref <- rep(NA_character_, n_rows)
   out$codon_alt <- rep(NA_character_, n_rows)
-  out$codon_new <- rep(NA_character_, n_rows)
-  out$consequence <- rep(NA_character_, n_rows)
+  out$consequence <- if ("var_type" %in% names(pm_tbl)) pm_tbl$var_type else rep(NA_character_, n_rows)
   out$region <- rep(NA_character_, n_rows)
   out$strand <- rep(NA_character_, n_rows)
   out$qc_note <- rep(NA_character_, n_rows)
@@ -121,7 +107,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       enriched_row <- .pm_enrich_structural(gd, out[i, , drop = FALSE], flank, quiet,
                                             gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+                    "codon_ref", "codon_alt", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
       next
@@ -133,28 +119,28 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
                                      gene_dna_cache, gene_aa_cache)
       # Copy enriched fields back
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+                    "codon_ref", "codon_alt", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     } else if (row_type == "DEL") {
       enriched_row <- .pm_enrich_del(gd, out[i, , drop = FALSE], flank, quiet,
                                      gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+                    "codon_ref", "codon_alt", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     } else if (row_type == "INS") {
       enriched_row <- .pm_enrich_ins(gd, out[i, , drop = FALSE], flank, quiet,
                                      gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+                    "codon_ref", "codon_alt", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     } else if (row_type == "SUB") {
       enriched_row <- .pm_enrich_sub(gd, out[i, , drop = FALSE], flank, quiet,
                                      gene_dna_cache, gene_aa_cache)
       for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note")) {
+                    "codon_ref", "codon_alt", "consequence", "region", "strand", "qc_note")) {
         out[i, col] <- enriched_row[[col]]
       }
     }
@@ -386,7 +372,6 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   # Parse mutation string (A->C format)
   mut <- .pm_parse_snp_mutation(as.character(row$mutation))
   if (is.na(mut$ref) || is.na(mut$alt)) {
-    row$consequence <- "unknown_format"
     row <- .pm_append_qc_note(row, "Unparseable mutation format")
     return(row)
   }
@@ -495,7 +480,6 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       # Extract alternate codon
       codon_alt <- substr(cds_alt, codon_start, codon_end)
       row$codon_alt <- codon_alt
-      row$codon_new <- codon_alt
 
       # Translate mutated CDS
       aa_alt_raw <- tryCatch(
@@ -530,11 +514,8 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
       if (!is.na(aa_alt_char)) {
         if (aa_alt_char == "*") {
-          row$consequence <- "nonsense"
         } else if (aa_ref_char == aa_alt_char) {
-          row$consequence <- "synonymous"
         } else {
-          row$consequence <- "missense"
         }
       }
     }
@@ -691,9 +672,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
       # Determine consequence
       del_size <- del_info$end - del_info$start + 1
       if (del_size %% 3 == 0) {
-        row$consequence <- "inframe_deletion"
       } else {
-        row$consequence <- "frameshift"
       }
 
       row$region <- "coding"
@@ -799,9 +778,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
       # Determine consequence
       if (nchar(ins_info$sequence) %% 3 == 0) {
-        row$consequence <- "inframe_insertion"
       } else {
-        row$consequence <- "frameshift"
       }
 
       row$region <- "coding"
@@ -1024,8 +1001,6 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   row$aa_alt <- NA_character_
   row$codon_ref <- NA_character_
   row$codon_alt <- NA_character_
-  row$codon_new <- NA_character_
-  row$consequence <- NA_character_
 
   # Add QC note explaining why variant sequences are not computed
   variant_type <- toupper(as.character(row$type))

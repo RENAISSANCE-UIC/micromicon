@@ -216,13 +216,13 @@ gd_compute_snp_effect <- function(gd, seq_id, position, gene) {
   # 6) Identify codon window and translate
   w <- gd_codon_window(cds_pos)
   codon_ref <- toupper(substr(dna_ref, w$codon_start, w$codon_start + 2L))
-  codon_new <- toupper(substr(dna_mut, w$codon_start, w$codon_start + 2L))
+  codon_alt <- toupper(substr(dna_mut, w$codon_start, w$codon_start + 2L))
   
   aa_mut <- gd_translate_cds(dna_mut)
   aa_ref_i <- substr(aa_ref, w$aa_index, w$aa_index)
   aa_new_i <- substr(aa_mut, w$aa_index, w$aa_index)
   
-  consequence <- if (identical(aa_ref_i, aa_new_i)) "synonymous" else if (identical(aa_new_i, "*")) "nonsense" else "missense"
+  consequence <- if (identical(aa_ref_i, aa_new_i)) "synonymous" else if (identical(aa_new_i, "*")) "nonsense" else "nonsynonymous"
   
   list(
     ok         = TRUE,
@@ -232,7 +232,7 @@ gd_compute_snp_effect <- function(gd, seq_id, position, gene) {
     cds_pos    = as.integer(cds_pos),
     aa_index   = as.integer(w$aa_index),
     codon_ref  = codon_ref,
-    codon_new  = codon_new,
+    codon_alt  = codon_alt,
     aa_ref     = aa_ref_i,
     aa_new     = aa_new_i,
     consequence = consequence
@@ -262,7 +262,7 @@ gd_snp_effect_row <- function(gd, seq_id, position, gene) {
     verified = TRUE,
     consequence = r$consequence,
     aa_change   = paste0(r$aa_ref, r$aa_index, r$aa_new),
-    codon_change= paste0(r$codon_ref, "→", r$codon_new),
+    codon_change= paste0(r$codon_ref, "→", r$codon_alt),
     stringsAsFactors = FALSE
   )
 }
@@ -295,7 +295,7 @@ gd_classify_snp <- function(gd, seq_id, position, gene) {
   if (!isTRUE(v$ok)) {
     return(c(v, consequence = NA_character_))
   }
-  cons <- if (identical(v$aa_ref, v$aa_new)) "synonymous" else if (identical(v$aa_new, "*")) "nonsense" else "missense"
+  cons <- if (identical(v$aa_ref, v$aa_new)) "synonymous" else if (identical(v$aa_new, "*")) "nonsense" else "nonsynonymous"
   c(v, consequence = cons)
 }
 
@@ -308,7 +308,7 @@ gd_classify_snp <- function(gd, seq_id, position, gene) {
 #' @param gene feature symbol to verify against (prefer CDS symbol)
 #' @return tibble-like list/data.frame with fields:
 #'   ok, reason, seq_id, position, gene, strand, cds_pos, aa_index,
-#'   codon_ref, codon_new, aa_ref, aa_new, consequence
+#'   codon_ref, codon_alt, aa_ref, aa_new, consequence
 #' @keywords internal
 gd_verify_snp <- function(gd, seq_id, position, gene) {
   gd_assert(gd, "gd")
@@ -328,7 +328,7 @@ gd_verify_snp <- function(gd, seq_id, position, gene) {
       seq_id = seq_id_chr, position = pos_int, gene = gene,
       strand = NA_character_,
       cds_pos = NA_integer_, aa_index = NA_integer_,
-      codon_ref = NA_character_, codon_new = NA_character_,
+      codon_ref = NA_character_, codon_alt = NA_character_,
       aa_ref = NA_character_, aa_new = NA_character_,
       consequence = NA_character_
     ))
@@ -349,7 +349,7 @@ gd_verify_snp <- function(gd, seq_id, position, gene) {
       seq_id = seq_id_chr, position = pos_int, gene = gene,
       strand = strand,
       cds_pos = NA_integer_, aa_index = NA_integer_,
-      codon_ref = NA_character_, codon_new = NA_character_,
+      codon_ref = NA_character_, codon_alt = NA_character_,
       aa_ref = NA_character_, aa_new = NA_character_,
       consequence = NA_character_
     ))
@@ -367,7 +367,7 @@ gd_verify_snp <- function(gd, seq_id, position, gene) {
   # Compute codon window and translate
   w <- gd_codon_window(cds_pos)
   codon_ref <- toupper(substr(dna_ref, w$codon_start, w$codon_start + 2L))
-  codon_new <- toupper(substr(dna_mut, w$codon_start, w$codon_start + 2L))
+  codon_alt <- toupper(substr(dna_mut, w$codon_start, w$codon_start + 2L))
   
   aa_mut <- gd_translate_cds(dna_mut)
   aa_r   <- substr(aa_ref, w$aa_index, w$aa_index)
@@ -378,14 +378,14 @@ gd_verify_snp <- function(gd, seq_id, position, gene) {
   } else if (identical(aa_n, "*")) {
     "nonsense"
   } else {
-    "missense"
+    "nonsynonymous"
   }
   
   tibble::tibble(
     ok = TRUE, reason = NA_character_,
     seq_id = seq_id_chr, position = pos_int, gene = gene, strand = strand,
     cds_pos = as.integer(cds_pos), aa_index = as.integer(w$aa_index),
-    codon_ref = codon_ref, codon_new = codon_new,
+    codon_ref = codon_ref, codon_alt = codon_alt,
     aa_ref = aa_r, aa_new = aa_n,
     consequence = consequence
   )

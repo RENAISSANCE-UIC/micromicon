@@ -33,8 +33,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   out$aa_alt <- rep(NA_character_, n_rows)
   out$codon_ref <- rep(NA_character_, n_rows)
   out$codon_alt <- rep(NA_character_, n_rows)
-  out$codon_new <- rep(NA_character_, n_rows)
-  out$consequence <- rep(NA_character_, n_rows)
+  out$consequence <- if ("var_type" %in% names(pm_tbl)) pm_tbl$var_type else rep(NA_character_, n_rows)
   out$region <- rep(NA_character_, n_rows)
   out$strand <- rep(NA_character_, n_rows)
   out$qc_note <- rep(NA_character_, n_rows)
@@ -85,7 +84,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
 
     # Write back to output
     for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                  "codon_ref", "codon_alt", "codon_new", "consequence",
+                  "codon_ref", "codon_alt", "consequence",
                   "region", "strand", "qc_note")) {
       out[enriched_group$..row_id, col] <- enriched_group[[col]]
     }
@@ -279,7 +278,6 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   codon_alt <- codon_ref
   substr(codon_alt, codon_offset, codon_offset) <- alt_base_cds
   row$codon_alt <- codon_alt
-  row$codon_new <- codon_alt
 
   # Translate just the two codons (not entire CDS!)
   aa_ref_char <- substr(aa_ref, aa_index, aa_index)
@@ -299,16 +297,6 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   }
   row$aa_alt <- aa_alt
 
-  # Determine consequence
-  if (!is.na(aa_alt_char)) {
-    if (aa_alt_char == "*") {
-      row$consequence <- "nonsense"
-    } else if (aa_ref_char == aa_alt_char) {
-      row$consequence <- "synonymous"
-    } else {
-      row$consequence <- "missense"
-    }
-  }
 
   row
 }
@@ -344,12 +332,6 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   dna_alt <- paste0(before_del, after_del)
   row$dna_alt <- dna_alt
 
-  # Quick frameshift check
-  if (del_size %% 3 == 0) {
-    row$consequence <- "inframe_deletion"
-  } else {
-    row$consequence <- "frameshift"
-  }
 
   # Translate altered sequence (still needed for aa_alt)
   aa_alt <- tryCatch(
@@ -391,13 +373,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   dna_alt <- paste0(before_ins, ins_info$sequence, after_ins)
   row$dna_alt <- dna_alt
 
-  # Quick frameshift check
   ins_size <- nchar(ins_info$sequence)
-  if (ins_size %% 3 == 0) {
-    row$consequence <- "inframe_insertion"
-  } else {
-    row$consequence <- "frameshift"
-  }
 
   # Translate altered sequence
   aa_alt <- tryCatch(
@@ -432,8 +408,6 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   row$aa_alt <- NA_character_
   row$codon_ref <- NA_character_
   row$codon_alt <- NA_character_
-  row$codon_new <- NA_character_
-  row$consequence <- NA_character_
 
   variant_type <- toupper(as.character(row$type))
   row$qc_note <- sprintf("Structural variant (%s) - alternate sequences not computed", variant_type)

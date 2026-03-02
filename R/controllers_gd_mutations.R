@@ -476,15 +476,25 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
       if (is.na(j)) return(default)
       scalar_or(gd$events[[j]][[nm]], default)
     }
-    
-    mut_type    <- vapply(seq_len(n_ra), function(i) getm(i, "type", NA_character_), character(1))
-    del_size    <- vapply(seq_len(n_ra), function(i) getm(i, "del_size", NA_integer_), integer(1))
-    ins_seq     <- vapply(seq_len(n_ra), function(i) getm(i, "ins_seq", NA_character_), character(1))
-    ins_size    <- vapply(seq_len(n_ra), function(i) getm(i, "ins_size", NA_integer_), integer(1))
-    sub_size    <- vapply(seq_len(n_ra), function(i) getm(i, "sub_size", NA_integer_), integer(1))
-    sub_new_seq <- vapply(seq_len(n_ra), function(i) getm(i, "sub_new_seq", NA_character_), character(1))
-    amp_copies  <- vapply(seq_len(n_ra), function(i) getm(i, "amp_new_copy_number", NA_integer_), integer(1))
-    inv_size    <- vapply(seq_len(n_ra), function(i) getm(i, "inv_size", NA_integer_), integer(1))
+    getm_tag <- function(i, tag, default = NA_character_) {
+      j <- map_mut_i[i]
+      if (is.na(j)) return(default)
+      tags <- gd$events[[j]]$tags
+      if (is.null(tags)) return(default)
+      scalar_or(tags[[tag]], default)
+    }
+
+    mut_type     <- vapply(seq_len(n_ra), function(i) getm(i, "type", NA_character_), character(1))
+    del_size     <- vapply(seq_len(n_ra), function(i) getm(i, "del_size", NA_integer_), integer(1))
+    ins_seq      <- vapply(seq_len(n_ra), function(i) getm(i, "ins_seq", NA_character_), character(1))
+    ins_size     <- vapply(seq_len(n_ra), function(i) getm(i, "ins_size", NA_integer_), integer(1))
+    sub_size     <- vapply(seq_len(n_ra), function(i) getm(i, "sub_size", NA_integer_), integer(1))
+    sub_new_seq  <- vapply(seq_len(n_ra), function(i) getm(i, "sub_new_seq", NA_character_), character(1))
+    amp_copies   <- vapply(seq_len(n_ra), function(i) getm(i, "amp_new_copy_number", NA_integer_), integer(1))
+    inv_size     <- vapply(seq_len(n_ra), function(i) getm(i, "inv_size", NA_integer_), integer(1))
+    mut_category <- vapply(seq_len(n_ra), function(i) getm_tag(i, "mutation_category"), character(1))
+    genes_inact  <- vapply(seq_len(n_ra), function(i) getm_tag(i, "genes_inactivated"), character(1))
+    genes_over   <- vapply(seq_len(n_ra), function(i) getm_tag(i, "genes_overlapping"), character(1))
     
     fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "Δ1 bp", paste0("Δ", format(s, big.mark=","), " bp")))
     fmt_bp_ins <- function(s, seq) {
@@ -560,13 +570,50 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
       keep_ra <- keep_ra & v_not_na(ra$ev_frequency) & (ra$ev_frequency > min_freq)
     }
     
-    # --- NEW: compute 3-letter TYPE for RA rows (evidence-agnostic) ---
-    # Prefer explicit SNP when snp_label is present; else use linked mut_type.
+    # Compute type and var_type for each RA row
     type_ra <- ifelse(!is.na(snp_label), "SNP", mut_type)
-    
+
+    is_intergenic_gp <- function(gp) is.na(gp) | !nzchar(gp) | grepl("intergenic", gp, ignore.case = TRUE)
+
+    var_type_ra <- vapply(seq_len(n_ra), function(i) {
+      t <- mut_type[i]
+      if (is.na(t)) return(NA_character_)
+      switch(t,
+        "SNP" = scalar_or(snp_type[i], NA_character_),
+        "DEL" = {
+          if (is_intergenic_gp(gene_pos[i])) return("intergenic")
+          sz <- del_size[i]
+          if (is.na(sz)) return(NA_character_)
+          if (sz %% 3L == 0L) "inframe_deletion" else "frameshift"
+        },
+        "INS" = {
+          if (is_intergenic_gp(gene_pos[i])) return("intergenic")
+          sz <- ins_size[i]
+          if (is.na(sz)) return(NA_character_)
+          if (sz %% 3L == 0L) "inframe_insertion" else "frameshift"
+        },
+        "SUB" = {
+          if (is_intergenic_gp(gene_pos[i])) return("intergenic")
+          mc <- mut_category[i]
+          gi <- genes_inact[i]
+          go <- genes_over[i]
+          if (!is.na(mc) && mc == "large_substitution") return("inactivating")
+          if (!is.na(gi) && nzchar(gi)) return("frameshift")
+          if (!is.na(go) && nzchar(go)) return("inframe_substitution")
+          old_sz <- sub_size[i]
+          new_sz <- if (!is.na(sub_new_seq[i]) && nzchar(sub_new_seq[i])) nchar(sub_new_seq[i]) else 0L
+          if (!is.na(old_sz)) {
+            if ((new_sz - old_sz) %% 3L == 0L) "inframe_substitution" else "frameshift"
+          } else NA_character_
+        },
+        "AMP" = , "INV" = , "MOB" = , "CON" = "inactivating",
+        NA_character_
+      )
+    }, character(1))
+
     ra_out <- data.frame(
-      evidence    = ra$type[keep_ra],        # "RA"
-      type        = type_ra[keep_ra],        # <-- added
+      evidence    = ra$type[keep_ra],
+      type        = type_ra[keep_ra],
       seq_id      = ra$seq_id[keep_ra],
       position    = pos_str[keep_ra],
       mutation    = mutation[keep_ra],
@@ -574,6 +621,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
       annotation  = annotation[keep_ra],
       gene        = gene[keep_ra],
       description = description[keep_ra],
+      var_type    = var_type_ra[keep_ra],
       check.names = FALSE,
       stringsAsFactors = FALSE
     )
@@ -645,13 +693,14 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
     
     if (length(keep_idx)) {
       n_s <- length(keep_idx)
-      seq_id      <- character(n_s)
-      position    <- character(n_s)
-      mutation    <- character(n_s)
-      annotation  <- character(n_s)
-      gene        <- character(n_s)
-      description <- character(n_s)
-      type_vec    <- character(n_s)  # <-- new
+      seq_id       <- character(n_s)
+      position     <- character(n_s)
+      mutation     <- character(n_s)
+      annotation   <- character(n_s)
+      gene         <- character(n_s)
+      description  <- character(n_s)
+      type_vec     <- character(n_s)
+      var_type_vec <- character(n_s)
       
       fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "Δ1 bp", paste0("Δ", format(s, big.mark=","), " bp")))
       fmt_bp_ins <- function(s, seq) {
@@ -679,8 +728,35 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
         position[ii] <- fmt_pos(scalar_or(m$position, NA_integer_))
         
         t <- scalar_or(m$type, NA_character_)
-        type_vec[ii] <- t  # <-- capture the three-letter type
-        
+        type_vec[ii] <- t
+
+        mtags <- if (is.null(m$tags)) list() else m$tags
+        mc_s  <- scalar_or(mtags[["mutation_category"]], NA_character_)
+        gi_s  <- scalar_or(mtags[["genes_inactivated"]], NA_character_)
+        go_s  <- scalar_or(mtags[["genes_overlapping"]], NA_character_)
+        var_type_vec[ii] <- if (is.na(t)) NA_character_ else switch(t,
+          "MOB" = , "AMP" = , "INV" = , "CON" = "inactivating",
+          "DEL" = {
+            if (!is.na(mc_s) && grepl("large", mc_s, ignore.case = TRUE)) "inactivating"
+            else if (!is.na(gi_s) && nzchar(gi_s)) "frameshift"
+            else if (!is.na(go_s) && nzchar(go_s)) "inframe_deletion"
+            else "intergenic"
+          },
+          "INS" = {
+            if (!is.na(mc_s) && grepl("large", mc_s, ignore.case = TRUE)) "inactivating"
+            else if (!is.na(gi_s) && nzchar(gi_s)) "frameshift"
+            else if (!is.na(go_s) && nzchar(go_s)) "inframe_insertion"
+            else "intergenic"
+          },
+          "SUB" = {
+            if (!is.na(mc_s) && mc_s == "large_substitution") "inactivating"
+            else if (!is.na(gi_s) && nzchar(gi_s)) "frameshift"
+            else if (!is.na(go_s) && nzchar(go_s)) "inframe_substitution"
+            else "intergenic"
+          },
+          NA_character_
+        )
+
         if (t == "DEL") {
           mutation[ii] <- fmt_bp_del(scalar_or(m$del_size, NA_integer_))
         } else if (t == "INS") {
@@ -700,7 +776,6 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
         }
         
         parents <- scalar_or(m$parent_ids, integer(0))
-        mtags <- if (is.null(m$tags)) list() else m$tags
         mut_ann  <- scalar_or(mtags[["gene_position"]], NA_character_)
         mut_gene <- scalar_or(mtags[["gene_name"]],    NA_character_)
         mut_ltag <- scalar_or(mtags[["locus_tag"]],    NA_character_)
@@ -723,7 +798,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
       
       struct_out <- data.frame(
         evidence    = ev_str,
-        type        = type_vec,      # <-- added
+        type        = type_vec,
         seq_id      = seq_id,
         position    = position,
         mutation    = mutation,
@@ -731,6 +806,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
         annotation  = annotation,
         gene        = gene,
         description = description,
+        var_type    = var_type_vec,
         check.names = FALSE,
         stringsAsFactors = FALSE
       )

@@ -26,9 +26,9 @@
 #' @param consequence Character vector; keep only rows whose \code{consequence}
 #'   matches one of the supplied values (case-insensitive). Requires
 #'   \code{annotate_variants()} to have been run first. Common values:
-#'   \code{"synonymous"}, \code{"missense"}, \code{"nonsense"},
+#'   \code{"synonymous"}, \code{"nonsynonymous"}, \code{"nonsense"},
 #'   \code{"frameshift"}, \code{"inframe_deletion"},
-#'   \code{"inframe_insertion"}.
+#'   \code{"inframe_insertion"}, \code{"inactivating"}.
 #' @param contig Character scalar; keep only rows on this contig or chromosome
 #'   (exact match).
 #'
@@ -45,9 +45,9 @@
 #' # Only SNPs and DELs
 #' filter_variants(variants, type = c("SNP", "DEL"))
 #'
-#' # Missense mutations in marR
+#' # Nonsynonymous mutations in marR
 #' annotated <- annotate_variants(gd, variants)
-#' filter_variants(annotated, gene = "marR", consequence = "missense")
+#' filter_variants(annotated, gene = "marR", consequence = "nonsynonymous")
 #' }
 #'
 #' @export

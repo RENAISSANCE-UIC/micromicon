@@ -53,8 +53,7 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
   out$aa_alt <- rep(NA_character_, n_rows)
   out$codon_ref <- rep(NA_character_, n_rows)
   out$codon_alt <- rep(NA_character_, n_rows)
-  out$codon_new <- rep(NA_character_, n_rows)
-  out$consequence <- rep(NA_character_, n_rows)
+  out$consequence <- if ("var_type" %in% names(pm_tbl)) pm_tbl$var_type else rep(NA_character_, n_rows)
   out$region <- rep(NA_character_, n_rows)
   out$strand <- rep(NA_character_, n_rows)
   out$qc_note <- rep(NA_character_, n_rows)
@@ -244,7 +243,7 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
     }
 
     for (col in c("dna_ref", "dna_alt", "aa_ref", "aa_alt",
-                  "codon_ref", "codon_alt", "codon_new", "consequence",
+                  "codon_ref", "codon_alt", "consequence",
                   "region", "strand", "qc_note")) {
       out[enriched_group$..row_id, col] <- enriched_group[[col]]
     }

@@ -90,8 +90,12 @@ micromicon_functions <- function() {
   
   .micromicon_section("Variants", list(
     c("predict_variants()",         "tidy variant table (GenomeDiff parser)"),
-    c("annotate_variants()",        "molecular consequences of variants"),
+    c("annotate_variants()",        "add reference/alternate sequences and consequences"),
     c("filter_variants()",          "filter by gene, frequency, type, or consequence"),
+    c("get_reference_dna()",        "reference CDS or window from a consequence table"),
+    c("get_alternate_dna()",        "mutated CDS or window from a consequence table"),
+    c("get_reference_aa()",         "reference protein sequence from a consequence table"),
+    c("get_alternate_aa()",         "mutated protein sequence from a consequence table"),
     c("validate_variant_in_gene()", "check whether a variant resides in a gene")
   ), width)
   

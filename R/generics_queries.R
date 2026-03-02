@@ -370,18 +370,68 @@ extract_sequences_by_coords <- extract_by_coords
 #' @keywords internal
 extract_sequences_by_name <- extract_by_name
 
-#' Predict Mutations
+#' Predict Variants
 #'
 #' @description
-#' Extracts and presents mutations from a genome data object.
+#' Parses a \code{genome_entity_gd} object — loaded from a breseq
+#' \code{annotated.gd} file — and returns a tidy data frame of mutations.
+#' Annotation tags written by \code{gdtools ANNOTATE} (gene names, codon
+#' changes, \code{snp_type}, inactivation status) are read directly from the
+#' file; no genome-sequence computation is performed here.
 #'
-#' @param gd A genome data object
-#' @param ... Additional arguments passed to methods
-#' @param min_freq Minimum frequency threshold (default: 0)
-#' @param include_structural Include structural variants (default: TRUE)
-#' @param join Join method for multi-gene annotations (default: "slash")
+#' For the full molecular-consequence workflow (reference/alternate CDS and
+#' protein sequences), pipe the result into \code{\link{annotate_variants}()}.
 #'
-#' @return A data frame of mutations with friendly preview
+#' @param gd A \code{genome_entity_gd} object produced by
+#'   \code{\link{read_variants}()}.
+#' @param ... Reserved for future arguments.
+#' @param min_freq Numeric scalar in \eqn{[0, 1]}.  Rows with allele frequency
+#'   below this threshold are dropped.  Applied to RA evidence only; structural
+#'   variants (frequency fixed at 100\%) are unaffected.  Default: \code{0}
+#'   (keep all).
+#' @param include_structural Logical; include structural variants (MOB, AMP,
+#'   INV, CON) detected by MC/JC evidence.  Default: \code{TRUE}.
+#' @param join How to render multi-valued annotation fields (multiple genes,
+#'   multiple products).  One of \code{"slash"} (default, \code{" / "}),
+#'   \code{"pipe"} (\code{" | "}), or \code{"newline"} (\code{"\n"}).
+#'
+#' @return A data frame with one row per predicted variant.  Columns:
+#' \describe{
+#'   \item{\code{evidence}}{Evidence type supporting the call: \code{"RA"},
+#'     \code{"MC"}, \code{"JC"}, or a combination such as \code{"MC JC"}.}
+#'   \item{\code{type}}{Three-letter mutation type: \code{SNP}, \code{DEL},
+#'     \code{INS}, \code{SUB}, \code{AMP}, \code{INV}, \code{MOB},
+#'     \code{CON}.}
+#'   \item{\code{seq_id}}{Reference contig / chromosome identifier.}
+#'   \item{\code{position}}{Formatted genomic position (thousands-separated).
+#'     Insertions append the within-position offset as \code{pos:k}.}
+#'   \item{\code{mutation}}{Human-readable change label, e.g.\ \code{A\u2192T},
+#'     \code{\u03941,234 bp}, \code{+25 bp}, \code{AMP\u00d73}.}
+#'   \item{\code{freq}}{Allele frequency as a percentage string, e.g.\
+#'     \code{"45.2\%"}.  Structural variants are reported as
+#'     \code{"100.0\%"}.}
+#'   \item{\code{annotation}}{Position within the gene for coding mutations
+#'     (e.g.\ \code{"coding (45/1200 nt)"}); amino-acid change for SNPs
+#'     (e.g.\ \code{"K123E (AAA\u2192GAA)"}); intergenic distance otherwise.}
+#'   \item{\code{gene}}{Gene symbol or locus tag, with a strand arrow appended
+#'     (\code{\u2192} / \code{\u2190}) for structural variants.}
+#'   \item{\code{description}}{Gene product description.}
+#'   \item{\code{var_type}}{Molecular consequence class read from breseq
+#'     annotation tags.  Values:
+#'     \code{synonymous}, \code{nonsynonymous}, \code{nonsense},
+#'     \code{noncoding}, \code{pseudogene} (SNPs);
+#'     \code{frameshift}, \code{inframe_deletion}, \code{inframe_insertion},
+#'     \code{inframe_substitution}, \code{inactivating} (indels and structural
+#'     variants);
+#'     \code{intergenic} (any mutation outside annotated features).}
+#' }
+#'
+#' @seealso
+#' \code{\link{annotate_variants}()} to add reference/alternate sequences;\cr
+#' \code{\link{filter_variants}()} to subset by gene, frequency, type, or
+#' consequence;\cr
+#' \code{\link{read_variants}()} to load the \code{annotated.gd} file.
+#'
 #' @export
 predict_variants <- function(gd, ...) {
   UseMethod("predict_variants")
@@ -468,18 +518,94 @@ predict_variants.default <- function(gd, ...) {
   ))
 }
 
-#' Compute Mutation Effects
+#' Annotate Variants with Molecular Sequences and Consequences
 #'
 #' @description
-#' Enriches a variant table with molecular consequences. Uses parallel
-#' processing where available (fork-based on Linux/macOS; PSOCK cluster on
-#' Windows), falling back to serial execution if cluster creation fails.
+#' Enriches a \code{\link{predict_variants}()} table with reference and
+#' alternate DNA and protein sequences, and carries the \code{var_type}
+#' consequence forward as the \code{consequence} column.
 #'
-#' @param gd A genome data object
-#' @param pm_tbl A data frame from \code{predict_variants()}
-#' @param ... Additional arguments passed to methods
+#' For coding-region mutations the full reference CDS and its translated
+#' protein are extracted from the genome, the mutation is applied in-silico,
+#' and the alternate CDS / protein are returned.  For intergenic mutations a
+#' flanking DNA window is extracted instead.  Structural variants (MOB, AMP,
+#' INV, CON) receive reference sequences only.
 #'
-#' @return Enriched data frame with consequence columns
+#' Consequences (\code{consequence}) are \emph{not} recomputed here — they are
+#' passed through verbatim from the \code{var_type} column produced by
+#' \code{\link{predict_variants}()}, which in turn reads breseq's own
+#' annotation tags.  This preserves breseq's terminology throughout (e.g.\
+#' \code{nonsynonymous}, not \code{missense}).
+#'
+#' Processing uses parallel workers where available (fork-based on Linux/macOS;
+#' PSOCK cluster on Windows), falling back to sequential execution if cluster
+#' creation fails.
+#'
+#' @param gd A \code{genome_entity_gd} object produced by
+#'   \code{\link{read_variants}()}.
+#' @param pm_tbl A data frame produced by \code{\link{predict_variants}()}.
+#'   Must contain columns \code{type}, \code{seq_id}, \code{position},
+#'   \code{mutation}, and \code{gene}.  The \code{var_type} column, if present,
+#'   is forwarded to \code{consequence} without modification.
+#' @param ... Additional arguments passed to the underlying implementation.
+#'   Recognised arguments:
+#'   \describe{
+#'     \item{\code{flank}}{Integer; number of bases to extract on each side of
+#'       an intergenic mutation for the DNA window.  Default: \code{50}.}
+#'     \item{\code{quiet}}{Logical; suppress progress messages.
+#'       Default: \code{FALSE}.}
+#'   }
+#'
+#' @return The input \code{pm_tbl} with the following columns added:
+#' \describe{
+#'   \item{\code{dna_ref}}{Reference DNA sequence.  Full CDS for coding
+#'     mutations; a \code{flank}-bp window centred on the variant for
+#'     intergenic mutations.}
+#'   \item{\code{dna_alt}}{Alternate DNA sequence with the mutation applied.
+#'     \code{NA} for structural variants.}
+#'   \item{\code{aa_ref}}{Full reference protein sequence (coding only;
+#'     \code{NA} otherwise).}
+#'   \item{\code{aa_alt}}{Full alternate protein sequence with the mutation
+#'     applied, truncated at the first stop codon (coding only;
+#'     \code{NA} otherwise).}
+#'   \item{\code{codon_ref}}{Reference codon at the mutation site (SNPs only).}
+#'   \item{\code{codon_alt}}{Alternate codon at the mutation site (SNPs only).}
+#'   \item{\code{consequence}}{Consequence class, copied from \code{var_type}.
+#'     See \code{\link{predict_variants}()} for the full vocabulary.}
+#'   \item{\code{region}}{\code{"coding"} or \code{"intergenic"}.}
+#'   \item{\code{strand}}{Gene strand (\code{"+"} or \code{"-"}) for coding
+#'     mutations; \code{NA} otherwise.}
+#'   \item{\code{qc_note}}{Quality-control notes: position offset warnings,
+#'     alternative start-codon normalisations, fallback notices.
+#'     \code{NA} when no issues were detected.}
+#' }
+#'
+#' @seealso
+#' \code{\link{predict_variants}()} to build the input table;\cr
+#' \code{\link{filter_variants}()} to subset by consequence or gene;\cr
+#' \code{\link{get_reference_dna}()}, \code{\link{get_alternate_dna}()},
+#' \code{\link{get_reference_aa}()}, \code{\link{get_alternate_aa}()} to
+#' extract sequences from the result.
+#'
+#' @examples
+#' \dontrun{
+#' gd       <- read_variants(ref, "annotated.gd")
+#' variants <- predict_variants(gd)
+#'
+#' # Full workflow
+#' ct <- annotate_variants(gd, variants)
+#'
+#' # Quiet, wider intergenic window
+#' ct <- annotate_variants(gd, variants, flank = 200, quiet = TRUE)
+#'
+#' # Extract sequences for a gene of interest
+#' get_reference_aa(ct, gene = "rpoB")
+#' get_alternate_aa(ct,  gene = "rpoB")
+#'
+#' # Filter to nonsynonymous only
+#' filter_variants(ct, consequence = "nonsynonymous")
+#' }
+#'
 #' @export
 annotate_variants <- function(gd, pm_tbl, ...) {
   UseMethod("annotate_variants")
