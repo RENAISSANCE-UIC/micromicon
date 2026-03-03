@@ -9,7 +9,13 @@
 #' @param consequence_tbl A data frame from \code{annotate_variants()}.
 #' @param gene Optional character string. When supplied, only rows whose
 #'   \code{gene} column contains this pattern (partial match, case-insensitive,
-#'   strand arrows ignored) are returned.
+#'   strand arrows ignored) are returned. Mutually exclusive with
+#'   \code{position}.
+#' @param position Numeric scalar or length-2 numeric vector. When a scalar,
+#'   keeps only the row whose \code{position} equals that value exactly. When a
+#'   length-2 vector \code{c(start, end)}, keeps rows whose \code{position}
+#'   falls within that range (inclusive). Mutually exclusive with \code{gene}.
+#'   Errors if no matching rows are found.
 #' @param na.rm Logical; if \code{TRUE} (default) rows with \code{NA}
 #'   \code{dna_ref} are silently dropped.
 #' @param ... Reserved for future arguments.
@@ -25,11 +31,12 @@
 #' ct <- annotate_variants(gd, predict_variants(gd))
 #' get_reference_dna(ct)
 #' get_reference_dna(ct, gene = "rpoB")
+#' get_reference_dna(ct, position = 1834467)
 #' }
 #'
 #' @export
-get_reference_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
-  .get_variant_seq_col(consequence_tbl, col = "dna_ref", gene = gene, na.rm = na.rm)
+get_reference_dna <- function(consequence_tbl, gene = NULL, position = NULL, na.rm = TRUE, ...) {
+  .get_variant_seq_col(consequence_tbl, col = "dna_ref", gene = gene, position = position, na.rm = na.rm)
 }
 
 
@@ -54,11 +61,12 @@ get_reference_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 #' ct <- annotate_variants(gd, predict_variants(gd))
 #' get_variant_dna(ct)
 #' get_variant_dna(ct, gene = "rpoB")
+#' get_variant_dna(ct, position = 1834467)
 #' }
 #'
 #' @export
-get_variant_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
-  .get_variant_seq_col(consequence_tbl, col = "dna_alt", gene = gene, na.rm = na.rm)
+get_variant_dna <- function(consequence_tbl, gene = NULL, position = NULL, na.rm = TRUE, ...) {
+  .get_variant_seq_col(consequence_tbl, col = "dna_alt", gene = gene, position = position, na.rm = na.rm)
 }
 
 
@@ -82,11 +90,12 @@ get_variant_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 #' ct <- annotate_variants(gd, predict_variants(gd))
 #' get_reference_aa(ct)
 #' get_reference_aa(ct, gene = "rpoB")
+#' get_reference_aa(ct, position = 1834467)
 #' }
 #'
 #' @export
-get_reference_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
-  .get_variant_seq_col(consequence_tbl, col = "aa_ref", gene = gene, na.rm = na.rm)
+get_reference_aa <- function(consequence_tbl, gene = NULL, position = NULL, na.rm = TRUE, ...) {
+  .get_variant_seq_col(consequence_tbl, col = "aa_ref", gene = gene, position = position, na.rm = na.rm)
 }
 
 
@@ -111,18 +120,19 @@ get_reference_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 #' ct <- annotate_variants(gd, predict_variants(gd))
 #' get_variant_aa(ct)
 #' get_variant_aa(ct, gene = "rpoB")
+#' get_variant_aa(ct, position = 1834467)
 #' }
 #'
 #' @export
-get_variant_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
-  .get_variant_seq_col(consequence_tbl, col = "aa_alt", gene = gene, na.rm = na.rm)
+get_variant_aa <- function(consequence_tbl, gene = NULL, position = NULL, na.rm = TRUE, ...) {
+  .get_variant_seq_col(consequence_tbl, col = "aa_alt", gene = gene, position = position, na.rm = na.rm)
 }
 
 
 # ── internal helper ──────────────────────────────────────────────────────────
 
 #' @keywords internal
-.get_variant_seq_col <- function(consequence_tbl, col, gene = NULL, na.rm = TRUE) {
+.get_variant_seq_col <- function(consequence_tbl, col, gene = NULL, position = NULL, na.rm = TRUE) {
   if (!is.data.frame(consequence_tbl)) {
     cli::cli_abort(c(
       "{.arg consequence_tbl} must be a data frame.",
@@ -139,12 +149,76 @@ get_variant_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
     cli::cli_abort("{.arg consequence_tbl} must have a {.field gene} column.")
   }
 
+  # --- mutual exclusivity ------------------------------------------------------
+  if (!is.null(gene) && !is.null(position)) {
+    cli::cli_abort(c(
+      "x" = "Supply {.arg gene} or {.arg position}, not both.",
+      "i" = "They are alternative ways to identify a locus."
+    ))
+  }
+
   tbl <- consequence_tbl
 
+  # --- gene filter -------------------------------------------------------------
   if (!is.null(gene)) {
     gene_clean <- gsub("[\u2190\u2192]", "", tbl$gene)
     gene_clean <- trimws(gene_clean)
     tbl <- tbl[grepl(gene, gene_clean, ignore.case = TRUE), , drop = FALSE]
+  }
+
+  # --- position filter ---------------------------------------------------------
+  if (!is.null(position)) {
+    if (is.character(position)) {
+      parsed <- suppressWarnings(as.numeric(gsub(",", "", position)))
+      if (!anyNA(parsed) && length(parsed) == 1L) {
+        cli::cli_abort(c(
+          "x" = "{.arg position} must be numeric, not a character string.",
+          "i" = "Did you mean {.code position = {parsed}}?"
+        ))
+      } else if (!anyNA(parsed) && length(parsed) == 2L) {
+        cli::cli_abort(c(
+          "x" = "{.arg position} must be numeric, not a character string.",
+          "i" = "Did you mean {.code position = c({parsed[1]}, {parsed[2]})}?"
+        ))
+      } else {
+        cli::cli_abort(
+          "{.arg position} must be a numeric scalar or a length-2 numeric vector."
+        )
+      }
+    }
+
+    if (!is.numeric(position) && !is.integer(position)) {
+      cli::cli_abort(
+        "{.arg position} must be a numeric scalar or a length-2 numeric vector."
+      )
+    }
+
+    pos_numeric <- suppressWarnings(as.integer(gsub(",", "", as.character(tbl$position))))
+
+    if (length(position) == 1L) {
+      tbl <- tbl[!is.na(pos_numeric) & pos_numeric == position, , drop = FALSE]
+      if (nrow(tbl) == 0L) {
+        cli::cli_abort("No variants found at position {position}.")
+      }
+    } else if (length(position) == 2L) {
+      if (position[1] > position[2]) {
+        cli::cli_abort(c(
+          "x" = "Range {.arg position} must be {.code c(start, end)} with start \u2264 end.",
+          "i" = "Did you mean {.code position = c({position[2]}, {position[1]})}?"
+        ))
+      }
+      tbl <- tbl[!is.na(pos_numeric) & pos_numeric >= position[1] & pos_numeric <= position[2], , drop = FALSE]
+      if (nrow(tbl) == 0L) {
+        cli::cli_abort(
+          "No variants found in the range {position[1]}\u2013{position[2]}."
+        )
+      }
+    } else {
+      cli::cli_abort(c(
+        "x" = "{.arg position} must be a scalar (exact) or length-2 vector (range).",
+        "i" = "Got a vector of length {length(position)}."
+      ))
+    }
   }
 
   seqs  <- tbl[[col]]

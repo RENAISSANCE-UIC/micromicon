@@ -118,8 +118,10 @@ filter_variants <- function(tbl,
       )
     }
 
+    pos_numeric <- suppressWarnings(as.integer(gsub(",", "", as.character(tbl$position))))
+
     if (length(position) == 1L) {
-      keep <- keep & !is.na(tbl$position) & (tbl$position == position)
+      keep <- keep & !is.na(pos_numeric) & (pos_numeric == position)
     } else if (length(position) == 2L) {
       if (position[1] > position[2]) {
         cli::cli_abort(c(
@@ -127,8 +129,8 @@ filter_variants <- function(tbl,
           "i" = "Did you mean {.code position = c({position[2]}, {position[1]})}?"
         ))
       }
-      keep <- keep & !is.na(tbl$position) &
-        (tbl$position >= position[1]) & (tbl$position <= position[2])
+      keep <- keep & !is.na(pos_numeric) &
+        (pos_numeric >= position[1]) & (pos_numeric <= position[2])
     } else {
       cli::cli_abort(c(
         "x" = "{.arg position} must be a scalar (exact) or length-2 vector (range).",
