@@ -202,12 +202,12 @@ get_roi_dna.default <- function(x, contig, start, end, strand = "+", ...) {
 #' @param ... Additional arguments (currently unused)
 #'
 #' @return Character vector of length n
-#' @export
+#' @keywords internal
 get_roi_dna_vec <- function(x, contig, start, end, strand = "+", ...) {
   UseMethod("get_roi_dna_vec")
 }
 
-#' @export
+#' @keywords internal
 get_roi_dna_vec.genome_entity <- function(x, contig, start, end, strand = "+", ...) {
   validate_genome_entity(x)
 
@@ -252,7 +252,7 @@ get_roi_dna_vec.genome_entity <- function(x, contig, start, end, strand = "+", .
   result
 }
 
-#' @export
+#' @keywords internal
 get_roi_dna_vec.default <- function(x, contig, start, end, strand = "+", ...) {
   cli::cli_abort("get_roi_dna_vec() not implemented for class {.cls {class(x)[1]}}")
 }
