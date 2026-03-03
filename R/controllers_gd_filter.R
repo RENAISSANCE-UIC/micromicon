@@ -14,7 +14,13 @@
 #' @param gene Character scalar; case-insensitive partial match against the
 #'   \code{gene} column. Strand arrows (\code{→}/\code{←}) are stripped before
 #'   matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
-#'   \code{gene = "mdt"} matches any \emph{mdt*} gene.
+#'   \code{gene = "mdt"} matches any \emph{mdt*} gene. Mutually exclusive
+#'   with \code{position}.
+#' @param position Numeric scalar or length-2 numeric vector. When a scalar,
+#'   keeps only rows whose \code{position} equals that value exactly. When a
+#'   length-2 vector \code{c(start, end)}, keeps rows whose \code{position}
+#'   falls within that range (inclusive). Mutually exclusive with \code{gene}.
+#'   Errors if no matching rows are found.
 #' @param min_freq Numeric (0–1); retain rows whose allele frequency is at
 #'   least this value. The display string (e.g. \code{"85.1\%"}) is converted
 #'   automatically. Structural variants reported at 100\% always pass this
@@ -45,6 +51,12 @@
 #' # Only SNPs and DELs
 #' filter_variants(variants, type = c("SNP", "DEL"))
 #'
+#' # Variant at an exact position
+#' filter_variants(variants, position = 1834467)
+#'
+#' # All variants within a genomic window
+#' filter_variants(variants, position = c(1830000, 1840000))
+#'
 #' # Nonsynonymous mutations in marR
 #' annotated <- annotate_variants(gd, variants)
 #' filter_variants(annotated, gene = "marR", consequence = "nonsynonymous")
@@ -53,11 +65,20 @@
 #' @export
 filter_variants <- function(tbl,
                             gene        = NULL,
+                            position    = NULL,
                             min_freq    = NULL,
                             type        = NULL,
                             consequence = NULL,
                             contig      = NULL) {
   stopifnot(is.data.frame(tbl))
+
+  # --- mutual exclusivity ------------------------------------------------------
+  if (!is.null(gene) && !is.null(position)) {
+    cli::cli_abort(c(
+      "x" = "Supply {.arg gene} or {.arg position}, not both.",
+      "i" = "They are alternative ways to identify a locus."
+    ))
+  }
 
   keep <- rep(TRUE, nrow(tbl))
 
@@ -67,6 +88,63 @@ filter_variants <- function(tbl,
     gene_clean <- gsub("[\u2190\u2192]", "", tbl$gene)
     gene_clean <- trimws(gene_clean)
     keep <- keep & grepl(gene, gene_clean, ignore.case = TRUE)
+  }
+
+  # --- position: exact or range ------------------------------------------------
+  if (!is.null(position)) {
+    # Friendly error for comma-formatted strings like "1,834,467"
+    if (is.character(position)) {
+      parsed <- suppressWarnings(as.numeric(gsub(",", "", position)))
+      if (!anyNA(parsed) && length(parsed) == 1L) {
+        cli::cli_abort(c(
+          "x" = "{.arg position} must be numeric, not a character string.",
+          "i" = "Did you mean {.code position = {parsed}}?"
+        ))
+      } else if (!anyNA(parsed) && length(parsed) == 2L) {
+        cli::cli_abort(c(
+          "x" = "{.arg position} must be numeric, not a character string.",
+          "i" = "Did you mean {.code position = c({parsed[1]}, {parsed[2]})}?"
+        ))
+      } else {
+        cli::cli_abort(
+          "{.arg position} must be a numeric scalar or a length-2 numeric vector."
+        )
+      }
+    }
+
+    if (!is.numeric(position) && !is.integer(position)) {
+      cli::cli_abort(
+        "{.arg position} must be a numeric scalar or a length-2 numeric vector."
+      )
+    }
+
+    if (length(position) == 1L) {
+      keep <- keep & !is.na(tbl$position) & (tbl$position == position)
+    } else if (length(position) == 2L) {
+      if (position[1] > position[2]) {
+        cli::cli_abort(c(
+          "x" = "Range {.arg position} must be {.code c(start, end)} with start \u2264 end.",
+          "i" = "Did you mean {.code position = c({position[2]}, {position[1]})}?"
+        ))
+      }
+      keep <- keep & !is.na(tbl$position) &
+        (tbl$position >= position[1]) & (tbl$position <= position[2])
+    } else {
+      cli::cli_abort(c(
+        "x" = "{.arg position} must be a scalar (exact) or length-2 vector (range).",
+        "i" = "Got a vector of length {length(position)}."
+      ))
+    }
+
+    if (!any(keep)) {
+      if (length(position) == 1L) {
+        cli::cli_abort("No variants found at position {position}.")
+      } else {
+        cli::cli_abort(
+          "No variants found in the range {position[1]}\u2013{position[2]}."
+        )
+      }
+    }
   }
 
   # --- min_freq: parse "85.1%" -> 0.851 ----------------------------------------
