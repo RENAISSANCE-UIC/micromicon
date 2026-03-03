@@ -2,67 +2,49 @@
 % Please edit documentation in R/use_cases_gd_consequence_enrichment.R
 \name{pm_enrich_consequences}
 \alias{pm_enrich_consequences}
-\title{Enrich Mutation Table with Consequences}
+\title{Enrich Mutation Table with Molecular Sequences}
 \usage{
 pm_enrich_consequences(gd, pm_tbl, flank = 50L, quiet = FALSE)
 }
 \arguments{
-\item{gd}{A GenomeData object}
+\item{gd}{A \code{genome_entity_gd} object.}
 
-\item{pm_tbl}{A data.frame from \code{predict_variants()}, containing at minimum:
-\code{type}, \code{seq_id}, \code{position}, \code{mutation}, \code{gene}}
+\item{pm_tbl}{A data.frame from \code{predict_variants()}.}
 
-\item{flank}{Integer, number of bases to extract upstream/downstream for
-intergenic regions (default: 50)}
+\item{flank}{Integer; bases to extract on each side of an intergenic
+mutation.  Default: \code{50}.}
 
-\item{quiet}{Logical, suppress informational messages (default: FALSE)}
+\item{quiet}{Logical; suppress progress messages.  Default: \code{FALSE}.}
 }
 \value{
-A data.frame with additional columns:
-\itemize{
-\item \code{dna_ref} - Reference DNA sequence (full CDS for coding; window for intergenic)
-\item \code{dna_alt} - Alternate DNA sequence with mutation applied
-\item \code{aa_ref} - Reference amino acid sequence (coding only)
-\item \code{aa_alt} - Alternate amino acid sequence (coding only)
-\item \code{codon_ref} - Reference codon at mutation site (coding only)
-\item \code{codon_alt} - Alternate codon at mutation site (coding only)
-\item \code{codon_new} - Alias for codon_alt (for consistency with gd_verify_snp)
-\item \code{consequence} - Mutation effect: "synonymous", "missense", "nonsense" (coding only)
-\item \code{region} - "coding" or "intergenic"
-\item \code{strand} - Gene strand (coding only)
-\item \code{qc_note} - Quality control notes (offset warnings, fallbacks, normalizations)
+The input \code{pm_tbl} with added columns:
+\describe{
+\item{\code{dna_ref}}{Reference DNA (full CDS or intergenic window).}
+\item{\code{dna_alt}}{Alternate DNA with mutation applied (\code{NA} for
+structural variants).}
+\item{\code{aa_ref}}{Reference protein sequence (coding only).}
+\item{\code{aa_alt}}{Alternate protein sequence, truncated at first stop
+codon (coding only).}
+\item{\code{codon_ref}}{Reference codon at mutation site (SNPs only).}
+\item{\code{codon_alt}}{Alternate codon at mutation site (SNPs only).}
+\item{\code{consequence}}{Passed through from \code{pm_tbl$var_type};
+\code{NA} if \code{var_type} is absent.}
+\item{\code{region}}{\code{"coding"} or \code{"intergenic"}.}
+\item{\code{strand}}{Gene strand for coding mutations; \code{NA}
+otherwise.}
+\item{\code{qc_note}}{Quality-control notes; \code{NA} when clean.}
 }
 }
 \description{
-Adds molecular consequence annotations to a \code{predict_variants()} table.
-Supports SNPs, deletions (DEL), insertions (INS), substitutions (SUB), and
-structural variants (MOB, AMP, CON, INV).
+Internal implementation of \code{\link{annotate_variants}()}.  Adds
+reference and alternate DNA / protein sequences to a
+\code{predict_variants()} table and carries the \code{var_type} consequence
+forward as \code{consequence}.
 
-For coding region mutations, computes reference/alternate sequences and
-consequences. For intergenic mutations, extracts flanking DNA windows.
-Structural variants receive reference sequences only (no allele computation).
-}
-\details{
-This function leverages existing micromicon utilities:
-\itemize{
-\item \code{gd_verify_snp()} - Computes SNP effects for coding regions
-\item \code{gd_locate()} - Classifies regions as coding vs intergenic
-\item \code{get_gene_dna()}, \code{get_gene_aa()} - Extract gene sequences
-\item \code{get_roi_dna()} - Extract arbitrary genomic windows
-\item \code{translate_dna()} - Translate CDS to protein
-}
-
-\strong{Supported mutation types:}
-\itemize{
-\item \strong{SNP}: synonymous, missense, nonsense
-\item \strong{DEL}: inframe_deletion, frameshift
-\item \strong{INS}: inframe_insertion, frameshift
-\item \strong{SUB}: complex (partial support)
-\item \strong{MOB/AMP/CON/INV}: structural variants (reference sequences only)
-}
-
-\strong{Note}: Only coding region mutations get amino acid sequences. Intergenic
-mutations only receive DNA sequences (no protein translation).
+Sequences are computed from the genome object for SNP, DEL, INS, and SUB
+mutations.  Intergenic mutations receive a flanking DNA window.  Structural
+variants (MOB, AMP, INV, CON) receive reference sequences only;
+\code{dna_alt}, \code{aa_alt}, and \code{codon_alt} are \code{NA}.
 }
 \examples{
 \dontrun{
@@ -72,4 +54,21 @@ enriched <- pm_enrich_consequences(gd, mutations, flank = 50)
 }
 
 }
+\keyword{(no}
+\keyword{**Note**:}
+\keyword{DNA}
+\keyword{Intergenic}
+\keyword{Only}
+\keyword{acid}
+\keyword{amino}
+\keyword{coding}
+\keyword{get}
 \keyword{internal}
+\keyword{mutations}
+\keyword{only}
+\keyword{protein}
+\keyword{receive}
+\keyword{region}
+\keyword{sequences}
+\keyword{sequences.}
+\keyword{translation).}

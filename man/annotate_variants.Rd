@@ -2,22 +2,98 @@
 % Please edit documentation in R/generics_queries.R
 \name{annotate_variants}
 \alias{annotate_variants}
-\title{Compute Mutation Effects}
+\title{Annotate Variants with Molecular Sequences and Consequences}
 \usage{
 annotate_variants(gd, pm_tbl, ...)
 }
 \arguments{
-\item{gd}{A genome data object}
+\item{gd}{A \code{genome_entity_gd} object produced by
+\code{\link{read_variants}()}.}
 
-\item{pm_tbl}{A data frame from \code{predict_variants()}}
+\item{pm_tbl}{A data frame produced by \code{\link{predict_variants}()}.
+Must contain columns \code{type}, \code{seq_id}, \code{position},
+\code{mutation}, and \code{gene}.  The \code{var_type} column, if present,
+is forwarded to \code{consequence} without modification.}
 
-\item{...}{Additional arguments passed to methods}
+\item{...}{Additional arguments passed to the underlying implementation.
+Recognised arguments:
+\describe{
+\item{\code{flank}}{Integer; number of bases to extract on each side of
+an intergenic mutation for the DNA window.  Default: \code{50}.}
+\item{\code{quiet}}{Logical; suppress progress messages.
+Default: \code{FALSE}.}
+}}
 }
 \value{
-Enriched data frame with consequence columns
+The input \code{pm_tbl} with the following columns added:
+\describe{
+\item{\code{dna_ref}}{Reference DNA sequence.  Full CDS for coding
+mutations; a \code{flank}-bp window centred on the variant for
+intergenic mutations.}
+\item{\code{dna_alt}}{Alternate DNA sequence with the mutation applied.
+\code{NA} for structural variants.}
+\item{\code{aa_ref}}{Full reference protein sequence (coding only;
+\code{NA} otherwise).}
+\item{\code{aa_alt}}{Full alternate protein sequence with the mutation
+applied, truncated at the first stop codon (coding only;
+\code{NA} otherwise).}
+\item{\code{codon_ref}}{Reference codon at the mutation site (SNPs only).}
+\item{\code{codon_alt}}{Alternate codon at the mutation site (SNPs only).}
+\item{\code{consequence}}{Consequence class, copied from \code{var_type}.
+See \code{\link{predict_variants}()} for the full vocabulary.}
+\item{\code{region}}{\code{"coding"} or \code{"intergenic"}.}
+\item{\code{strand}}{Gene strand (\code{"+"} or \code{"-"}) for coding
+mutations; \code{NA} otherwise.}
+\item{\code{qc_note}}{Quality-control notes: position offset warnings,
+alternative start-codon normalisations, fallback notices.
+\code{NA} when no issues were detected.}
+}
 }
 \description{
-Enriches a variant table with molecular consequences. Uses parallel
-processing where available (fork-based on Linux/macOS; PSOCK cluster on
-Windows), falling back to serial execution if cluster creation fails.
+Enriches a \code{\link{predict_variants}()} table with reference and
+alternate DNA and protein sequences, and carries the \code{var_type}
+consequence forward as the \code{consequence} column.
+
+For coding-region mutations the full reference CDS and its translated
+protein are extracted from the genome, the mutation is applied in-silico,
+and the alternate CDS / protein are returned.  For intergenic mutations a
+flanking DNA window is extracted instead.  Structural variants (MOB, AMP,
+INV, CON) receive reference sequences only.
+
+Consequences (\code{consequence}) are \emph{not} recomputed here — they are
+passed through verbatim from the \code{var_type} column produced by
+\code{\link{predict_variants}()}, which in turn reads breseq's own
+annotation tags.  This preserves breseq's terminology throughout (e.g.\
+\code{nonsynonymous}, not \code{missense}).
+
+Processing uses parallel workers where available (fork-based on Linux/macOS;
+PSOCK cluster on Windows), falling back to sequential execution if cluster
+creation fails.
+}
+\examples{
+\dontrun{
+gd       <- read_variants(ref, "annotated.gd")
+variants <- predict_variants(gd)
+
+# Full workflow
+ct <- annotate_variants(gd, variants)
+
+# Quiet, wider intergenic window
+ct <- annotate_variants(gd, variants, flank = 200, quiet = TRUE)
+
+# Extract sequences for a gene of interest
+get_reference_aa(ct, gene = "rpoB")
+get_variant_aa(ct,  gene = "rpoB")
+
+# Filter to nonsynonymous only
+filter_variants(ct, consequence = "nonsynonymous")
+}
+
+}
+\seealso{
+\code{\link{predict_variants}()} to build the input table;\cr
+\code{\link{filter_variants}()} to subset by consequence or gene;\cr
+\code{\link{get_reference_dna}()}, \code{\link{get_variant_dna}()},
+\code{\link{get_reference_aa}()}, \code{\link{get_variant_aa}()} to
+extract sequences from the result.
 }

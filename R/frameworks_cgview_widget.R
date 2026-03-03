@@ -5,7 +5,7 @@
 #'
 #' @description
 #' Creates an interactive CGView.js htmlwidget from a CGView JSON payload (as
-#' produced by [build_cgview_json()] or [beta_cgview_from_entity()]).
+#' produced by \code{build_cgview_json()} or \code{beta_cgview_from_entity()}).
 #'
 #' @param json A CGView JSON structure. Accepts either:
 #'   - An R list matching the CGView JSON schema (serialised internally via
@@ -17,7 +17,7 @@
 #'
 #' @return An htmlwidget.
 #'
-#' @seealso [build_cgview_json()], [beta_cgview_from_entity()]
+#' @seealso \code{build_cgview_json()}, \code{beta_cgview_from_entity()}
 #'
 #' @keywords internal
 #' @noRd
@@ -48,11 +48,11 @@ beta_cgview <- function(json, width = NULL, height = 2000, elementId = NULL) {
 #' Side-by-side pair of CGView circular genome maps
 #'
 #' @description
-#' Renders two [beta_cgview()] widgets in a flex row. Typical use: left panel
+#' Renders two \code{beta_cgview()} widgets in a flex row. Typical use: left panel
 #' for reference features, right panel for variants.
 #'
 #' @param left_json,right_json CGView JSON payloads (R lists or character
-#'   strings) as produced by [build_cgview_json()].
+#'   strings) as produced by \code{build_cgview_json()}.
 #' @param height Widget height in pixels (applied to both panels).
 #' @param left_title,right_title Optional character title rendered above each
 #'   panel. `NULL` suppresses the title.
@@ -60,7 +60,7 @@ beta_cgview <- function(json, width = NULL, height = 2000, elementId = NULL) {
 #'
 #' @return An `htmltools::browsable` tagList.
 #'
-#' @seealso [build_cgview_json()], [beta_cgview()]
+#' @seealso \code{build_cgview_json()}, \code{beta_cgview()}
 #'
 #' @keywords internal
 #' @noRd
@@ -116,7 +116,7 @@ beta_cgviewOutput <- function(outputId, width = "100%", height = "700px") {
 
 #' Shiny render function for beta_cgview
 #'
-#' @param expr An expression that returns a [beta_cgview()] widget.
+#' @param expr An expression that returns a \code{beta_cgview()} widget.
 #' @param env,quoted Passed to [htmlwidgets::shinyRenderWidget()].
 #'
 #' @keywords internal

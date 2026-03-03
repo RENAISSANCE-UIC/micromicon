@@ -6,7 +6,7 @@
 #' @description
 #' Convenience wrapper that extracts the relevant data from a micromicon
 #' `genome_entity` or `genome_entity_gd` object and passes it to
-#' [build_cgview_json()] + [beta_cgview()].
+#' \code{build_cgview_json()} + \code{beta_cgview()}.
 #'
 #' For `genome_entity_gd` objects, breseq mutation events are automatically
 #' overlaid as an innermost "Variants" track (SNP, DEL, INS, AMP, MOB, SUB).
@@ -19,14 +19,14 @@
 #' @param include_mutations Logical. For `genome_entity_gd` objects, whether
 #'   to overlay mutation events as a Variants track. Default `TRUE`.
 #' @param palette Named list of hex colours to override defaults.
-#' @param width,height Widget dimensions passed to [beta_cgview()].
+#' @param width,height Widget dimensions passed to \code{beta_cgview()}.
 #' @param elementId Optional fixed HTML id.
-#' @param ... Additional arguments forwarded to [build_cgview_json()].
+#' @param ... Additional arguments forwarded to \code{build_cgview_json()}.
 #'
 #' @return An htmlwidget.
 #'
-#' @seealso [beta_cgview()], [build_cgview_json()],
-#'   [beta_cgview_pair_from_entity()]
+#' @seealso \code{beta_cgview()}, \code{build_cgview_json()},
+#'   \code{beta_cgview_pair_from_entity()}
 #'
 #' @keywords internal
 #' @noRd
@@ -69,7 +69,7 @@ beta_cgview_from_entity <- function(entity,
 #' Side-by-side reference vs variants view from a genome_entity_gd
 #'
 #' @description
-#' Builds a [beta_cgview_pair()] layout where the **left** panel shows
+#' Builds a \code{beta_cgview_pair()} layout where the **left** panel shows
 #' reference genome features (CDS, tRNA, rRNA) and the **right** panel shows
 #' only the mutation overlay — same genome coordinates, no feature rings.
 #' Both panels share the same colour palette and genome length.
@@ -82,12 +82,12 @@ beta_cgview_from_entity <- function(entity,
 #' @param height Height in pixels for both panels.
 #' @param left_title,right_title Optional panel titles (`NULL` = no title).
 #' @param gap CSS gap between the two panels (default `"12px"`).
-#' @param ... Additional arguments forwarded to [build_cgview_json()].
+#' @param ... Additional arguments forwarded to \code{build_cgview_json()}.
 #'
 #' @return An `htmltools::browsable` tagList (two widgets side by side).
 #'
-#' @seealso [beta_cgview_pair()], [build_cgview_json()],
-#'   [beta_cgview_from_entity()]
+#' @seealso \code{beta_cgview_pair()}, \code{build_cgview_json()},
+#'   \code{beta_cgview_from_entity()}
 #'
 #' @keywords internal
 #' @noRd

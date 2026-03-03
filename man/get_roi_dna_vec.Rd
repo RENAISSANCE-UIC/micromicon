@@ -30,3 +30,4 @@ Rows sharing the same contig are processed together with a single
 \code{get_roi_dna()} in a loop.  Minus-strand regions use the precomputed
 \code{sequences$dna_rev} when available (built by \code{new_genome_entity}).
 }
+\keyword{internal}

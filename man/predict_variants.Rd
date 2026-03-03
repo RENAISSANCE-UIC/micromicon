@@ -3,7 +3,7 @@
 \name{predict_variants}
 \alias{predict_variants}
 \alias{predict_variants.genome_entity_gd}
-\title{Predict Mutations}
+\title{Predict Variants}
 \usage{
 predict_variants(gd, ...)
 
@@ -27,12 +27,48 @@ predict_variants(gd, ...)
 \item{join}{one of c("slash","pipe","newline") for multi-item fields (default "slash")}
 }
 \value{
-A data frame of mutations with friendly preview
+A data frame with one row per predicted variant.  Columns:
+\describe{
+\item{\code{evidence}}{Evidence type supporting the call: \code{"RA"},
+\code{"MC"}, \code{"JC"}, or a combination such as \code{"MC JC"}.}
+\item{\code{type}}{Three-letter mutation type: \code{SNP}, \code{DEL},
+\code{INS}, \code{SUB}, \code{AMP}, \code{INV}, \code{MOB},
+\code{CON}.}
+\item{\code{seq_id}}{Reference contig / chromosome identifier.}
+\item{\code{position}}{Formatted genomic position (thousands-separated).
+Insertions append the within-position offset as \code{pos:k}.}
+\item{\code{mutation}}{Human-readable change label, e.g.\ \code{A\u2192T},
+\code{\u03941,234 bp}, \code{+25 bp}, \code{AMP\u00d73}.}
+\item{\code{freq}}{Allele frequency as a percentage string, e.g.\
+\code{"45.2\%"}.  Structural variants are reported as
+\code{"100.0\%"}.}
+\item{\code{annotation}}{Position within the gene for coding mutations
+(e.g.\ \code{"coding (45/1200 nt)"}); amino-acid change for SNPs
+(e.g.\ \code{"K123E (AAA\u2192GAA)"}); intergenic distance otherwise.}
+\item{\code{gene}}{Gene symbol or locus tag, with a strand arrow appended
+(\code{\u2192} / \code{\u2190}) for structural variants.}
+\item{\code{description}}{Gene product description.}
+\item{\code{var_type}}{Molecular consequence class read from breseq
+annotation tags.  Values:
+\code{synonymous}, \code{nonsynonymous}, \code{nonsense},
+\code{noncoding}, \code{pseudogene} (SNPs);
+\code{frameshift}, \code{inframe_deletion}, \code{inframe_insertion},
+\code{inframe_substitution}, \code{inactivating} (indels and structural
+variants);
+\code{intergenic} (any mutation outside annotated features).}
+}
 
 data.frame/tibble with predicted mutations (superset schema)
 }
 \description{
-Extracts and presents mutations from a genome data object.
+Parses a \code{genome_entity_gd} object — loaded from a breseq
+\code{annotated.gd} file — and returns a tidy data frame of mutations.
+Annotation tags written by \code{gdtools ANNOTATE} (gene names, codon
+changes, \code{snp_type}, inactivation status) are read directly from the
+file; no genome-sequence computation is performed here.
+
+For the full molecular-consequence workflow (reference/alternate CDS and
+protein sequences), pipe the result into \code{\link{annotate_variants}()}.
 
 Calls predict_variants_int(), announces row count, and prints a preview:
 \itemize{
@@ -40,4 +76,10 @@ Calls predict_variants_int(), announces row count, and prints a preview:
 \item If dplyr is not installed: prints base data.frame.
 Any preview/logging errors are swallowed; the table is still returned.
 }
+}
+\seealso{
+\code{\link{annotate_variants}()} to add reference/alternate sequences;\cr
+\code{\link{filter_variants}()} to subset by gene, frequency, type, or
+consequence;\cr
+\code{\link{read_variants}()} to load the \code{annotated.gd} file.
 }

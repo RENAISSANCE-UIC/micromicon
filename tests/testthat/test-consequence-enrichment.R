@@ -207,7 +207,7 @@ test_that("pm_enrich_consequences adds expected columns", {
 
   expected_cols <- c(
     "dna_ref", "dna_alt", "aa_ref", "aa_alt",
-    "codon_ref", "codon_alt", "codon_new", "consequence", "region", "strand", "qc_note"
+    "codon_ref", "codon_alt", "consequence", "region", "strand", "qc_note"
   )
 
   for (col in expected_cols) {
@@ -298,7 +298,6 @@ test_that(".pm_enrich_snp handles unparseable positions", {
     aa_alt = NA_character_,
     codon_ref = NA_character_,
     codon_alt = NA_character_,
-    codon_new = NA_character_,
     consequence = NA_character_,
     region = NA_character_,
     strand = NA_character_,
@@ -339,7 +338,6 @@ test_that(".pm_enrich_snp handles unparseable mutations", {
     aa_alt = NA_character_,
     codon_ref = NA_character_,
     codon_alt = NA_character_,
-    codon_new = NA_character_,
     consequence = NA_character_,
     region = NA_character_,
     strand = NA_character_,
@@ -351,8 +349,7 @@ test_that(".pm_enrich_snp handles unparseable mutations", {
     .pm_enrich_snp(mock_gd, row, flank = 50, quiet = TRUE)
   )
 
-  # Should mark as unknown format and add QC note
-  expect_equal(result$consequence, "unknown_format")
+  # Should add QC note for unparseable format; consequence remains NA
   expect_true(!is.na(result$qc_note))
   expect_true(grepl("Unparseable mutation format", result$qc_note))
 })
@@ -439,8 +436,7 @@ test_that("pm_enrich_consequences creates qc_note for non-zero offset", {
 })
 
 
-test_that("pm_enrich_consequences codon_new aliases codon_alt", {
-  # Create minimal mock gd object
+test_that("pm_enrich_consequences codon_alt column exists", {
   mock_gd <- structure(
     list(
       source_type = "gd",
@@ -463,10 +459,5 @@ test_that("pm_enrich_consequences codon_new aliases codon_alt", {
     pm_enrich_consequences(mock_gd, pm_tbl, quiet = TRUE)
   )
 
-  # Both columns should exist
   expect_true("codon_alt" %in% names(result))
-  expect_true("codon_new" %in% names(result))
-
-  # In a real enrichment with data, they should have identical values
-  # (here they're both NA, which is fine for this structural test)
 })

@@ -18,7 +18,7 @@ gd_verify_snp(gd, seq_id, position, gene)
 \value{
 tibble-like list/data.frame with fields:
 ok, reason, seq_id, position, gene, strand, cds_pos, aa_index,
-codon_ref, codon_new, aa_ref, aa_new, consequence
+codon_ref, codon_alt, aa_ref, aa_new, consequence
 }
 \description{
 Verify a single SNP by editing the CDS and re-translating

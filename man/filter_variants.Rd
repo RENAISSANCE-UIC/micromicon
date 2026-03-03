@@ -7,6 +7,7 @@
 filter_variants(
   tbl,
   gene = NULL,
+  position = NULL,
   min_freq = NULL,
   type = NULL,
   consequence = NULL,
@@ -18,9 +19,18 @@ filter_variants(
 \code{annotate_variants()}.}
 
 \item{gene}{Character scalar; case-insensitive partial match against the
-\code{gene} column. Strand arrows (lWosaPl4mBq7mkron5u0LYSD58b2f1l7-2\code{←}) are stripped before
+\code{gene} column. Strand arrows (zUCfVawcrIYa0DT8ZHNtL2kA65bmlY7b-2\code{←}) are stripped before
 matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
-\code{gene = "mdt"} matches any \emph{mdt*} gene.}
+\code{gene = "mdt"} matches any \emph{mdt*} gene. Mutually exclusive
+with \code{position}.}
+
+\item{position}{Numeric scalar or length-2 numeric vector. When a scalar,
+keeps only rows whose \code{position} equals that value exactly. When a
+length-2 vector \code{c(start, end)}, keeps rows whose \code{position}
+falls within that range (inclusive). Mutually exclusive with \code{gene}.
+Errors if no matching rows are found. Supply a plain number
+(e.g. \code{4438305}); the comma-formatted display value in the table
+(e.g. \code{"4,438,305"}) is handled automatically.}
 
 \item{min_freq}{Numeric (0–1); retain rows whose allele frequency is at
 least this value. The display string (e.g. \code{"85.1\%"}) is converted
@@ -35,9 +45,9 @@ of the supplied values (case-insensitive). Common values:
 \item{consequence}{Character vector; keep only rows whose \code{consequence}
 matches one of the supplied values (case-insensitive). Requires
 \code{annotate_variants()} to have been run first. Common values:
-\code{"synonymous"}, \code{"missense"}, \code{"nonsense"},
+\code{"synonymous"}, \code{"nonsynonymous"}, \code{"nonsense"},
 \code{"frameshift"}, \code{"inframe_deletion"},
-\code{"inframe_insertion"}.}
+\code{"inframe_insertion"}, \code{"inactivating"}.}
 
 \item{contig}{Character scalar; keep only rows on this contig or chromosome
 (exact match).}
@@ -49,8 +59,9 @@ the rows that satisfy all supplied criteria.
 \description{
 Convenience function for filtering the output of \code{\link{predict_variants}()}
 or \code{\link{annotate_variants}()}. Handles display-formatted columns
-transparently so you do not need to know how frequencies are stored or
-that gene names carry strand-direction arrows.
+transparently so you do not need to know how frequencies are stored,
+that positions are comma-formatted, or that gene names carry strand-direction
+arrows.
 
 All arguments are optional and stack (AND logic): only rows satisfying
 every supplied criterion are returned.
@@ -65,9 +76,15 @@ filter_variants(variants, gene = "mdt", min_freq = 0.80)
 # Only SNPs and DELs
 filter_variants(variants, type = c("SNP", "DEL"))
 
-# Missense mutations in marR
+# Variant at an exact position
+filter_variants(variants, position = 1834467)
+
+# All variants within a genomic window
+filter_variants(variants, position = c(1830000, 1840000))
+
+# Nonsynonymous mutations in marR
 annotated <- annotate_variants(gd, variants)
-filter_variants(annotated, gene = "marR", consequence = "missense")
+filter_variants(annotated, gene = "marR", consequence = "nonsynonymous")
 }
 
 }

@@ -78,7 +78,7 @@
 #'   Defaults to a round number near 1/5 of genome length.
 #'
 #' @return A named R list with top-level key `cgview`, ready for
-#'   [jsonlite::toJSON()] or [beta_cgview()].
+#'   [jsonlite::toJSON()] or \code{beta_cgview()}.
 #'
 #' @keywords internal
 #' @noRd

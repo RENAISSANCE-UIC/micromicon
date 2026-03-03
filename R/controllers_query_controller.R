@@ -15,6 +15,7 @@
 
 # Piping, tidyselect ops
 #' @importFrom magrittr %>%
+NULL
 
 #' Extract Sequence from Genomic Coordinates
 #'

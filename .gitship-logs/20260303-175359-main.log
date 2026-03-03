@@ -1,0 +1,89 @@
+ℹ Updating micromicon documentation
+ℹ Loading micromicon
+Writing 'filter_variants.Rd'
+ℹ Testing micromicon
+✔ | F W  S  OK | Context
+
+⠏ |          0 | accessors                                                      
+⠋ |          1 | accessors                                                      
+✔ |      1  11 | accessors [4.0s]
+
+⠏ |          0 | consequence-enrichment                                         
+⠇ |         59 | consequence-enrichment                                         
+⠦ | 2       75 | consequence-enrichment                                         
+✖ | 3       96 | consequence-enrichment
+────────────────────────────────────────────────────────────────────────────────
+Failure ('test-consequence-enrichment.R:214:5'): pm_enrich_consequences adds expected columns
+col %in% names(result) is not TRUE
+
+`actual`:   FALSE
+`expected`: TRUE 
+Column 'codon_new' should be added
+
+Failure ('test-consequence-enrichment.R:355:3'): .pm_enrich_snp handles unparseable mutations
+result$consequence not equal to "unknown_format".
+1/1 mismatches
+x[1]: NA
+y[1]: "unknown_format"
+
+Failure ('test-consequence-enrichment.R:468:3'): pm_enrich_consequences codon_new aliases codon_alt
+"codon_new" %in% names(result) is not TRUE
+
+`actual`:   FALSE
+`expected`: TRUE 
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | export-warnings                                                
+✔ |          7 | export-warnings
+
+⠏ |          0 | gene-utilities                                                 
+✔ |      7  24 | gene-utilities
+
+⠏ |          0 | genome_entity                                                  genome_entity Summary
+=====================
+
+Source: NA 
+Sequences: 0 sequences, 0 bp total
+Features: 0 
+Records: 0 
+
+✔ |          9 | genome_entity
+
+⠏ |          0 | integration                                                    
+✔ |      3  40 | integration
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 4.5 s
+
+── Skipped tests (11) ──────────────────────────────────────────────────────────
+• empty test (1): 'test-accessors.R:20:1'
+• Test file not found (9): 'test-gene-utilities.R:2:3',
+  'test-gene-utilities.R:37:3', 'test-gene-utilities.R:64:3',
+  'test-gene-utilities.R:118:3', 'test-gene-utilities.R:165:3',
+  'test-gene-utilities.R:202:3', 'test-gene-utilities.R:234:3',
+  'test-integration.R:2:3', 'test-integration.R:111:3'
+• Test GFF3 file not found (1): 'test-integration.R:42:3'
+
+── Failed tests ────────────────────────────────────────────────────────────────
+Failure ('test-consequence-enrichment.R:214:5'): pm_enrich_consequences adds expected columns
+col %in% names(result) is not TRUE
+
+`actual`:   FALSE
+`expected`: TRUE 
+Column 'codon_new' should be added
+
+Failure ('test-consequence-enrichment.R:355:3'): .pm_enrich_snp handles unparseable mutations
+result$consequence not equal to "unknown_format".
+1/1 mismatches
+x[1]: NA
+y[1]: "unknown_format"
+
+Failure ('test-consequence-enrichment.R:468:3'): pm_enrich_consequences codon_new aliases codon_alt
+"codon_new" %in% names(result) is not TRUE
+
+`actual`:   FALSE
+`expected`: TRUE 
+
+[ FAIL 3 | WARN 0 | SKIP 11 | PASS 187 ]
+Error: Test failures
+Execution halted
