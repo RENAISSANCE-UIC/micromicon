@@ -17,8 +17,8 @@
 #' @return A named character vector.  Names are taken from the \code{gene}
 #'   column; values are the reference DNA sequences.
 #'
-#' @seealso \code{\link{get_alternate_dna}()}, \code{\link{get_reference_aa}()},
-#'   \code{\link{get_alternate_aa}()}, \code{\link{annotate_variants}()}
+#' @seealso \code{\link{get_variant_dna}()}, \code{\link{get_reference_aa}()},
+#'   \code{\link{get_variant_aa}()}, \code{\link{annotate_variants}()}
 #'
 #' @examples
 #' \dontrun{
@@ -33,7 +33,7 @@ get_reference_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 }
 
 
-#' Get Alternate DNA Sequence for Variants
+#' Get Variant DNA Sequence for Variants
 #'
 #' @description
 #' Extracts the \code{dna_alt} column from a consequence table produced by
@@ -44,20 +44,20 @@ get_reference_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 #' @inheritParams get_reference_dna
 #'
 #' @return A named character vector.  Names are taken from the \code{gene}
-#'   column; values are the alternate DNA sequences.
+#'   column; values are the variant DNA sequences.
 #'
 #' @seealso \code{\link{get_reference_dna}()}, \code{\link{get_reference_aa}()},
-#'   \code{\link{get_alternate_aa}()}, \code{\link{annotate_variants}()}
+#'   \code{\link{get_variant_aa}()}, \code{\link{annotate_variants}()}
 #'
 #' @examples
 #' \dontrun{
 #' ct <- annotate_variants(gd, predict_variants(gd))
-#' get_alternate_dna(ct)
-#' get_alternate_dna(ct, gene = "rpoB")
+#' get_variant_dna(ct)
+#' get_variant_dna(ct, gene = "rpoB")
 #' }
 #'
 #' @export
-get_alternate_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
+get_variant_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
   .get_variant_seq_col(consequence_tbl, col = "dna_alt", gene = gene, na.rm = na.rm)
 }
 
@@ -74,8 +74,8 @@ get_alternate_dna <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 #' @return A named character vector.  Names are taken from the \code{gene}
 #'   column; values are the reference amino acid sequences.
 #'
-#' @seealso \code{\link{get_reference_dna}()}, \code{\link{get_alternate_dna}()},
-#'   \code{\link{get_alternate_aa}()}, \code{\link{annotate_variants}()}
+#' @seealso \code{\link{get_reference_dna}()}, \code{\link{get_variant_dna}()},
+#'   \code{\link{get_variant_aa}()}, \code{\link{annotate_variants}()}
 #'
 #' @examples
 #' \dontrun{
@@ -90,31 +90,31 @@ get_reference_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
 }
 
 
-#' Get Alternate Amino Acid Sequence for Variants
+#' Get Variant Amino Acid Sequence for Variants
 #'
 #' @description
 #' Extracts the \code{aa_alt} column from a consequence table produced by
 #' \code{\link{annotate_variants}()}.  For coding mutations this is the full
-#' translated alternate protein (truncated at the first stop codon for
+#' translated variant protein (truncated at the first stop codon for
 #' nonsense variants).  Intergenic and structural variants return \code{NA}.
 #'
 #' @inheritParams get_reference_dna
 #'
 #' @return A named character vector.  Names are taken from the \code{gene}
-#'   column; values are the alternate amino acid sequences.
+#'   column; values are the variant amino acid sequences.
 #'
-#' @seealso \code{\link{get_reference_dna}()}, \code{\link{get_alternate_dna}()},
+#' @seealso \code{\link{get_reference_dna}()}, \code{\link{get_variant_dna}()},
 #'   \code{\link{get_reference_aa}()}, \code{\link{annotate_variants}()}
 #'
 #' @examples
 #' \dontrun{
 #' ct <- annotate_variants(gd, predict_variants(gd))
-#' get_alternate_aa(ct)
-#' get_alternate_aa(ct, gene = "rpoB")
+#' get_variant_aa(ct)
+#' get_variant_aa(ct, gene = "rpoB")
 #' }
 #'
 #' @export
-get_alternate_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
+get_variant_aa <- function(consequence_tbl, gene = NULL, na.rm = TRUE, ...) {
   .get_variant_seq_col(consequence_tbl, col = "aa_alt", gene = gene, na.rm = na.rm)
 }
 

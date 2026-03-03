@@ -583,8 +583,8 @@ predict_variants.default <- function(gd, ...) {
 #' @seealso
 #' \code{\link{predict_variants}()} to build the input table;\cr
 #' \code{\link{filter_variants}()} to subset by consequence or gene;\cr
-#' \code{\link{get_reference_dna}()}, \code{\link{get_alternate_dna}()},
-#' \code{\link{get_reference_aa}()}, \code{\link{get_alternate_aa}()} to
+#' \code{\link{get_reference_dna}()}, \code{\link{get_variant_dna}()},
+#' \code{\link{get_reference_aa}()}, \code{\link{get_variant_aa}()} to
 #' extract sequences from the result.
 #'
 #' @examples
@@ -600,7 +600,7 @@ predict_variants.default <- function(gd, ...) {
 #'
 #' # Extract sequences for a gene of interest
 #' get_reference_aa(ct, gene = "rpoB")
-#' get_alternate_aa(ct,  gene = "rpoB")
+#' get_variant_aa(ct,  gene = "rpoB")
 #'
 #' # Filter to nonsynonymous only
 #' filter_variants(ct, consequence = "nonsynonymous")
