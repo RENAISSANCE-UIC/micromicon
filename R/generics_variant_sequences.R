@@ -15,7 +15,9 @@
 #'   keeps only the row whose \code{position} equals that value exactly. When a
 #'   length-2 vector \code{c(start, end)}, keeps rows whose \code{position}
 #'   falls within that range (inclusive). Mutually exclusive with \code{gene}.
-#'   Errors if no matching rows are found.
+#'   Errors if no matching rows are found. Supply a plain number
+#'   (e.g. \code{4438305}); the comma-formatted display value in the table
+#'   (e.g. \code{"4,438,305"}) is handled automatically.
 #' @param na.rm Logical; if \code{TRUE} (default) rows with \code{NA}
 #'   \code{dna_ref} are silently dropped.
 #' @param ... Reserved for future arguments.
