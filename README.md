@@ -151,6 +151,13 @@ consequence_table <- annotate_variants(gd, mutation_table)
 # Filter on features of interest
 filter_variants(consequence_table, min_freq = 0.9)
 filter_variants(consequence_table, gene = "marR")
+get_reference_dna(consequence_table, gene = "marR")
+
+# Get reference or variant sequences from consequence table 
+get_variant_dna(consequence_table, gene = "marR")
+get_reference_aa(consequence_table, gene = "marR")
+get_variant_aa(consequence_table, position = c(1834400, 1834500))
+get_variant_aa(consequence_table, position = 1834467)
 
 # Integration with CGView.js
 plot_cgview(gd)
