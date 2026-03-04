@@ -20,8 +20,9 @@
 #' gd <- read_variants(ref, "annotated.gd")
 #'
 #' # 4. Analyse mutations
-#' pm  <- predict_variants(gd)
-#' eff <- annotate_variants(gd, pm)
+#' gd  <- predict_variants(gd)
+#' tbl <- get_predicted_variants_table(gd)
+#' eff <- annotate_variants(gd)
 #' ```
 #'
 #' Call \code{\link{micromicon_functions}()} at the console for a full
@@ -89,14 +90,15 @@ micromicon_functions <- function() {
   ), width)
   
   .micromicon_section("Variants", list(
-    c("predict_variants()",         "tidy variant table (GenomeDiff parser)"),
-    c("annotate_variants()",        "add reference/alternate sequences and consequences"),
-    c("filter_variants()",          "filter by gene, frequency, type, or consequence"),
-    c("get_reference_dna()",        "reference CDS or window from a consequence table"),
-    c("get_variant_dna()",          "mutated CDS or window from a consequence table"),
-    c("get_reference_aa()",         "reference protein sequence from a consequence table"),
-    c("get_variant_aa()",           "mutated protein sequence from a consequence table"),
-    c("validate_variant_in_gene()", "check whether a variant resides in a gene")
+    c("predict_variants()",              "parse GenomeDiff into a variant table (one row per mutation); stores result in gd$variants_predicted"),
+    c("get_predicted_variants_table()",  "retrieve the stored variant table as a tibble"),
+    c("annotate_variants()",             "add reference/alternate sequences and consequences"),
+    c("filter_variants()",               "filter by gene, frequency, type, or consequence"),
+    c("get_reference_dna()",             "reference CDS or window from a consequence table"),
+    c("get_variant_dna()",               "mutated CDS or window from a consequence table"),
+    c("get_reference_aa()",              "reference protein sequence from a consequence table"),
+    c("get_variant_aa()",                "mutated protein sequence from a consequence table"),
+    c("validate_variant_in_gene()",      "check whether a variant resides in a gene")
   ), width)
   
   .micromicon_section("Export", list(

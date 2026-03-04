@@ -58,7 +58,8 @@ new_genome_entity_gd <- function(header, events, file,
     events     = events,
     reference  = reference,
     provenance = provenance,
-    strict     = isTRUE(strict)
+    strict     = isTRUE(strict),
+    variants_predicted = NULL          # populated by predict_variants()
   )
 
   class(x) <- c("genome_entity_gd", "genome_entity")

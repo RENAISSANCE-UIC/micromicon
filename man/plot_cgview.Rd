@@ -18,6 +18,7 @@ plot_cgview(entity, ...)
   height = 2000,
   elementId = NULL,
   viewer = c("pane", "browser"),
+  min_freq = NULL,
   ...
 )
 
@@ -34,6 +35,7 @@ plot_cgview(entity, ...)
   height = 2000,
   elementId = NULL,
   viewer = c("pane", "browser"),
+  min_freq = NULL,
   ...
 )
 
@@ -58,6 +60,11 @@ Default: \code{c("CDS", "tRNA", "rRNA")}.}
 \item{viewer}{Where to display the plot. \code{"pane"} (default) opens in the
 RStudio Viewer pane; \code{"browser"} saves to a temporary HTML file and
 opens it in the system browser at full window width.}
+
+\item{min_freq}{Numeric (0–1) or NULL (default). When set, only variants
+with allele frequency >= this value are shown. Requires
+\code{gd$variants_predicted} to be populated first via
+\code{\link{predict_variants}()}.}
 
 \item{paired}{Logical. FALSE (default) = single map with mutations overlaid.
 TRUE = side-by-side reference vs variants panels.}

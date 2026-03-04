@@ -395,7 +395,9 @@ extract_sequences_by_name <- extract_by_name
 #'   multiple products).  One of \code{"slash"} (default, \code{" / "}),
 #'   \code{"pipe"} (\code{" | "}), or \code{"newline"} (\code{"\n"}).
 #'
-#' @return A data frame with one row per predicted variant.  Columns:
+#' @return The input \code{gd} object with \code{gd$variants_predicted}
+#'   populated (a data frame with one row per predicted variant).  Assign the
+#'   result back: \code{gd <- predict_variants(gd)}.  Columns:
 #' \describe{
 #'   \item{\code{evidence}}{Evidence type supporting the call: \code{"RA"},
 #'     \code{"MC"}, \code{"JC"}, or a combination such as \code{"MC JC"}.}
@@ -405,16 +407,16 @@ extract_sequences_by_name <- extract_by_name
 #'   \item{\code{seq_id}}{Reference contig / chromosome identifier.}
 #'   \item{\code{position}}{Formatted genomic position (thousands-separated).
 #'     Insertions append the within-position offset as \code{pos:k}.}
-#'   \item{\code{mutation}}{Human-readable change label, e.g.\ \code{A\u2192T},
-#'     \code{\u03941,234 bp}, \code{+25 bp}, \code{AMP\u00d73}.}
+#'   \item{\code{mutation}}{Human-readable change label, e.g.\ \code{A->T},
+#'     \code{delta 1,234 bp}, \code{+25 bp}, \code{AMP x3}.}
 #'   \item{\code{freq}}{Allele frequency as a percentage string, e.g.\
 #'     \code{"45.2\%"}.  Structural variants are reported as
 #'     \code{"100.0\%"}.}
 #'   \item{\code{annotation}}{Position within the gene for coding mutations
 #'     (e.g.\ \code{"coding (45/1200 nt)"}); amino-acid change for SNPs
-#'     (e.g.\ \code{"K123E (AAA\u2192GAA)"}); intergenic distance otherwise.}
+#'     (e.g.\ \code{"K123E (AAA->GAA)"}); intergenic distance otherwise.}
 #'   \item{\code{gene}}{Gene symbol or locus tag, with a strand arrow appended
-#'     (\code{\u2192} / \code{\u2190}) for structural variants.}
+#'     (\code{->} / \code{<-}) for structural variants.}
 #'   \item{\code{description}}{Gene product description.}
 #'   \item{\code{var_type}}{Molecular consequence class read from breseq
 #'     annotation tags.  Values:
@@ -449,7 +451,10 @@ predict_variants <- function(gd, ...) {
 #' @param min_freq numeric scalar, keep rows with freq >= min_freq (default 0)
 #' @param include_structural logical, include JC/MC/etc. (default TRUE)
 #' @param join one of c("slash","pipe","newline") for multi-item fields (default "slash")
-#' @return data.frame/tibble with predicted mutations (superset schema)
+#' @return The input \code{gd} object with \code{gd$variants_predicted} set to
+#'   the mutation table.  Assign the result back:
+#'   \code{gd <- predict_variants(gd)}.  Subsequent calls short-circuit when
+#'   the cached table is present.
 #' @export
 #' @rdname predict_variants
 #' @export
@@ -459,7 +464,14 @@ predict_variants.genome_entity_gd <- function(gd, ...,
                                                join = c("slash", "pipe", "newline")) {
   gd_assert(gd, "gd")
   join <- match.arg(join)
-  
+
+  .default_call <- (min_freq == 0 && isTRUE(include_structural) && join == "slash")
+
+  if (.default_call && !is.null(gd$variants_predicted)) {
+    cli::cli_inform("i" = "predict_variants: using cached table ({nrow(gd$variants_predicted)} rows).")
+    return(invisible(gd))
+  }
+
   # Build once via internal, regardless of downstream printing path
   tbl <- predict_variants_int(
     gd,
@@ -468,7 +480,10 @@ predict_variants.genome_entity_gd <- function(gd, ...,
     join = join,
     ...
   )
-  
+
+  # Store result into gd so the caller gets an updated object
+  gd$variants_predicted <- tbl
+
   # Announce + print a friendly preview, but never fail the call if printing goes sideways
   tryCatch(
     {
@@ -506,8 +521,8 @@ predict_variants.genome_entity_gd <- function(gd, ...,
     }
   )
   
-  # Always return the fully built table (but quietly)
-  invisible(tbl)
+  # Return the updated gd object (with $variants_predicted populated)
+  invisible(gd)
 }
 
 #' @export
@@ -607,20 +622,79 @@ predict_variants.default <- function(gd, ...) {
 #' }
 #'
 #' @export
-annotate_variants <- function(gd, pm_tbl, ...) {
+annotate_variants <- function(gd, pm_tbl = NULL, ...) {
   UseMethod("annotate_variants")
 }
 
 #' @export
-annotate_variants.genome_entity_gd <- function(gd, pm_tbl, ...) {
+annotate_variants.genome_entity_gd <- function(gd, pm_tbl = NULL, ...) {
+  if (is.null(pm_tbl)) {
+    if (is.null(gd$variants_predicted)) {
+      cli::cli_abort(c(
+        "{.fn annotate_variants} needs a variant table.",
+        "i" = "Run {.code gd <- predict_variants(gd)} first, then call {.code annotate_variants(gd)}."
+      ))
+    }
+    pm_tbl <- gd$variants_predicted
+  }
   pm_enrich_consequences_parallel(gd, pm_tbl, ...)
 }
 
 #' @export
-annotate_variants.default <- function(gd, pm_tbl, ...) {
+annotate_variants.default <- function(gd, pm_tbl = NULL, ...) {
   cli::cli_abort(c(
     "{.fn annotate_variants} requires a {.cls genome_entity_gd} as its first argument.",
     "i" = "Load your variant calls first with {.fn read_variants}, then call {.fn predict_variants} to get a variant table."
+  ))
+}
+
+
+#' Retrieve the Predicted Variants Table
+#'
+#' @description
+#' Returns the predicted variants table stored in \code{gd$variants_predicted}
+#' as a \code{\link[tibble]{tibble}}.  The table is created by
+#' \code{\link{predict_variants}()}.
+#'
+#' @param gd A \code{genome_entity_gd} object.
+#' @param ... Currently unused.
+#'
+#' @return A tibble with one row per predicted variant (see
+#'   \code{\link{predict_variants}()} for column descriptions).
+#'
+#' @seealso
+#' \code{\link{predict_variants}()} to build the table;\cr
+#' \code{\link{annotate_variants}()} to enrich with molecular consequences.
+#'
+#' @examples
+#' \dontrun{
+#' gd <- read_variants("annotated.gd", ref_dir = "reference/")
+#' gd <- predict_variants(gd)
+#' variants_table <- get_predicted_variants_table(gd)
+#' }
+#'
+#' @export
+get_predicted_variants_table <- function(gd, ...) {
+  UseMethod("get_predicted_variants_table")
+}
+
+#' @rdname get_predicted_variants_table
+#' @export
+get_predicted_variants_table.genome_entity_gd <- function(gd, ...) {
+  if (is.null(gd$variants_predicted)) {
+    cli::cli_abort(c(
+      "{.fn get_predicted_variants_table} found no variant table in {.arg gd}.",
+      "i" = "Run {.code gd <- predict_variants(gd)} first to generate the table."
+    ))
+  }
+  tibble::as_tibble(gd$variants_predicted)
+}
+
+#' @export
+get_predicted_variants_table.default <- function(gd, ...) {
+  cli::cli_abort(c(
+    "{.fn get_predicted_variants_table} requires a {.cls genome_entity_gd} as its first argument.",
+    "i" = "Load your variant calls with {.fn read_variants}, then run {.code gd <- predict_variants(gd)}."
   ))
 }
 

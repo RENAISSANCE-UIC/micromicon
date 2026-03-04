@@ -23,8 +23,9 @@ get_gene_dna(ref, "dnaA")
 gd <- read_variants(ref, "annotated.gd")
 
 # 4. Analyse mutations
-pm  <- predict_variants(gd)
-eff <- annotate_variants(gd, pm)
+gd  <- predict_variants(gd)
+tbl <- get_predicted_variants_table(gd)
+eff <- annotate_variants(gd)
 }\if{html}{\out{</div>}}
 
 Call \code{\link{micromicon_functions}()} at the console for a full

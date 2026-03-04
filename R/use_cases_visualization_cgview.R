@@ -38,6 +38,7 @@ beta_cgview_from_entity <- function(entity,
                                      width             = NULL,
                                      height            = 2000,
                                      elementId         = NULL,
+                                     min_freq          = NULL,
                                      ...) {
 
   if (!inherits(entity, "genome_entity")) {
@@ -50,7 +51,7 @@ beta_cgview_from_entity <- function(entity,
   features_df <- .cgview_features(entity, contig, feature_types)
   mutations_df <- NULL
   if (include_mutations && inherits(entity, "genome_entity_gd")) {
-    mutations_df <- .cgview_mutations(entity, contig)
+    mutations_df <- .cgview_mutations(entity, contig, min_freq = min_freq)
   }
 
   json <- build_cgview_json(
@@ -99,6 +100,7 @@ beta_cgview_pair_from_entity <- function(entity,
                                           left_title    = "Reference",
                                           right_title   = "Variants",
                                           gap           = "12px",
+                                          min_freq      = NULL,
                                           ...) {
 
   if (!inherits(entity, "genome_entity_gd")) {
@@ -108,7 +110,7 @@ beta_cgview_pair_from_entity <- function(entity,
   genome_length <- .cgview_genome_length(entity, contig)
   genome_name   <- .cgview_genome_name(entity, contig)
   features_df   <- .cgview_features(entity, contig, feature_types)
-  mutations_df  <- .cgview_mutations(entity, contig)
+  mutations_df  <- .cgview_mutations(entity, contig, min_freq = min_freq)
 
   # Left panel: reference features only (no variants)
   left_json <- build_cgview_json(
@@ -160,7 +162,7 @@ beta_cgview_pair_from_entity <- function(entity,
 }
 
 #' @keywords internal
-.cgview_mutations <- function(entity, contig = NULL) {
+.cgview_mutations <- function(entity, contig = NULL, min_freq = NULL) {
   events <- entity$events
   if (length(events) == 0) return(NULL)
 
@@ -169,6 +171,16 @@ beta_cgview_pair_from_entity <- function(entity,
   mut_ev <- Filter(function(ev) {
     !isTRUE(ev$is_evidence) && isTRUE(ev$type %in% mutation_types)
   }, events)
+
+  # Frequency filter via cached variants_predicted table
+  if (!is.null(min_freq)) {
+    vp       <- entity$variants_predicted
+    freq_num <- suppressWarnings(as.numeric(sub("%$", "", vp$freq)) / 100)
+    keep_pos <- suppressWarnings(
+      as.integer(gsub(",", "", as.character(vp$position[!is.na(freq_num) & freq_num >= min_freq])))
+    )
+    mut_ev <- Filter(function(ev) as.integer(ev$position) %in% keep_pos, mut_ev)
+  }
 
   if (!is.null(contig)) {
     mut_ev <- Filter(function(ev) {

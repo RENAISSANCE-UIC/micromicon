@@ -137,11 +137,12 @@ get_roi_fasta(gd, contig = "1", start = 1834322, end = 1837471)
 map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
-# Variation-specific: Get predicted mutations data frame
-mutation_table <- predict_variants(gd)  # Reproduces breseq "Predicted Mutations" table
+# Variation-specific: predict mutations (result cached on gd object)
+predict_variants(gd)              # populates gd$variants_predicted
+gd$variants_predicted             # access the table directly
 
 # Enrich mutations with molecular consequences
-consequence_table <- annotate_variants(gd, mutation_table)
+consequence_table <- annotate_variants(gd)
 # Returns: DNA sequences (dna_ref, dna_alt), amino acid changes (aa_ref, aa_alt),
 #          codon changes, and consequence classification
 # Supports: SNP, DEL, INS, SUB mutation types (coding and intergenic)

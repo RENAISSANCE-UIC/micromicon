@@ -27,7 +27,9 @@ predict_variants(gd, ...)
 \item{join}{one of c("slash","pipe","newline") for multi-item fields (default "slash")}
 }
 \value{
-A data frame with one row per predicted variant.  Columns:
+The input \code{gd} object with \code{gd$variants_predicted}
+populated (a data frame with one row per predicted variant).  Assign the
+result back: \code{gd <- predict_variants(gd)}.  Columns:
 \describe{
 \item{\code{evidence}}{Evidence type supporting the call: \code{"RA"},
 \code{"MC"}, \code{"JC"}, or a combination such as \code{"MC JC"}.}
@@ -37,16 +39,16 @@ A data frame with one row per predicted variant.  Columns:
 \item{\code{seq_id}}{Reference contig / chromosome identifier.}
 \item{\code{position}}{Formatted genomic position (thousands-separated).
 Insertions append the within-position offset as \code{pos:k}.}
-\item{\code{mutation}}{Human-readable change label, e.g.\ \code{A\u2192T},
-\code{\u03941,234 bp}, \code{+25 bp}, \code{AMP\u00d73}.}
+\item{\code{mutation}}{Human-readable change label, e.g.\ \code{A->T},
+\code{delta 1,234 bp}, \code{+25 bp}, \code{AMP x3}.}
 \item{\code{freq}}{Allele frequency as a percentage string, e.g.\
 \code{"45.2\%"}.  Structural variants are reported as
 \code{"100.0\%"}.}
 \item{\code{annotation}}{Position within the gene for coding mutations
 (e.g.\ \code{"coding (45/1200 nt)"}); amino-acid change for SNPs
-(e.g.\ \code{"K123E (AAA\u2192GAA)"}); intergenic distance otherwise.}
+(e.g.\ \code{"K123E (AAA->GAA)"}); intergenic distance otherwise.}
 \item{\code{gene}}{Gene symbol or locus tag, with a strand arrow appended
-(\code{\u2192} / \code{\u2190}) for structural variants.}
+(\code{->} / \code{<-}) for structural variants.}
 \item{\code{description}}{Gene product description.}
 \item{\code{var_type}}{Molecular consequence class read from breseq
 annotation tags.  Values:
@@ -58,7 +60,10 @@ variants);
 \code{intergenic} (any mutation outside annotated features).}
 }
 
-data.frame/tibble with predicted mutations (superset schema)
+The input \code{gd} object with \code{gd$variants_predicted} set to
+the mutation table.  Assign the result back:
+\code{gd <- predict_variants(gd)}.  Subsequent calls short-circuit when
+the cached table is present.
 }
 \description{
 Parses a \code{genome_entity_gd} object — loaded from a breseq

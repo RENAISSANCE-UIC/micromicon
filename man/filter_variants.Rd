@@ -15,11 +15,11 @@ filter_variants(
 )
 }
 \arguments{
-\item{tbl}{A data frame returned by \code{predict_variants()} or
+\item{tbl}{A data frame or tibble returned by \code{predict_variants()} or
 \code{annotate_variants()}.}
 
 \item{gene}{Character scalar; case-insensitive partial match against the
-\code{gene} column. Strand arrows (NFLts6HuULwLqx51GA9Tp85UwDNddqTO-2\code{←}) are stripped before
+\code{gene} column. Strand arrows (uiRJssWSyegT6ziEH9hENlraD8dJgdg5-2\code{←}) are stripped before
 matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
 \code{gene = "mdt"} matches any \emph{mdt*} gene. Mutually exclusive
 with \code{position}.}
@@ -53,7 +53,7 @@ matches one of the supplied values (case-insensitive). Requires
 (exact match).}
 }
 \value{
-A data frame with the same columns as \code{tbl}, containing only
+A tibble with the same columns as \code{tbl}, containing only
 the rows that satisfy all supplied criteria.
 }
 \description{
@@ -68,7 +68,8 @@ every supplied criterion are returned.
 }
 \examples{
 \dontrun{
-variants <- predict_variants(gd)
+gd       <- predict_variants(gd)
+variants <- get_predicted_variants_table(gd)
 
 # Any mdt* gene above 80\% frequency
 filter_variants(variants, gene = "mdt", min_freq = 0.80)
@@ -82,8 +83,8 @@ filter_variants(variants, position = 1834467)
 # All variants within a genomic window
 filter_variants(variants, position = c(1830000, 1840000))
 
-# Nonsynonymous mutations in marR
-annotated <- annotate_variants(gd, variants)
+# Nonsynonymous mutations in marR (requires annotate_variants first)
+annotated <- annotate_variants(gd)
 filter_variants(annotated, gene = "marR", consequence = "nonsynonymous")
 }
 

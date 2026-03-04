@@ -1,6 +1,6 @@
 Package: micromicon
 Title: Unified Genomics Toolkit for GenBank and GFF3/FASTA Workflows
-Version: 0.3.6
+Version: 0.3.7
 Authors@R:
     person(
         given = "William",

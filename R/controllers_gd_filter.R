@@ -10,7 +10,7 @@
 #' All arguments are optional and stack (AND logic): only rows satisfying
 #' every supplied criterion are returned.
 #'
-#' @param tbl A data frame returned by \code{predict_variants()} or
+#' @param tbl A data frame or tibble returned by \code{predict_variants()} or
 #'   \code{annotate_variants()}.
 #' @param gene Character scalar; case-insensitive partial match against the
 #'   \code{gene} column. Strand arrows (\code{→}/\code{←}) are stripped before
@@ -41,12 +41,13 @@
 #' @param contig Character scalar; keep only rows on this contig or chromosome
 #'   (exact match).
 #'
-#' @return A data frame with the same columns as \code{tbl}, containing only
+#' @return A tibble with the same columns as \code{tbl}, containing only
 #'   the rows that satisfy all supplied criteria.
 #'
 #' @examples
 #' \dontrun{
-#' variants <- predict_variants(gd)
+#' gd       <- predict_variants(gd)
+#' variants <- get_predicted_variants_table(gd)
 #'
 #' # Any mdt* gene above 80% frequency
 #' filter_variants(variants, gene = "mdt", min_freq = 0.80)
@@ -60,8 +61,8 @@
 #' # All variants within a genomic window
 #' filter_variants(variants, position = c(1830000, 1840000))
 #'
-#' # Nonsynonymous mutations in marR
-#' annotated <- annotate_variants(gd, variants)
+#' # Nonsynonymous mutations in marR (requires annotate_variants first)
+#' annotated <- annotate_variants(gd)
 #' filter_variants(annotated, gene = "marR", consequence = "nonsynonymous")
 #' }
 #'
@@ -187,5 +188,5 @@ filter_variants <- function(tbl,
     keep <- keep & !is.na(tbl$seq_id) & (tbl$seq_id == contig)
   }
 
-  tbl[keep, , drop = FALSE]
+  tibble::as_tibble(tbl[keep, , drop = FALSE])
 }

@@ -30,7 +30,15 @@ plot_cgview.genome_entity <- function(entity,
                                        height        = 2000,
                                        elementId     = NULL,
                                        viewer        = c("pane", "browser"),
+                                       min_freq      = NULL,
                                        ...) {
+  if (!is.null(min_freq)) {
+    cli::cli_warn(c(
+      "!" = "{.arg min_freq} was ignored.",
+      "i" = "Frequency filtering is only available for {.cls genome_entity_gd} objects.",
+      "i" = "Load variant calls with {.fn read_variants}, then call {.fn predict_variants}."
+    ))
+  }
   viewer <- match.arg(viewer)
   w <- beta_cgview_from_entity(
     entity,
@@ -51,6 +59,10 @@ plot_cgview.genome_entity <- function(entity,
 #' @param left_title,right_title Panel titles for paired view. Ignored when
 #'   `paired = FALSE`.
 #' @param gap CSS gap between panels for paired view (default `"12px"`).
+#' @param min_freq Numeric (0–1) or NULL (default). When set, only variants
+#'   with allele frequency >= this value are shown. Requires
+#'   \code{gd$variants_predicted} to be populated first via
+#'   \code{\link{predict_variants}()}.
 #'
 #' @rdname plot_cgview
 #' @export
@@ -66,8 +78,21 @@ plot_cgview.genome_entity_gd <- function(entity,
                                           height        = 2000,
                                           elementId     = NULL,
                                           viewer        = c("pane", "browser"),
+                                          min_freq      = NULL,
                                           ...) {
   viewer <- match.arg(viewer)
+
+  if (!is.null(min_freq)) {
+    if (is.null(entity$variants_predicted)) {
+      cli::cli_abort(c(
+        "{.arg min_freq} requires {.code gd$variants_predicted} to be populated.",
+        "i" = "Run {.fn predict_variants} on your {.cls genome_entity_gd} first."
+      ))
+    }
+    stopifnot(is.numeric(min_freq), length(min_freq) == 1L,
+              min_freq >= 0, min_freq <= 1)
+  }
+
   w <- if (paired) {
     beta_cgview_pair_from_entity(
       entity,
@@ -78,6 +103,7 @@ plot_cgview.genome_entity_gd <- function(entity,
       left_title    = left_title,
       right_title   = right_title,
       gap           = gap,
+      min_freq      = min_freq,
       ...
     )
   } else {
@@ -90,6 +116,7 @@ plot_cgview.genome_entity_gd <- function(entity,
       width             = width,
       height            = height,
       elementId         = elementId,
+      min_freq          = min_freq,
       ...
     )
   }

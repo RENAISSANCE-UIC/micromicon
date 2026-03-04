@@ -4,7 +4,7 @@
 \alias{annotate_variants}
 \title{Annotate Variants with Molecular Sequences and Consequences}
 \usage{
-annotate_variants(gd, pm_tbl, ...)
+annotate_variants(gd, pm_tbl = NULL, ...)
 }
 \arguments{
 \item{gd}{A \code{genome_entity_gd} object produced by
