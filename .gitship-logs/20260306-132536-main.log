@@ -1,0 +1,401 @@
+ℹ Updating micromicon documentation
+ℹ Loading micromicon
+Writing 'filter_variants.Rd'
+ℹ Testing micromicon
+✔ | F W  S  OK | Context
+
+⠏ |          0 | accessors                                                      
+⠋ |          1 | accessors                                                      
+✔ |      1  11 | accessors [4.0s]
+
+⠏ |          0 | consequence-enrichment                                         
+⠇ |         59 | consequence-enrichment                                         
+✔ |         96 | consequence-enrichment
+
+⠏ |          0 | export-warnings                                                
+✔ |          7 | export-warnings
+
+⠏ |          0 | gene-utilities                                                 
+✔ |      7  24 | gene-utilities
+
+⠏ |          0 | genome_entity                                                  genome_entity Summary
+=====================
+
+Source: NA 
+Sequences: 0 sequences, 0 bp total
+Features: 0 
+Records: 0 
+
+✔ |          9 | genome_entity
+
+⠏ |          0 | integration                                                    
+✔ |      3  40 | integration
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 4.5 s
+
+── Skipped tests (11) ──────────────────────────────────────────────────────────
+• empty test (1): 'test-accessors.R:20:1'
+• Test file not found (9): 'test-gene-utilities.R:2:3',
+  'test-gene-utilities.R:37:3', 'test-gene-utilities.R:64:3',
+  'test-gene-utilities.R:118:3', 'test-gene-utilities.R:165:3',
+  'test-gene-utilities.R:202:3', 'test-gene-utilities.R:234:3',
+  'test-integration.R:2:3', 'test-integration.R:111:3'
+• Test GFF3 file not found (1): 'test-integration.R:42:3'
+
+[ FAIL 0 | WARN 0 | SKIP 11 | PASS 187 ]
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file ‘.../DESCRIPTION’ ... OK
+* preparing ‘micromicon’:
+* checking DESCRIPTION meta-information ... OK
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:42: unknown macro '\u2192T'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:43: unknown macro '\u'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:43: unknown macro '\u00d'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+* installing the package to build vignettes
+* creating vignettes ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Removed empty directory ‘micromicon/tests/testthat/controllers/_snaps’
+Removed empty directory ‘micromicon/tests/testthat/entities/_snaps’
+Removed empty directory ‘micromicon/tests/testthat/gateways/_snaps’
+Removed empty directory ‘micromicon/tests/testthat/integration’
+Removed empty directory ‘micromicon/tests/testthat/use_cases/_snaps’
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:42: unknown macro '\u2192T'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:43: unknown macro '\u'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:43: unknown macro '\u00d'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+Warning: /tmp/RtmpvfPUZf/Rbuild43fc6170eda/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+* building ‘micromicon_0.3.7.tar.gz’
+
+── R CMD check ─────────────────────────────────────────────────────────────────
+* using log directory ‘/tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck’
+* using R version 4.5.0 (2025-04-11)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    gcc (Ubuntu 14.2.0-19ubuntu2) 14.2.0
+    GNU Fortran (Ubuntu 14.2.0-19ubuntu2) 14.2.0
+* running under: Ubuntu 25.10
+* using session charset: UTF-8
+* using option ‘--no-manual’
+* checking for file ‘micromicon/DESCRIPTION’ ... OK
+* this is package ‘micromicon’ version ‘0.3.7’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .gitship-logs
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘micromicon’ can be installed ... WARNING
+Found the following significant warnings:
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:42: unknown macro '\u2192T'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:43: unknown macro '\u'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:43: unknown macro '\u00d'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+See ‘/tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00install.out’ for details.
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking ‘build’ directory ... OK
+* checking DESCRIPTION meta-information ... WARNING
+Invalid license file pointers: LICENSE
+Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:42: unknown macro '\u2192T'
+Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:43: unknown macro '\u'
+Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:43: unknown macro '\u00d'
+Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... WARNING
+Found the following files with non-ASCII characters:
+  R/controllers_gd_mutations.R
+  R/frameworks_utils_gd.R
+  R/micromicon-package.R
+  R/use_cases_gd_consequence_enrichment.R
+  R/use_cases_gd_consequence_enrichment_fast.R
+  R/use_cases_gd_consequence_enrichment_parallel.R
+Portable packages must use only ASCII characters in their R code and
+NAMESPACE directives, except perhaps in comments.
+Use \uxxxx escapes for other characters.
+Function ‘tools::showNonASCIIfile’ can help in finding non-ASCII
+characters in files.
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  ‘BiocGenerics’ ‘methods’ ‘pkgload’ ‘pwalign’
+'loadNamespace' or 'requireNamespace' calls not declared from:
+  ‘BiocGenerics’ ‘pwalign’
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+.get_fasta_index: no visible global function definition for ‘setNames’
+.pf_enrich_snp_fast: no visible global function definition for
+  ‘scalar_or’
+.pm_enrich_snp: no visible global function definition for ‘scalar_or’
+bioconductor_versions: no visible global function definition for
+  ‘setNames’
+blast_protein: no visible global function definition for ‘is’
+clean_gff_for_import: no visible global function definition for
+  ‘write.table’
+clean_gff_for_import: no visible global function definition for ‘msg’
+create_blast_gateway : <anonymous>: no visible global function
+  definition for ‘blastp_capture’
+execute_build_indices: no visible global function definition for
+  ‘setNames’
+gd_compute_snp_effect: no visible global function definition for
+  ‘scalar_or’
+gd_create_annotation_gateway : codon_context: no visible global
+  function definition for ‘gd_get_transl_table’
+gd_create_reference_gateway : translate: no visible global function
+  definition for ‘gd_translate_literal’
+gd_locate: no visible global function definition for ‘na.omit’
+gd_verify_snp: no visible binding for global variable ‘type’
+gd_verify_snp: no visible global function definition for ‘scalar_or’
+get_feature_fasta: no visible global function definition for
+  ‘writeXStringSet’
+get_roi_fasta_batch: no visible global function definition for
+  ‘writeXStringSet’
+harmonize_seqnames_simple: no visible global function definition for
+  ‘setNames’
+parse_blast_xml: no visible global function definition for ‘read_xml’
+parse_blast_xml: no visible global function definition for
+  ‘xml_find_all’
+parse_blast_xml: no visible global function definition for ‘tibble’
+parse_blast_xml: no visible global function definition for ‘head’
+parse_gd_annotated: no visible global function definition for
+  ‘setNames’
+pm_enrich_consequences_fast: no visible global function definition for
+  ‘txtProgressBar’
+pm_enrich_consequences_fast: no visible global function definition for
+  ‘setTxtProgressBar’
+pm_enrich_consequences_parallel: no visible global function definition
+  for ‘txtProgressBar’
+pm_enrich_consequences_parallel: no visible global function definition
+  for ‘setTxtProgressBar’
+predict_variants_int: no visible binding for global variable ‘type’
+predict_variants_int: no visible global function definition for
+  ‘setNames’
+predict_variants_int: no visible global function definition for
+  ‘na.omit’
+predict_variants_orig: no visible binding for global variable ‘type’
+predict_variants_orig: no visible global function definition for
+  ‘setNames’
+predict_variants_orig: no visible global function definition for
+  ‘na.omit’
+print.genome_entity: no visible global function definition for ‘head’
+probe_ra: no visible global function definition for ‘head’
+roi_cds_to_faa: no visible global function definition for ‘filter’
+roi_cds_to_faa: no visible binding for global variable ‘type’
+roi_cds_to_faa: no visible global function definition for ‘mutate’
+roi_cds_to_faa: no visible global function definition for ‘pmap’
+roi_cds_to_faa: no visible binding for global variable ‘seqnames’
+roi_cds_to_faa: no visible binding for global variable ‘start’
+roi_cds_to_faa: no visible binding for global variable ‘end’
+roi_cds_to_faa: no visible binding for global variable ‘strand’
+roi_cds_to_faa: no visible global function definition for ‘map2_chr’
+roi_cds_to_faa: no visible binding for global variable ‘dna’
+roi_cds_to_faa: no visible binding for global variable ‘aa_raw’
+roi_cds_to_faa: no visible binding for global variable ‘aa’
+roi_cds_to_faa: no visible global function definition for ‘str_detect’
+roi_cds_to_faa: no visible global function definition for ‘map2’
+roi_cds_to_faa: no visible global function definition for ‘write_lines’
+tidy_features: no visible global function definition for ‘tibble’
+tidy_features: no visible global function definition for ‘start’
+translate_cds: no visible global function definition for ‘width’
+validate_genome_entity_gd: no visible global function definition for
+  ‘setNames’
+Undefined global functions or variables:
+  aa aa_raw blastp_capture dna end filter gd_get_transl_table
+  gd_translate_literal head is map2 map2_chr msg mutate na.omit pmap
+  read_xml scalar_or seqnames setNames setTxtProgressBar start
+  str_detect strand tibble txtProgressBar type width write.table
+  writeXStringSet write_lines xml_find_all
+Consider adding
+  importFrom("methods", "is")
+  importFrom("stats", "end", "filter", "na.omit", "setNames", "start")
+  importFrom("utils", "head", "setTxtProgressBar", "txtProgressBar",
+             "write.table")
+to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
+contains 'methods').
+* checking Rd files ... WARNING
+prepare_Rd: ./man/predict_variants.Rd:42: unknown macro '\u2192T'
+prepare_Rd: ./man/predict_variants.Rd:43: unknown macro '\u'
+prepare_Rd: ./man/predict_variants.Rd:43: unknown macro '\u00d'
+prepare_Rd: ./man/predict_variants.Rd:51: unknown macro '\u'
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking installed files from ‘inst/doc’ ... OK
+* checking files in ‘vignettes’ ... OK
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ...
+  Running ‘testthat.R’
+ OK
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... OK
+* DONE
+Status: 5 WARNINGs, 2 NOTEs
+See
+  ‘/tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00check.log’
+for details.
+── R CMD check results ─────────────────────────────────── micromicon 0.3.7 ────
+Duration: 27.2s
+
+❯ checking whether package ‘micromicon’ can be installed ... WARNING
+  See below...
+
+❯ checking DESCRIPTION meta-information ... WARNING
+  Invalid license file pointers: LICENSE
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:42: unknown macro '\u2192T'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:43: unknown macro '\u'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:43: unknown macro '\u00d'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+  Warning: /tmp/RtmpZ4kptR/file43c81b365c49/micromicon.Rcheck/00_pkg_src/micromicon/man/predict_variants.Rd:51: unknown macro '\u'
+
+❯ checking code files for non-ASCII characters ... WARNING
+  Found the following files with non-ASCII characters:
+    R/controllers_gd_mutations.R
+    R/frameworks_utils_gd.R
+    R/micromicon-package.R
+    R/use_cases_gd_consequence_enrichment.R
+    R/use_cases_gd_consequence_enrichment_fast.R
+    R/use_cases_gd_consequence_enrichment_parallel.R
+  Portable packages must use only ASCII characters in their R code and
+  NAMESPACE directives, except perhaps in comments.
+  Use \uxxxx escapes for other characters.
+  Function ‘tools::showNonASCIIfile’ can help in finding non-ASCII
+  characters in files.
+
+❯ checking dependencies in R code ... WARNING
+  '::' or ':::' imports not declared from:
+    ‘BiocGenerics’ ‘methods’ ‘pkgload’ ‘pwalign’
+  'loadNamespace' or 'requireNamespace' calls not declared from:
+    ‘BiocGenerics’ ‘pwalign’
+
+❯ checking Rd files ... WARNING
+  prepare_Rd: ./man/predict_variants.Rd:42: unknown macro '\u2192T'
+  prepare_Rd: ./man/predict_variants.Rd:43: unknown macro '\u'
+  prepare_Rd: ./man/predict_variants.Rd:43: unknown macro '\u00d'
+  prepare_Rd: ./man/predict_variants.Rd:51: unknown macro '\u'
+
+❯ checking for hidden files and directories ... NOTE
+  Found the following hidden files and directories:
+    .gitship-logs
+  These were most likely included in error. See section ‘Package
+  structure’ in the ‘Writing R Extensions’ manual.
+
+❯ checking R code for possible problems ... NOTE
+  .get_fasta_index: no visible global function definition for ‘setNames’
+  .pf_enrich_snp_fast: no visible global function definition for
+    ‘scalar_or’
+  .pm_enrich_snp: no visible global function definition for ‘scalar_or’
+  bioconductor_versions: no visible global function definition for
+    ‘setNames’
+  blast_protein: no visible global function definition for ‘is’
+  clean_gff_for_import: no visible global function definition for
+    ‘write.table’
+  clean_gff_for_import: no visible global function definition for ‘msg’
+  create_blast_gateway : <anonymous>: no visible global function
+    definition for ‘blastp_capture’
+  execute_build_indices: no visible global function definition for
+    ‘setNames’
+  gd_compute_snp_effect: no visible global function definition for
+    ‘scalar_or’
+  gd_create_annotation_gateway : codon_context: no visible global
+    function definition for ‘gd_get_transl_table’
+  gd_create_reference_gateway : translate: no visible global function
+    definition for ‘gd_translate_literal’
+  gd_locate: no visible global function definition for ‘na.omit’
+  gd_verify_snp: no visible binding for global variable ‘type’
+  gd_verify_snp: no visible global function definition for ‘scalar_or’
+  get_feature_fasta: no visible global function definition for
+    ‘writeXStringSet’
+  get_roi_fasta_batch: no visible global function definition for
+    ‘writeXStringSet’
+  harmonize_seqnames_simple: no visible global function definition for
+    ‘setNames’
+  parse_blast_xml: no visible global function definition for ‘read_xml’
+  parse_blast_xml: no visible global function definition for
+    ‘xml_find_all’
+  parse_blast_xml: no visible global function definition for ‘tibble’
+  parse_blast_xml: no visible global function definition for ‘head’
+  parse_gd_annotated: no visible global function definition for
+    ‘setNames’
+  pm_enrich_consequences_fast: no visible global function definition for
+    ‘txtProgressBar’
+  pm_enrich_consequences_fast: no visible global function definition for
+    ‘setTxtProgressBar’
+  pm_enrich_consequences_parallel: no visible global function definition
+    for ‘txtProgressBar’
+  pm_enrich_consequences_parallel: no visible global function definition
+    for ‘setTxtProgressBar’
+  predict_variants_int: no visible binding for global variable ‘type’
+  predict_variants_int: no visible global function definition for
+    ‘setNames’
+  predict_variants_int: no visible global function definition for
+    ‘na.omit’
+  predict_variants_orig: no visible binding for global variable ‘type’
+  predict_variants_orig: no visible global function definition for
+    ‘setNames’
+  predict_variants_orig: no visible global function definition for
+    ‘na.omit’
+  print.genome_entity: no visible global function definition for ‘head’
+  probe_ra: no visible global function definition for ‘head’
+  roi_cds_to_faa: no visible global function definition for ‘filter’
+  roi_cds_to_faa: no visible binding for global variable ‘type’
+  roi_cds_to_faa: no visible global function definition for ‘mutate’
+  roi_cds_to_faa: no visible global function definition for ‘pmap’
+  roi_cds_to_faa: no visible binding for global variable ‘seqnames’
+  roi_cds_to_faa: no visible binding for global variable ‘start’
+  roi_cds_to_faa: no visible binding for global variable ‘end’
+  roi_cds_to_faa: no visible binding for global variable ‘strand’
+  roi_cds_to_faa: no visible global function definition for ‘map2_chr’
+  roi_cds_to_faa: no visible binding for global variable ‘dna’
+  roi_cds_to_faa: no visible binding for global variable ‘aa_raw’
+  roi_cds_to_faa: no visible binding for global variable ‘aa’
+  roi_cds_to_faa: no visible global function definition for ‘str_detect’
+  roi_cds_to_faa: no visible global function definition for ‘map2’
+  roi_cds_to_faa: no visible global function definition for ‘write_lines’
+  tidy_features: no visible global function definition for ‘tibble’
+  tidy_features: no visible global function definition for ‘start’
+  translate_cds: no visible global function definition for ‘width’
+  validate_genome_entity_gd: no visible global function definition for
+    ‘setNames’
+  Undefined global functions or variables:
+    aa aa_raw blastp_capture dna end filter gd_get_transl_table
+    gd_translate_literal head is map2 map2_chr msg mutate na.omit pmap
+    read_xml scalar_or seqnames setNames setTxtProgressBar start
+    str_detect strand tibble txtProgressBar type width write.table
+    writeXStringSet write_lines xml_find_all
+  Consider adding
+    importFrom("methods", "is")
+    importFrom("stats", "end", "filter", "na.omit", "setNames", "start")
+    importFrom("utils", "head", "setTxtProgressBar", "txtProgressBar",
+               "write.table")
+  to your NAMESPACE file (and ensure that your DESCRIPTION Imports field
+  contains 'methods').
+
+0 errors ✔ | 5 warnings ✖ | 2 notes ✖
