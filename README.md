@@ -138,7 +138,7 @@ map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
 # Variation-specific: predict mutations (result cached on gd object)
-predict_variants(gd)              # populates gd$variants_predicted
+gd <- predict_variants(gd)              # populates gd$variants_predicted
 gd$variants_predicted             # access the table directly
 
 # Enrich mutations with molecular consequences
@@ -162,6 +162,7 @@ get_variant_aa(consequence_table, position = 1834467)
 
 # Integration with CGView.js
 plot_cgview(gd)
+plot_cgview(gd, min_freq = 0.9)
 plot_cgview(gd, paired = TRUE, viewer = "browser")
 
 ```
