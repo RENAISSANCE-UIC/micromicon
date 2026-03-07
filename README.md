@@ -162,7 +162,7 @@ get_variant_aa(consequence_table, position = 1834467)
 
 # Integration with CGView.js
 plot_cgview(gd)
-plot_cgview(gd, min_freq = 0.9)
+plot_cgview(gd, min_freq = 0.9)     # filter by gene frequency in a mixed population  
 plot_cgview(gd, paired = TRUE, viewer = "browser")
 
 ```
