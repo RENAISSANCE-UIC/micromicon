@@ -1,3 +1,9 @@
+# micromicon 0.3.7
+
+## Visualization
+* Added filtering by polymorphism frequency in mixed populations to
+  `plot_cgview()`.
+
 # micromicon 0.3.5
 
 ## UX: On-load experience
