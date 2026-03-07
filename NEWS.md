@@ -4,6 +4,14 @@
 * Added filtering by polymorphism frequency in mixed populations to
   `plot_cgview()`.
 
+## Enhancements
+* Updated `predict_mutations()` to return results to a dedicated slot 
+  of the `genome_entity_gd object`. This was added to provide a stable 
+  representation of the parsed object for downstream analyses. 
+
+* Added `get_predicted_variants_table()` to convert stored predictions 
+  into a tibble.
+
 # micromicon 0.3.5
 
 ## UX: On-load experience
