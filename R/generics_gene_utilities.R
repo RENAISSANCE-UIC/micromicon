@@ -78,7 +78,7 @@ get_gene_dna.default <- function(x, gene, ...) {
 #'
 #' In bacterial genomes, alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA)
 #' are translated as Methionine (M) when they occur as the first codon, even though
-#' they normally code for other amino acids (e.g., GTG → V internally, but M at start).
+#' they normally code for other amino acids (e.g., GTG codes for V internally, but M at start).
 #'
 #' @param x A genome_entity object
 #' @param gene Gene identifier: gene name, locus_tag, feature index (integer), or feature row (data.frame)
@@ -571,7 +571,7 @@ validate_variant_in_gene.default <- function(x, gene, genomic_pos, ref_base, ...
 #'
 #' @description
 #' Internal helper to resolve various gene identifiers to a single feature row.
-#' Search order for character identifiers: locus_tag → gene → Name → Alias → ID
+#' Search order for character identifiers: locus_tag, gene, Name, Alias, ID
 #'
 #' @param entity A genome_entity object
 #' @param gene Gene identifier: gene name, locus_tag, Name, Alias, ID, feature index (integer), or feature row (data.frame)

@@ -13,8 +13,8 @@
 #' @param tbl A data frame or tibble returned by \code{predict_variants()} or
 #'   \code{annotate_variants()}.
 #' @param gene Character scalar; case-insensitive partial match against the
-#'   \code{gene} column. Strand arrows (\code{→}/\code{←}) are stripped before
-#'   matching, so \code{gene = "mdtA"} matches \code{"mdtA →"} and
+#'   \code{gene} column. Strand direction indicators are stripped before
+#'   matching, so \code{gene = "mdtA"} matches gene names with strand suffixes and
 #'   \code{gene = "mdt"} matches any \emph{mdt*} gene. Mutually exclusive
 #'   with \code{position}.
 #' @param position Numeric scalar or length-2 numeric vector. When a scalar,

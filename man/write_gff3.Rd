@@ -49,7 +49,7 @@ No \code{write_genbank()} function exists - this is FORBIDDEN, not a missing fea
 
 \subsection{Why GenBank Export is FORBIDDEN}{
 
-There is no reverse conversion (GFF3+FASTA → GenBank) because:
+There is no reverse conversion from GFF3+FASTA to GenBank because:
 \itemize{
 \item GFF3+FASTA lacks the metadata required for valid GenBank files
 \item GenBank format requires organism, taxonomy, and reference information

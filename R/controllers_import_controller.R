@@ -12,14 +12,14 @@
 #' - **GFF3+FASTA**: Minimal metadata (sequences and features only)
 #'
 #' ## Conversion Rules
-#' - ALLOWED: GenBank → GFF3+FASTA (use `write_gff3()`, `write_fasta()`)
-#' - FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
+#' - ALLOWED: GenBank to GFF3+FASTA (use `write_gff3()`, `write_fasta()`)
+#' - FORBIDDEN: GFF3+FASTA to GenBank (no export function - intentional)
 #'
 #' Always keep original GenBank files. See package documentation for details.
 #'
 #' @param path Character string or named vector specifying input file(s):
-#'   - Single file path with .gb/.gbk extension → GenBank format
-#'   - Named vector c(gff = "path.gff3", fasta = "path.fasta") → GFF3+FASTA
+#'   - Single file path with .gb/.gbk extension: GenBank format
+#'   - Named vector c(gff = "path.gff3", fasta = "path.fasta"): GFF3+FASTA
 #' @param gff Path to GFF3 file (alternative to using named vector in path)
 #' @param fasta Path to FASTA file (alternative to using named vector in path)
 #' @param format Character string to override auto-detection:

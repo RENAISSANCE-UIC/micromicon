@@ -30,5 +30,5 @@ or defaults to genetic code 11 (bacterial/archaeal).
 
 In bacterial genomes, alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA)
 are translated as Methionine (M) when they occur as the first codon, even though
-they normally code for other amino acids (e.g., GTG → V internally, but M at start).
+they normally code for other amino acids (e.g., GTG codes for V internally, but M at start).
 }

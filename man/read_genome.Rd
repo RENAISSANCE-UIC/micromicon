@@ -15,8 +15,8 @@ read_genome(
 \arguments{
 \item{path}{Character string or named vector specifying input file(s):
 \itemize{
-\item Single file path with .gb/.gbk extension → GenBank format
-\item Named vector c(gff = "path.gff3", fasta = "path.fasta") → GFF3+FASTA
+\item Single file path with .gb/.gbk extension: GenBank format
+\item Named vector c(gff = "path.gff3", fasta = "path.fasta"): GFF3+FASTA
 }}
 
 \item{gff}{Path to GFF3 file (alternative to using named vector in path)}
@@ -57,8 +57,8 @@ This is a controller function that coordinates gateways and use cases.
 
 \subsection{Conversion Rules}{
 \itemize{
-\item ALLOWED: GenBank → GFF3+FASTA (use \code{write_gff3()}, \code{write_fasta()})
-\item FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
+\item ALLOWED: GenBank to GFF3+FASTA (use \code{write_gff3()}, \code{write_fasta()})
+\item FORBIDDEN: GFF3+FASTA to GenBank (no export function - intentional)
 }
 
 Always keep original GenBank files. See package documentation for details.

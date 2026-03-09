@@ -16,6 +16,6 @@ Single-row data.frame (feature)
 }
 \description{
 Internal helper to resolve various gene identifiers to a single feature row.
-Search order for character identifiers: locus_tag → gene → Name → Alias → ID
+Search order for character identifiers: locus_tag, gene, Name, Alias, ID
 }
 \keyword{internal}

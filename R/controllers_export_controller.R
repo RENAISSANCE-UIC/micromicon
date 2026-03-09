@@ -24,7 +24,7 @@
 #' - All feature annotations (genes, CDS, etc.)
 #'
 #' ## Why GenBank Export is FORBIDDEN
-#' There is no reverse conversion (GFF3+FASTA → GenBank) because:
+#' There is no reverse conversion from GFF3+FASTA to GenBank because:
 #' - GFF3+FASTA lacks the metadata required for valid GenBank files
 #' - GenBank format requires organism, taxonomy, and reference information
 #' - Creating incomplete GenBank files would violate NCBI format specifications
@@ -89,7 +89,7 @@ write_fasta <- function(x, file, wrap_width = 80, ...) {
 #' - Sequence topology (circular vs. linear)
 #'
 #' ## Why GenBank Export is FORBIDDEN
-#' There is no reverse conversion (GFF3+FASTA → GenBank) because:
+#' There is no reverse conversion from GFF3+FASTA to GenBank because:
 #' - GFF3+FASTA lacks the metadata required for valid GenBank files
 #' - GenBank format requires organism, taxonomy, and reference information
 #' - Creating incomplete GenBank files would violate NCBI format specifications
