@@ -11,6 +11,9 @@ get_features(x, ...)
   x,
   format = c("tibble", "data.frame", "GRanges"),
   type = NULL,
+  seqname = NULL,
+  gene = NULL,
+  locus_tag = NULL,
   ...
 )
 }
@@ -32,6 +35,15 @@ workflows. Requires \code{BiocManager::install("GenomicRanges")}.}
 \item{type}{Character. Restrict output to a single feature type, e.g.
 \code{"CDS"}, \code{"rRNA"}, \code{"tRNA"}, or \code{"gene"}.
 \code{NULL} (default) returns every feature type.}
+
+\item{seqname}{Character. Restrict output to features on a specific contig
+or chromosome. \code{NULL} (default) returns features from all contigs.}
+
+\item{gene}{Character. Restrict output to features with this gene symbol.
+\code{NULL} (default) does not filter by gene.}
+
+\item{locus_tag}{Character. Restrict output to features with this locus tag.
+\code{NULL} (default) does not filter by locus_tag.}
 }
 \value{
 A tibble (or data.frame / GRanges, per \code{format}) with one row per
@@ -78,6 +90,15 @@ table(cds$strand)
 
 # Ribosomal RNA loci — useful for coverage QC
 get_features(ref, type = "rRNA")
+
+# Filter by gene symbol
+get_features(ref, gene = "motA")
+
+# Filter by contig and gene
+get_features(ref, seqname = "U00096", gene = "motA")
+
+# Filter by locus tag
+get_features(ref, locus_tag = "b1891")
 
 # Hand off to a Bioconductor workflow
 get_features(ref, format = "GRanges")
