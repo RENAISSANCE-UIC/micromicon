@@ -1,13 +1,3 @@
-#' Legacy GFF Utility Functions
-#'
-#' @description
-#' Legacy functions for GFF file operations. These are maintained for
-#' backward compatibility with the old API but are not used in the new
-#' Clean Architecture layers.
-#'
-#' @keywords internal
-
-
 #' Pre-filter GFF file (LEGACY)
 #'
 #' @description
