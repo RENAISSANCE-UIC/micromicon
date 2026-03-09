@@ -1,5 +1,6 @@
 # zzz.R — package lifecycle hooks
 # Sourced last (alphabetically) so all package internals are available.
+# Look, I saw that Hadley Wickham did this and I loved it in tidyverse
 
 # Startup message ---------------------------------------------------------
 
