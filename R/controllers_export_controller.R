@@ -68,11 +68,11 @@ write_fasta <- function(x, file, wrap_width = 80, ...) {
 #' @description
 #' Export features from a genome_entity to GFF3 format.
 #'
-#' **⚠️ METADATA LOSS**: If the genome was imported from GenBank, this export
+#' **METADATA LOSS**: If the genome was imported from GenBank, this export
 #' will LOSE organism information, taxonomic lineage, references, comments,
 #' and accession numbers. GFF3 format cannot represent GenBank metadata.
 #'
-#' **❌ NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
+#' **NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
 #' No `write_genbank()` function exists - this is FORBIDDEN, not a missing feature.
 #'
 #' @details
