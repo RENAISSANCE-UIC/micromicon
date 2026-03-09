@@ -12,8 +12,8 @@
 #' - **GFF3+FASTA**: Minimal metadata (sequences and features only)
 #'
 #' ## Conversion Rules
-#' - ✅ ALLOWED: GenBank → GFF3+FASTA (use `write_gff3()`, `write_fasta()`)
-#' - ❌ FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
+#' - ALLOWED: GenBank → GFF3+FASTA (use `write_gff3()`, `write_fasta()`)
+#' - FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
 #'
 #' Always keep original GenBank files. See package documentation for details.
 #'
