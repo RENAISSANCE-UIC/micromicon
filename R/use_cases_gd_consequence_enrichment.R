@@ -49,6 +49,9 @@
 #'
 #' @keywords internal
 pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
+
+  # Note: pm was carryover from "predicted mutations"
+  
   gd_assert(gd, "gd")
   stopifnot(is.data.frame(pm_tbl))
   stopifnot(is.numeric(flank) && length(flank) == 1L && flank >= 0)
