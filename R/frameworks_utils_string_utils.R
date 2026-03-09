@@ -1,15 +1,3 @@
-#' String Utility Functions
-#'
-#' @description
-#' Low-level string manipulation utilities used across the framework.
-#'
-#' @keywords internal
-
-
-#' Infix operator for default values
-# Note: %||% operator is now defined and exported in R/operators.R
-
-
 #' Scrub common sequence name prefixes
 #'
 #' @description
