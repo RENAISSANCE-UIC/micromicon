@@ -3,11 +3,11 @@
 #' @description
 #' Export sequences from a genome_entity or character vector to FASTA format.
 #'
-#' **⚠️ METADATA LOSS**: If the genome was imported from GenBank, this export
+#' ** METADATA LOSS**: If the genome was imported from GenBank, this export
 #' will LOSE organism information, taxonomic lineage, references, comments,
 #' and accession numbers. FASTA format only stores sequence IDs and sequences.
 #'
-#' **❌ NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
+#' ** NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
 #' No `write_genbank()` function exists - this is FORBIDDEN, not a missing feature.
 #'
 #' @details
