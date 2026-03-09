@@ -1,6 +1,6 @@
 Package: micromicon
 Title: Unified Genomics Toolkit for GenBank and GFF3/FASTA Workflows
-Version: 0.3.7
+Version: 0.3.8
 Authors@R:
     person(
         given = "William",
@@ -24,6 +24,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     magrittr,
+    methods,
     cli,
     tibble,
     dplyr,
@@ -32,6 +33,7 @@ Imports:
     jsonlite,
     htmltools
 Suggests:
+    BiocGenerics,
     GenomicRanges,
     Biostrings,
     rtracklayer,
@@ -39,12 +41,15 @@ Suggests:
     GenomeInfoDb,
     S4Vectors,
     IRanges,
+    pwalign,
+    pkgload,
     rentrez,
     httr2,
     xml2,
     processx,
     devtools,
     testthat (>= 3.0.0),
+    withr,
     knitr,
     rmarkdown
 VignetteBuilder: knitr

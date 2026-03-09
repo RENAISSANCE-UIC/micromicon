@@ -1,10 +1,8 @@
 # NEW GENBANK PARSER
-#' A dependency-light GenBank (.gb / .gbk) parser for R
-#' Handles: multi-record files, wrapped header fields, FEATURES block, 
-#'          multi-line qualifiers, location strings with complement(), 
-#'          join(), order(), <, >, ^, and remote segments.
-
-trim <- function(x) sub("\\s+$", "", sub("^\\s+", "", x))
+# A dependency-light GenBank (.gb / .gbk) parser for R
+# Handles: multi-record files, wrapped header fields, FEATURES block,
+#          multi-line qualifiers, location strings with complement(),
+#          join(), order(), <, >, ^, and remote segments.
 
 # Split a multi-record GBK file by lines ending with "//"
 split_records_by_slashes <- function(lines) {
@@ -69,7 +67,7 @@ collect_tag_block <- function(lines, start_idx, tag) {
   while (i <= length(lines)) {
     # Continuation lines usually begin with spaces in the tag column region
     if (i <= length(lines) && grepl("^\\s{2,}\\S", lines[i]) && !grepl("^\\S", lines[i])) {
-      collected <- c(collected, trim(lines[i]))
+      collected <- c(collected, trimws(lines[i]))
       i <- i + 1
     } else if (i <= length(lines) && grepl("^\\s*$", lines[i])) {
       # allow empty lines within a block
@@ -79,14 +77,14 @@ collect_tag_block <- function(lines, start_idx, tag) {
       break
     }
   }
-  list(value = trim(paste(collected, collapse = " ")), next_idx = i)
+  list(value = trimws(paste(collected, collapse = " ")), next_idx = i)
 }
 
 # Parse LOCUS line tokens (best-effort; field order varies across eras/divisions)
 parse_locus_line <- function(line) {
   # Example:
   # LOCUS       SCU49845     5028 bp    DNA     circular PLN 21-JUN-1999
-  x <- trim(sub("^LOCUS\\s+", "", line))
+  x <- trimws(sub("^LOCUS\\s+", "", line))
   toks <- strsplit(x, "\\s+")[[1]]
   res <- list(locus = NA, length_bp = NA, mol_type = NA, topology = NA,
               division = NA, date = NA)
@@ -131,19 +129,19 @@ parse_locus_line <- function(line) {
 parse_source_block <- function(lines, start_idx) {
   # SOURCE line:
   if (!grepl("^SOURCE\\b", lines[start_idx])) cli::cli_abort("Expected SOURCE at {start_idx}")
-  source_val <- trim(sub("^SOURCE\\s*", "", lines[start_idx]))
+  source_val <- trimws(sub("^SOURCE\\s*", "", lines[start_idx]))
   i <- start_idx + 1
   org <- NA_character_
   lineage <- NA_character_
   if (i <= length(lines) && grepl("^\\s+ORGANISM\\b", lines[i])) {
-    org <- trim(sub("^\\s+ORGANISM\\s*", "", lines[i]))
+    org <- trimws(sub("^\\s+ORGANISM\\s*", "", lines[i]))
     i <- i + 1
     tax <- character()
     while (i <= length(lines) && grepl("^\\s{2,}\\S", lines[i]) && !grepl("^\\S", lines[i])) {
-      tax <- c(tax, trim(lines[i]))
+      tax <- c(tax, trimws(lines[i]))
       i <- i + 1
     }
-    lineage <- trim(paste(tax, collapse = " "))
+    lineage <- trimws(paste(tax, collapse = " "))
   }
   list(source = source_val, organism = org, taxonomy = lineage, next_idx = i)
 }
@@ -283,8 +281,8 @@ parse_features_block <- function(lines, start_idx, end_idx) {
   
   get_key_loc <- function(line) {
     # key in ~cols 6-20; location starts ~col 21
-    key <- trim(substr(line, 6, 20))
-    loc <- trim(substr(line, 21, nchar(line)))
+    key <- trimws(substr(line, 6, 20))
+    loc <- trimws(substr(line, 21, nchar(line)))
     list(key = key, loc = loc)
   }
   
@@ -306,7 +304,7 @@ parse_features_block <- function(lines, start_idx, end_idx) {
     }
     if (!is.null(current) && continuation_line(line) && !in_qual) {
       # location continuation
-      current$location_string <- paste0(current$location_string, " ", trim(line))
+      current$location_string <- paste0(current$location_string, " ", trimws(line))
       i <- i + 1
       next
     }
@@ -357,7 +355,7 @@ parse_features_block <- function(lines, start_idx, end_idx) {
       val <- if (length(kv) >= 2) paste(kv[-1], collapse = "=") else NA_character_
       if (!is.na(val)) {
         # remove surrounding quotes if present; keep internal quotes
-        val <- trim(val)
+        val <- trimws(val)
         if (startsWith(val, "\"") && endsWith(val, "\"")) {
           val <- substr(val, 2, nchar(val) - 1)
         }
@@ -471,7 +469,7 @@ parse_gbk_record <- function(lines) {
   version <- NA_character_; gi <- NA_character_
   idx_ver <- which(grepl("^VERSION\\b", lines))
   if (length(idx_ver)) {
-    ver_line <- trim(sub("^VERSION\\s*", "", lines[idx_ver[1]]))
+    ver_line <- trimws(sub("^VERSION\\s*", "", lines[idx_ver[1]]))
     # e.g., U49845.1  GI:1293613
     parts <- strsplit(ver_line, "\\s+")[[1]]
     if (length(parts)) version <- parts[1]

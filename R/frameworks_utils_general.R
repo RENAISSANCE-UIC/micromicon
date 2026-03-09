@@ -18,14 +18,6 @@ NULL
 
 # Helpers
 
-# Scrubber for common prefixes. Extend as your corpus dictates.
-.scrub_prefixes <- function(x) {
-  x <- as.character(x)
-  x <- sub("^lcl\\|", "", x, perl = TRUE)
-  x <- sub("^chr",    "", x, ignore.case = TRUE)
-  x
-}
-
 # Return FASTA names and lengths from either DNAStringSet or FaFile
 .get_fasta_index <- function(fa_obj) {
   if (inherits(fa_obj, "DNAStringSet")) {
@@ -132,6 +124,11 @@ clean_gff_for_import <- function(gff_path,
 #'
 #' Returns a modified genome_obj with gff seqlevels renamed to match genome_obj$seqnames.
 #' Emits informative cli messages; uses cli::warn on partial successes; cli::abort only when hopeless.
+#'
+#' @param genome_obj Legacy genome object with \code{gff}, \code{fa}, and \code{seqnames} components.
+#' @param use_length_fallback Logical; enable length-based greedy fallback mapping (default FALSE).
+#' @return Modified \code{genome_obj} with GFF seqlevels renamed to match FASTA headers.
+#' @keywords internal
 harmonize_gff_seqlevels <- function(genome_obj,
                                     use_length_fallback = FALSE) {
   

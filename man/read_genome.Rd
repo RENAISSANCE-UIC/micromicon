@@ -57,8 +57,8 @@ This is a controller function that coordinates gateways and use cases.
 
 \subsection{Conversion Rules}{
 \itemize{
-\item ✅ ALLOWED: GenBank → GFF3+FASTA (use \code{write_gff3()}, \code{write_fasta()})
-\item ❌ FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
+\item ALLOWED: GenBank → GFF3+FASTA (use \code{write_gff3()}, \code{write_fasta()})
+\item FORBIDDEN: GFF3+FASTA → GenBank (no export function - intentional)
 }
 
 Always keep original GenBank files. See package documentation for details.

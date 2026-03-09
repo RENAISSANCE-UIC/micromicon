@@ -1,3 +1,28 @@
+#' Create a GD annotation gateway
+#'
+#' Constructs a gateway object that provides annotation-aware lookups for
+#' genome diff (GD) consequence enrichment. The gateway wraps a
+#' \code{genome_entity}'s feature table and exposes two methods for
+#' finding CDS features and computing codon context at a given genomic
+#' position.
+#'
+#' @param entity A \code{genome_entity} object containing genome features.
+#' @param logger Optional logger object (currently unused, reserved for future
+#'   diagnostic output).
+#'
+#' @return A named list with two functions:
+#' \describe{
+#'   \item{\code{cds_by_position(seq_id, pos)}}{Returns CDS feature rows
+#'     (from the entity's feature table) that cover the given 1-based
+#'     position on \code{seq_id}.}
+#'   \item{\code{codon_context(ref_gw, cds_row, pos)}}{Given a reference
+#'     gateway, a single CDS feature row, and a 1-based genomic position,
+#'     returns a list with codon coordinates, the reference codon sequence,
+#'     and the translated reference amino acid. Handles both \code{+} and
+#'     \code{-} strands; warns for multi-segment CDS features.}
+#' }
+#'
+#' @keywords internal
 gd_create_annotation_gateway <- function(entity, logger = NULL) {
   stopifnot(inherits(entity, "genome_entity"))
   feat <- entity$features

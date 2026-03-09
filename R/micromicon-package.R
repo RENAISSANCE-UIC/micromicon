@@ -29,6 +29,9 @@
 #' categorised function listing.
 #'
 #' @keywords internal
+#' @importFrom methods is
+#' @importFrom stats na.omit setNames
+#' @importFrom utils head setTxtProgressBar txtProgressBar write.table
 "_PACKAGE"
 
 ##' Print the micromicon function index in the console

@@ -151,22 +151,3 @@ write_fasta_simple <- function(sequences, path, wrap_width = 80) {
   }
 }
 
-#' Wrap Sequence to Fixed Width
-#'
-#' @param seq Character string
-#' @param width Integer; wrap width
-#' @return Character vector of wrapped lines
-#' @keywords internal
-wrap_sequence <- function(seq, width) {
-  n_chars <- nchar(seq)
-  n_lines <- ceiling(n_chars / width)
-
-  lines <- character(n_lines)
-  for (i in seq_len(n_lines)) {
-    start_pos <- (i - 1) * width + 1
-    end_pos <- min(i * width, n_chars)
-    lines[i] <- substr(seq, start_pos, end_pos)
-  }
-
-  lines
-}

@@ -21,19 +21,6 @@
 }
 
 
-#' Trim whitespace from strings
-#'
-#' @description
-#' Removes leading and trailing whitespace from character vectors.
-#'
-#' @param x Character vector
-#' @return Character vector with whitespace trimmed
-#' @keywords internal
-trim <- function(x) {
-  sub("\\s+$", "", sub("^\\s+", "", x))
-}
-
-
 #' Wrap sequence string at specified width
 #'
 #' @description

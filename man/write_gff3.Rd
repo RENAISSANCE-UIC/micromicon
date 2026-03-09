@@ -21,11 +21,11 @@ Invisibly returns the file path
 \description{
 Export features from a genome_entity to GFF3 format.
 
-\strong{⚠️ METADATA LOSS}: If the genome was imported from GenBank, this export
+\strong{METADATA LOSS}: If the genome was imported from GenBank, this export
 will LOSE organism information, taxonomic lineage, references, comments,
 and accession numbers. GFF3 format cannot represent GenBank metadata.
 
-\strong{❌ NO REVERSE CONVERSION}: GFF3+FASTA cannot be converted back to GenBank.
+\strong{NO REVERSE CONVERSION}: GFF3+FASTA cannot be converted back to GenBank.
 No \code{write_genbank()} function exists - this is FORBIDDEN, not a missing feature.
 }
 \details{

@@ -21,11 +21,11 @@ Invisibly returns the file path
 \description{
 Export sequences from a genome_entity or character vector to FASTA format.
 
-\strong{⚠️ METADATA LOSS}: If the genome was imported from GenBank, this export
+** METADATA LOSS**: If the genome was imported from GenBank, this export
 will LOSE organism information, taxonomic lineage, references, comments,
 and accession numbers. FASTA format only stores sequence IDs and sequences.
 
-\strong{❌ NO REVERSE CONVERSION}: GFF3+FASTA cannot be converted back to GenBank.
+** NO REVERSE CONVERSION**: GFF3+FASTA cannot be converted back to GenBank.
 No \code{write_genbank()} function exists - this is FORBIDDEN, not a missing feature.
 }
 \details{
