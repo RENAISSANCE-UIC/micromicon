@@ -624,21 +624,3 @@ write_cds_table <- function(gbk_list, file) {
   utils::write.csv(cds, file, row.names = FALSE)
   invisible(file)
 }
-
-
-
-# -------- FASTA export ====
-
-# -------- FASTA export (revised) ---------------------------------------------
-
-#' Write sequences from parsed GBK records to FASTA
-#'
-#' @param gbk_list List of parsed GBK records (output from read_gbk())
-#' @param file Output .fna path
-#' @param wrap_width Integer; wrap sequences at this width (default 80)
-#' @param auto_label Logical; if TRUE (default), infer chromosome vs plasmids
-#'   by sorting by length (longest = chromosome, rest = plasmids)
-#' @param include_length Logical; append [length=X] to header (default TRUE)
-#'
-#' @return Invisibly returns output path
-#' @keywords internal
