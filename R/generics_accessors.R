@@ -33,6 +33,12 @@
 #' @param type Character. Restrict output to a single feature type, e.g.
 #'   \code{"CDS"}, \code{"rRNA"}, \code{"tRNA"}, or \code{"gene"}.
 #'   \code{NULL} (default) returns every feature type.
+#' @param seqname Character. Restrict output to features on a specific contig
+#'   or chromosome. \code{NULL} (default) returns features from all contigs.
+#' @param gene Character. Restrict output to features with this gene symbol.
+#'   \code{NULL} (default) does not filter by gene.
+#' @param locus_tag Character. Restrict output to features with this locus tag.
+#'   \code{NULL} (default) does not filter by locus_tag.
 #' @param ... Reserved for future arguments; currently ignored.
 #'
 #' @return
@@ -67,6 +73,15 @@
 #' # Ribosomal RNA loci — useful for coverage QC
 #' get_features(ref, type = "rRNA")
 #'
+#' # Filter by gene symbol
+#' get_features(ref, gene = "motA")
+#'
+#' # Filter by contig and gene
+#' get_features(ref, seqname = "U00096", gene = "motA")
+#'
+#' # Filter by locus tag
+#' get_features(ref, locus_tag = "b1891")
+#'
 #' # Hand off to a Bioconductor workflow
 #' get_features(ref, format = "GRanges")
 #' }
@@ -78,7 +93,7 @@ get_features <- function(x, ...) {
 
 #' @rdname get_features
 #' @export
-get_features.genome_entity <- function(x, format = c("tibble", "data.frame", "GRanges"), type = NULL, ...) {
+get_features.genome_entity <- function(x, format = c("tibble", "data.frame", "GRanges"), type = NULL, seqname = NULL, gene = NULL, locus_tag = NULL, ...) {
   format <- match.arg(format)
   validate_genome_entity(x)
 
@@ -86,6 +101,18 @@ get_features.genome_entity <- function(x, format = c("tibble", "data.frame", "GR
 
   if (!is.null(type) && "type" %in% names(feats)) {
     feats <- feats[feats$type == type, ]
+  }
+
+  if (!is.null(seqname) && "seqname" %in% names(feats)) {
+    feats <- feats[!is.na(feats$seqname) & feats$seqname == seqname, ]
+  }
+
+  if (!is.null(gene) && "gene" %in% names(feats)) {
+    feats <- feats[!is.na(feats$gene) & feats$gene == gene, ]
+  }
+
+  if (!is.null(locus_tag) && "locus_tag" %in% names(feats)) {
+    feats <- feats[!is.na(feats$locus_tag) & feats$locus_tag == locus_tag, ]
   }
 
   if (format == "tibble") {
