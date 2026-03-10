@@ -295,6 +295,12 @@ write_fasta(genome, "output.fasta")
 
 ### Visualization 
 
+`plot_roi()` provides a static linear view of a genomic region of interest. Pass the output of `get_roi_features()` and each feature will be rendered as an arrow (direction of transcription), uniquely coloured per gene, with automatic 2-D label collision avoidance.
+
+```r
+```
+ ![](man/figures/plot_roi_image.png)
+
 Circular genome visualization is powered by 'CGView.js', rendered as an interactive htmlwidget via `plot_cgview()`. Single-contig maps display annotated features (CDS, tRNA, rRNA) color-coded by type. 
 
 When working with a `genome_entity_gd object`, genomic differences can be overlaid on the reference map or shown as juxtaposed reference/variants panels (paired = TRUE). Plots open in the RStudio Viewer pane by default; pass viewer = "browser" to launch a full-width view in the system browser.
