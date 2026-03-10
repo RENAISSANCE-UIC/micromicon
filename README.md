@@ -102,7 +102,7 @@ get_roi_fasta(entity, contig = "1", start = 1834322, end = 1837471)
 ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
 genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
 
-# Visualize a region of interest
+# Visualize a region of interest (**REQUIRES** `ggplot2`
 motA <- get_features(entity, type = "CDS", gene = "motA")     # gene of interest
 roi <- get_roi_features(entity, contig = "1", 
                  start = motA$start, end = motA$end, flank = 5000)     # region of interest
