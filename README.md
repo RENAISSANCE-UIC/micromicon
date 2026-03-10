@@ -102,6 +102,17 @@ get_roi_fasta(entity, contig = "1", start = 1834322, end = 1837471)
 ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
 genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
 
+# Visualize a region of interest
+motA <- get_features(entity, type = "CDS", gene = "motA")     # gene of interest
+roi <- get_roi_features(entity, contig = "1", 
+                 start = motA$start, end = motA$end, flank = 5000)     # region of interest
+plot_roi(roi,
+         arrow_height = 0.10,   # make arrows taller/shorter                                                             
+         head_prop    = 0.35,   # fraction of gene that is arrowhead
+         neck_prop    = 0.60,   # how "pinched" the neck is (0=very pinched, 1=no neck)                                  
+         label_size   = 5.2,    # adjust label size to suit your tastes
+         title = "Region surrounding the E. coli flagellar stator operon") 
+
 # Integration with CGView.js
 plot_cgview(entity, contig = "1")            # Launches in viewer
 plot_cgview(entity, viewer = "browser")      # Launches in broswer
