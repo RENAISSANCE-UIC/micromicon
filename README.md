@@ -295,7 +295,7 @@ write_fasta(genome, "output.fasta")
 
 ### Visualization 
 
-`plot_roi()` provides a static linear view of a genomic region of interest. Pass the output of `get_roi_features()` and each feature will be rendered as an arrow (direction of transcription), uniquely colo(u)red per gene, with automatic 2-D label collision avoidance. Note that currently this only pertains to regions of the reference genome, although we plan to introduce plotting of genomic variants in future updates.
+`plot_roi()` provides a static linear view of a genomic region of interest. Pass the output of `get_roi_features()` and each feature will be rendered as an arrow (direction of transcription), uniquely colored per gene, with automatic 2-D label collision avoidance. Note that currently this only pertains to regions of the reference genome, although we plan to introduce plotting of genomic variants in future updates.
 
 ```r
 roi <- get_roi_features(genome, contig = "chr1", start = 1971030, end = 1982387)                                      
@@ -304,7 +304,7 @@ plot_roi(roi)
 # Add a title                                                                                                         
 plot_roi(roi, title = "che/mot/fli operon")                                                                           
                                                                                                                         
-# Custom colo(u)rs for specific genes
+# Custom colors for specific genes
 plot_roi(roi, colors = c(cheA = "#E41A1C", motA = "#377EB8"))                                                         
                   
 # Returns a ggplot object — extend as usual
