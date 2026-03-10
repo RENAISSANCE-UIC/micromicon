@@ -513,7 +513,7 @@ The authors gratefully acknowledge support from the University of Illinois Chica
 ## Acknowledgments
 
 `micromicon` builds on the shoulders of:
-- [breseq](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) — the wonderful computational pipeline for finding variants relative to a reference sequence in short-read DNA re-sequencing data, developed by the Barrick Lab 
+- [breseq](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) — the wonderful (and for our group, the definitive) computational pipeline for finding variants relative to a reference sequence in short-read DNA re-sequencing data, developed by the Barrick Lab 
 - Bioconductor ecosystem (GenomicRanges, Biostrings, rtracklayer)
 - NCBI BLAST+ toolkit
 - Clean Architecture principles by Robert C. Martin ("Uncle Bob")
