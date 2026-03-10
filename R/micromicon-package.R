@@ -109,7 +109,8 @@ micromicon_functions <- function() {
   ), width)
 
   .micromicon_section("Plotting", list(
-    c("plot_cgview()", "interactive circular genome map via CGView.js")
+    c("plot_cgview()", "interactive circular genome map via CGView.js"),
+    c("plot_roi()",    "static linear map of a genomic region of interest (requires ggplot2)")
   ), width)
 
   .micromicon_section("Help", list(

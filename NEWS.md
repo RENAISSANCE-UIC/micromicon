@@ -1,3 +1,9 @@
+# micromicon 0.3.9
+
+## Visualization
+* **NEW**: `plot_roi()` - allows users to plot a gene region (static);
+  requires `ggplot2`
+
 # micromicon 0.3.7
 
 ## Visualization
@@ -16,7 +22,7 @@
 
 ## UX: On-load experience
 
-* **NEW**: `micromicon_welcome()` — reprints the startup screen at any time;
+* **NEW**: `micromicon_welcome()` - reprints the startup screen at any time;
   useful for revisiting quick-start hints without restarting R.
 * **NEW**: `.onAttach()` startup screen displayed on `library(micromicon)`.
   Shows the version, a two-line getting-started example, and a pointer to

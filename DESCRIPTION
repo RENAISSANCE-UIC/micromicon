@@ -1,6 +1,6 @@
 Package: micromicon
 Title: Unified Genomics Toolkit for GenBank and GFF3/FASTA Workflows
-Version: 0.3.8
+Version: 0.3.9
 Authors@R:
     person(
         given = "William",
@@ -33,6 +33,7 @@ Imports:
     jsonlite,
     htmltools
 Suggests:
+    ggplot2,
     BiocGenerics,
     GenomicRanges,
     Biostrings,
