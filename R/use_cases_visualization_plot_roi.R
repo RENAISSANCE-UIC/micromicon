@@ -84,7 +84,7 @@ plot_roi_impl <- function(roi,
   # cleanly within the new tier.
 
   .repel_labels <- function(x0, widths, x_lo, x_hi, y_base, y_step,
-                             max_iter = 500) {
+                             max_dx = Inf, max_iter = 500) {
     n    <- length(x0)
     if (n <= 1L) return(data.frame(lx = x0, ly = rep(y_base, n)))
     half <- widths / 2
@@ -107,12 +107,24 @@ plot_roi_impl <- function(roi,
           xa   <- max(x[a] - push, x_lo + half[a])
           xb   <- min(x[b] + push, x_hi - half[b])
 
-          if ((half[a] + half[b]) - (xb - xa) > 1e-9) {
-            # x exhausted -- bump label with greater displacement from origin
-            if (abs(xb - x0[b]) >= abs(xa - x0[a])) {
+          # Bump if x is exhausted at the plot boundary, OR if either label
+          # would move further from its gene midpoint than max_dx allows.
+          x_exhausted <- (half[a] + half[b]) - (xb - xa) > 1e-9
+          a_over      <- abs(xa - x0[a]) > max_dx
+          b_over      <- abs(xb - x0[b]) > max_dx
+
+          if (x_exhausted || a_over || b_over) {
+            if (b_over && !a_over) {
               y[b] <- cur_y + y_step;  x[b] <- x0[b]
-            } else {
+            } else if (a_over && !b_over) {
               y[a] <- cur_y + y_step;  x[a] <- x0[a]
+            } else {
+              # Both over-limit or x exhausted: bump the more-displaced label
+              if (abs(xb - x0[b]) >= abs(xa - x0[a])) {
+                y[b] <- cur_y + y_step;  x[b] <- x0[b]
+              } else {
+                y[a] <- cur_y + y_step;  x[a] <- x0[a]
+              }
             }
           } else {
             x[a] <- xa;  x[b] <- xb
@@ -122,6 +134,26 @@ plot_roi_impl <- function(roi,
       }
       if (!moved) break
     }
+
+    # Post-process: eliminate crossing leader lines.
+    # Two leaders cross when the left-right order of their labels is opposite
+    # to the left-right order of their gene midpoints (x0). Fix by swapping
+    # x-positions; labels stay at their own y-tier. Iterate until no
+    # inversions remain (guaranteed to converge: each swap reduces inversion
+    # count by exactly 1).
+    for (pass in seq_len(n * n)) {
+      swapped <- FALSE
+      for (i in seq_len(n - 1L)) {
+        for (j in seq(i + 1L, n)) {
+          if ((x0[i] - x0[j]) * (x[i] - x[j]) < -1e-9) {
+            tmp <- x[i];  x[i] <- x[j];  x[j] <- tmp
+            swapped <- TRUE
+          }
+        }
+      }
+      if (!swapped) break
+    }
+
     data.frame(lx = x, ly = y)
   }
 
@@ -170,10 +202,16 @@ plot_roi_impl <- function(roi,
   bp_per_char <- R / 70 * (label_size / 3.2)
   label_w     <- nchar(plotdf$gene) * bp_per_char
   y_base      <- arrow_height / 2 + arrow_height * 0.55
-  y_step      <- arrow_height * 0.65
+  y_step      <- arrow_height * 0.35
+
+  # Limit how far a label may drift from its gene midpoint before being
+  # bumped to the next tier. One average label-width keeps leader lines
+  # short and forces the tier system to actually be used.
+  max_x_nudge <- mean(label_w)
 
   repelled <- .repel_labels(plotdf$mid, label_w, x_lo, x_hi,
-                             y_base, y_step, max_iter = 500)
+                             y_base, y_step, max_dx = max_x_nudge,
+                             max_iter = 500)
 
   label_df <- data.frame(
     lx    = repelled$lx,
