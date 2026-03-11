@@ -3,7 +3,7 @@
 \name{get_features}
 \alias{get_features}
 \alias{get_features.genome_entity}
-\title{Retrieve all annotated features from a genome object}
+\title{Retrieve annotated features from a genome object}
 \usage{
 get_features(x, ...)
 
