@@ -194,8 +194,38 @@ plot_roi.genome_entity <- function(entity,
   # ---------------------------------------------------------------------------
   if (using_gene) {
 
-    hits <- search_features(entity, pattern = gene)
-    hits <- hits[!tolower(hits$type) %in% "gene", , drop = FALSE]
+    # Tiered gene lookup: broad search first, then narrow by priority.
+    # Tier 1: exact case-insensitive match on gene/Name/ID/locus_tag.
+    # Tier 2: word-boundary regex match across those fields + product.
+    # Tier 3: original substring fallback (current behaviour).
+    .narrow_hits <- function(feats, g) {
+      feats <- feats[!tolower(feats$type) %in% "gene", , drop = FALSE]
+      if (nrow(feats) <= 1L) return(feats)
+
+      name_fields <- intersect(c("gene", "Name", "ID", "locus_tag"), names(feats))
+
+      # Tier 1 — exact (case-insensitive)
+      mask <- rep(FALSE, nrow(feats))
+      for (f in name_fields) {
+        v    <- as.character(feats[[f]])
+        mask <- mask | (!is.na(v) & tolower(v) == tolower(g))
+      }
+      if (any(mask)) return(feats[mask, , drop = FALSE])
+
+      # Tier 2 — word-boundary
+      wb_pat  <- paste0("\\b", g, "\\b")
+      wb_mask <- rep(FALSE, nrow(feats))
+      for (f in intersect(c(name_fields, "product"), names(feats))) {
+        v       <- as.character(feats[[f]])
+        wb_mask <- wb_mask | (!is.na(v) & grepl(wb_pat, v, ignore.case = TRUE, perl = TRUE))
+      }
+      if (any(wb_mask)) return(feats[wb_mask, , drop = FALSE])
+
+      # Tier 3 — original substring results
+      feats
+    }
+
+    hits <- .narrow_hits(search_features(entity, pattern = gene), gene)
 
     if (nrow(hits) == 0L) {
       cli::cli_abort(c(
