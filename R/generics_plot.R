@@ -130,3 +130,177 @@ plot_cgview.default <- function(entity, ...) {
     "{.fn plot_cgview} is not implemented for class {.cls {class(entity)[1]}}."
   )
 }
+
+# =============================================================================
+# plot_roi — genome_entity method
+# =============================================================================
+
+#' @rdname plot_roi
+#'
+#' @param entity A \code{genome_entity} (or \code{genome_entity_gd}) object.
+#' @param gene `character(1)` Gene name (or pattern) to look up. Mutually
+#'   exclusive with `contig`/`start`/`end`. The search is case-insensitive
+#'   and matches `ID`, `Name`, `Alias`, `gene`, `locus_tag`, and `product`
+#'   fields. Features of type `"gene"` are excluded from matching to avoid
+#'   duplicate hits common in NCBI-style annotations. If exactly one feature
+#'   matches, its coordinates plus `flank` define the plotted window.
+#' @param contig `character(1)` Sequence name. Ignored when `gene` is supplied
+#'   (the contig is inferred from the matched feature). In coordinate mode,
+#'   when omitted the first contig returned by [get_contig_names()] is used
+#'   with an informational message.
+#' @param start,end `integer(1)` Region boundaries in coordinate mode. Both
+#'   must be supplied together. Ignored when `gene` is supplied.
+#' @param flank `integer(1)` Base pairs added on each side of the target
+#'   region. Defaults to `5000` in gene mode and `0` in coordinate mode.
+#'   Override explicitly to zoom in or out.
+#' @param feature_type `character` Feature type(s) passed to
+#'   [get_roi_features()] and drawn in the plot. Default `"CDS"`.
+#'
+#' @export
+plot_roi.genome_entity <- function(entity,
+                                   gene         = NULL,
+                                   contig       = NULL,
+                                   start        = NULL,
+                                   end          = NULL,
+                                   flank        = NULL,
+                                   feature_type = "CDS",
+                                   title        = NULL,
+                                   arrow_height = 0.18,
+                                   head_prop    = 0.35,
+                                   neck_prop    = 0.60,
+                                   label_size   = 4.0,
+                                   colors       = NULL,
+                                   ...) {
+
+  using_gene   <- !is.null(gene)
+  using_coords <- !is.null(start) || !is.null(end) || !is.null(contig)
+
+  if (using_gene && using_coords) {
+    cli::cli_abort(c(
+      "Provide either {.arg gene} or coordinates \
+       ({.arg contig}, {.arg start}, {.arg end}), not both."
+    ))
+  }
+
+  if (!using_gene && !using_coords) {
+    cli::cli_abort(c(
+      "Provide either {.arg gene} or coordinates \
+       ({.arg contig}, {.arg start}, {.arg end})."
+    ))
+  }
+
+  # ---------------------------------------------------------------------------
+  # Gene name mode
+  # ---------------------------------------------------------------------------
+  if (using_gene) {
+
+    hits <- search_features(entity, pattern = gene)
+    hits <- hits[!tolower(hits$type) %in% "gene", , drop = FALSE]
+
+    if (nrow(hits) == 0L) {
+      cli::cli_abort(c(
+        "No features matching {.val {gene}} were found.",
+        "i" = "Check spelling or try {.fn search_features} to explore available features."
+      ))
+    }
+
+    if (nrow(hits) > 1L) {
+      name_col <- if ("Name" %in% names(hits)) hits$Name else rep(NA_character_, nrow(hits))
+      id_col   <- if ("ID"   %in% names(hits)) hits$ID   else rep(NA_character_, nrow(hits))
+      labels   <- paste0(
+        "[", hits$type, "] ",
+        ifelse(!is.na(name_col) & nzchar(name_col), name_col,
+               ifelse(!is.na(id_col) & nzchar(id_col), id_col, "<unnamed>")),
+        " @ ", hits$seqname, ":", hits$start, "\u2013", hits$end
+      )
+      cli::cli_abort(c(
+        "{nrow(hits)} features matched {.val {gene}}.",
+        "i" = "Refine your query or use {.arg contig}, {.arg start}, \
+               {.arg end} directly.",
+        "i" = "Matches:",
+        setNames(labels, rep("*", length(labels)))
+      ))
+    }
+
+    feat_contig <- as.character(hits$seqname[1L])
+    feat_start  <- hits$start[1L]
+    feat_end    <- hits$end[1L]
+
+    if (is.null(flank)) flank <- 5000L
+    plot_start <- max(1L, feat_start - flank)
+    plot_end   <- feat_end + flank
+
+    if (is.null(title))
+      title <- paste0("Region around ", gene)
+
+    roi <- get_roi_features(entity,
+                            contig       = feat_contig,
+                            start        = plot_start,
+                            end          = plot_end,
+                            feature_type = feature_type)
+
+    p <- plot_roi(roi,
+                  title        = title,
+                  arrow_height = arrow_height,
+                  head_prop    = head_prop,
+                  neck_prop    = neck_prop,
+                  label_size   = label_size,
+                  colors       = colors)
+
+    cli::cli_inform(c(
+      "i" = "Gene {.val {gene}} spans \
+             {feat_contig}:{feat_start}\u2013{feat_end}.",
+      "i" = "Plotted with {.arg flank} = {flank} bp on each side.",
+      "i" = "To zoom out: \
+             {.code plot_roi(entity, gene = \"{gene}\", flank = {flank * 2L})}"
+    ))
+
+    return(p)
+  }
+
+  # ---------------------------------------------------------------------------
+  # Coordinate mode
+  # ---------------------------------------------------------------------------
+  if (is.null(start) || is.null(end)) {
+    cli::cli_abort(
+      "Both {.arg start} and {.arg end} must be provided in coordinate mode."
+    )
+  }
+
+  if (is.null(contig)) {
+    contig <- get_contig_names(entity)[1L]
+    cli::cli_inform(
+      "{.arg contig} not specified; using {.val {contig}} (first contig)."
+    )
+  }
+
+  if (is.null(flank)) flank <- 0L
+
+  if (is.null(title))
+    title <- paste0("Region around ", contig, ":", start, "\u2013", end)
+
+  roi <- get_roi_features(entity,
+                          contig       = contig,
+                          start        = start - flank,
+                          end          = end   + flank,
+                          feature_type = feature_type)
+
+  plot_roi(roi,
+           title        = title,
+           arrow_height = arrow_height,
+           head_prop    = head_prop,
+           neck_prop    = neck_prop,
+           label_size   = label_size,
+           colors       = colors)
+}
+
+#' @rdname plot_roi
+#' @export
+plot_roi.default <- function(roi, ...) {
+  cli::cli_abort(c(
+    "{.fn plot_roi} does not know how to handle \
+     {.cls {class(roi)[1]}} objects.",
+    "i" = "Pass a {.cls data.frame} (or {.cls GRanges}) from \
+           {.fn get_roi_features}, or a {.cls genome_entity}."
+  ))
+}

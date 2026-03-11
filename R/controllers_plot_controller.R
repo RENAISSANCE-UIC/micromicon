@@ -4,7 +4,34 @@
 #' Plot a static genomic region of interest
 #'
 #' @description
-#' Draws a linear map of a genomic region returned by [get_roi_features()].
+#' Draws a linear map of a genomic region. Dispatches on the class of the
+#' first argument:
+#' \itemize{
+#'   \item \strong{\code{data.frame}} (or \code{GRanges} / any coercible
+#'     object): draws directly from a pre-built feature table, typically
+#'     produced by \code{\link{get_roi_features}()}.
+#'   \item \strong{\code{genome_entity}}: looks up a gene by name \emph{or}
+#'     accepts explicit coordinates, fetches the feature table automatically,
+#'     then draws the result.
+#' }
+#'
+#' @param roi A \code{data.frame}, \code{GRanges}, or \code{genome_entity}.
+#'   For the \code{genome_entity} method also accepts \code{gene},
+#'   \code{contig}, \code{start}, and \code{end} via \code{...}.
+#' @param ... Passed to the class-specific method.
+#'
+#' @return A \code{\link[ggplot2]{ggplot}} object. Further layers and theme
+#'   adjustments can be added with \code{+} in the usual way.
+#' @seealso [get_roi_features()] to obtain a region of interest from a genome
+#'   object. [plot_cgview()] for an interactive circular genome map.
+#' @export
+plot_roi <- function(roi, ...) UseMethod("plot_roi")
+
+#' @rdname plot_roi
+#'
+#' @description
+#' \strong{data.frame method:} Draws a linear map of a genomic region returned
+#' by [get_roi_features()].
 #' Each feature is rendered as a directional arrow coloured uniquely per gene.
 #' Gene labels are placed above the track with automatic 2-D collision
 #' avoidance: overlapping labels are first nudged horizontally (within the
@@ -19,12 +46,8 @@
 #'   `seqnames`, `start`, `end`, `strand`. Optional columns `Name`, `gene`,
 #'   `Alias`, and `type` are used when present to derive labels and feature
 #'   colours.
-#'
-#'   If this argument is not the output of [get_roi_features()], you may see
-#'   unexpected results. Run [get_roi_features()] first to obtain a compatible
-#'   object.
-#' @param title `character(1)` Plot title passed to [ggplot2::labs()].
-#'   Default `NULL` (no title).
+#' @param title `character(1)` Plot title. Default `NULL` produces an
+#'   auto-generated title describing the plotted region.
 #' @param arrow_height `numeric(1)` Total vertical extent of each arrow in
 #'   internal y-units. Increase for taller, more prominent arrows. Default
 #'   `0.18`.
@@ -39,14 +62,6 @@
 #'   drawn from an evenly-spaced HCL palette matching ggplot2 defaults. Supply
 #'   a named vector to map gene names to specific colours, or an unnamed
 #'   vector that is recycled across genes in plotting order.
-#'
-#' @return A [`ggplot2::ggplot`] object. Further layers and theme adjustments
-#'   can be added with `+` in the usual way.
-#'
-#' @seealso [get_roi_features()] to obtain a region of interest from a genome
-#'   object. [plot_cgview()] for an interactive circular genome map.
-#'
-#' @export
 #'
 #' @examples
 #' roi <- data.frame(
@@ -64,7 +79,8 @@
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   plot_roi(roi)
 #' }
-plot_roi <- function(roi,
+#' @export
+plot_roi.data.frame <- function(roi,
                      title        = NULL,
                      arrow_height = 0.18,
                      head_prop    = 0.35,

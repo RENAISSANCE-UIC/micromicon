@@ -176,3 +176,306 @@ test_that("ROI with mixed strands plots without error", {
   mixed$strand <- rep_len(c("+", "-"), nrow(mixed))
   expect_s3_class(plot_roi(mixed), "ggplot")
 })
+
+# =============================================================================
+# genome_entity dispatch — fixtures
+# =============================================================================
+
+# Minimal feature table with two genes: "cheA" (CDS) and "cheA_dup" (CDS),
+# plus a "gene" shadow for "cheA" to verify type=="gene" exclusion.
+make_entity_features <- function() {
+  data.frame(
+    seqname = "U00096",
+    start   = c(1973360L, 1973360L, 2000000L),
+    end     = c(1975324L, 1975324L, 2001500L),
+    strand  = c("-", "-", "+"),
+    type    = c("CDS", "gene", "CDS"),
+    Name    = c("cheA", "cheA", "cheA_dup"),
+    ID      = c("cds-cheA", "gene-cheA", "cds-cheA_dup"),
+    stringsAsFactors = FALSE
+  )
+}
+
+make_test_entity <- function(feats = make_entity_features()) {
+  new_genome_entity(
+    features_df  = feats,
+    indices_list = list(
+      seqnames        = "U00096",
+      locus_tag_index = integer(),
+      gene_index      = list(),
+      cds_hash        = new.env(hash = TRUE, parent = emptyenv())
+    )
+  )
+}
+
+# =============================================================================
+# plot_roi.default
+# =============================================================================
+
+test_that("plot_roi.default errors with a helpful message", {
+  expect_error(plot_roi(42L), class = "rlang_error")
+  expect_error(plot_roi(list(a = 1)), class = "rlang_error")
+})
+
+# =============================================================================
+# genome_entity dispatch — argument validation
+# =============================================================================
+
+test_that("providing neither gene nor coords raises an error", {
+  entity <- make_test_entity()
+  expect_error(plot_roi(entity), class = "rlang_error")
+})
+
+test_that("providing gene AND coords raises an error", {
+  entity <- make_test_entity()
+  expect_error(
+    plot_roi(entity, gene = "cheA", start = 1000L, end = 2000L),
+    class = "rlang_error"
+  )
+})
+
+test_that("coordinate mode with only start (missing end) raises an error", {
+  entity <- make_test_entity()
+  expect_error(
+    plot_roi(entity, start = 1000L),
+    class = "rlang_error"
+  )
+})
+
+test_that("coordinate mode with only end (missing start) raises an error", {
+  entity <- make_test_entity()
+  expect_error(
+    plot_roi(entity, end = 2000L),
+    class = "rlang_error"
+  )
+})
+
+# =============================================================================
+# genome_entity dispatch — gene search errors
+# =============================================================================
+
+test_that("gene with zero matches raises an error", {
+  entity <- make_test_entity()
+  expect_error(
+    plot_roi(entity, gene = "nonexistent_gene_xyz"),
+    class = "rlang_error"
+  )
+})
+
+test_that("zero-match error message suggests search_features", {
+  entity <- make_test_entity()
+  expect_error(
+    plot_roi(entity, gene = "nonexistent_gene_xyz"),
+    regexp = "search_features"
+  )
+})
+
+test_that("gene matching 'gene'-type rows only raises zero-match error", {
+  # Feature table has one row with type=="gene" and Name=="cheA"
+  # After filtering type=="gene", zero rows remain — should error.
+  gene_only_feats <- data.frame(
+    seqname = "U00096",
+    start   = 1973360L,
+    end     = 1975324L,
+    strand  = "-",
+    type    = "gene",
+    Name    = "cheA",
+    ID      = "gene-cheA",
+    stringsAsFactors = FALSE
+  )
+  entity <- make_test_entity(gene_only_feats)
+  expect_error(plot_roi(entity, gene = "cheA"), class = "rlang_error")
+})
+
+test_that("multiple CDS matches raises an error listing the hits", {
+  entity <- make_test_entity()
+  err <- tryCatch(
+    plot_roi(entity, gene = "cheA"),
+    error = function(e) e
+  )
+  expect_s3_class(err, "rlang_error")
+  # Error message should mention the count of matches
+  expect_match(conditionMessage(err), "2 features matched")
+  # Error message should show hit coordinates
+  expect_match(conditionMessage(err), "cheA")
+})
+
+test_that("multiple-match error shows feature type in output", {
+  entity <- make_test_entity()
+  err <- tryCatch(
+    plot_roi(entity, gene = "cheA"),
+    error = function(e) e
+  )
+  expect_match(conditionMessage(err), "CDS")
+})
+
+# =============================================================================
+# genome_entity dispatch — gene mode (single match, mocked get_roi_features)
+# =============================================================================
+
+test_that("gene mode returns ggplot for a single-match gene", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  p <- plot_roi(entity, gene = "cheA_dup")
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("gene mode auto-populates title with gene name", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  p <- plot_roi(entity, gene = "cheA_dup")
+  expect_match(p$labels$title, "cheA_dup")
+})
+
+test_that("gene mode respects explicit title override", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  p <- plot_roi(entity, gene = "cheA_dup", title = "My custom title")
+  expect_equal(p$labels$title, "My custom title")
+})
+
+test_that("gene mode emits a flank message", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  expect_message(
+    plot_roi(entity, gene = "cheA_dup"),
+    regexp = "flank"
+  )
+})
+
+test_that("gene mode default flank is 5000", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+  captured_args <- list()
+
+  local_mocked_bindings(
+    get_roi_features = function(entity, contig, start, end, ...) {
+      captured_args <<- list(start = start, end = end)
+      make_sample_roi()
+    },
+    .package = "micromicon"
+  )
+
+  suppressMessages(plot_roi(entity, gene = "cheA_dup"))
+
+  feat_start <- make_entity_features()$start[3L]  # cheA_dup
+  feat_end   <- make_entity_features()$end[3L]
+  expect_equal(captured_args$start, max(1L, feat_start - 5000L))
+  expect_equal(captured_args$end,   feat_end + 5000L)
+})
+
+test_that("gene mode respects explicit flank override", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+  captured_args <- list()
+
+  local_mocked_bindings(
+    get_roi_features = function(entity, contig, start, end, ...) {
+      captured_args <<- list(start = start, end = end)
+      make_sample_roi()
+    },
+    .package = "micromicon"
+  )
+
+  suppressMessages(plot_roi(entity, gene = "cheA_dup", flank = 1000L))
+
+  feat_start <- make_entity_features()$start[3L]
+  feat_end   <- make_entity_features()$end[3L]
+  expect_equal(captured_args$start, max(1L, feat_start - 1000L))
+  expect_equal(captured_args$end,   feat_end + 1000L)
+})
+
+# =============================================================================
+# genome_entity dispatch — coordinate mode (mocked get_roi_features)
+# =============================================================================
+
+test_that("coordinate mode returns ggplot", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  p <- suppressMessages(
+    plot_roi(entity, contig = "U00096", start = 1970000L, end = 1985000L)
+  )
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("coordinate mode auto-populates title with contig:start-end", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  p <- suppressMessages(
+    plot_roi(entity, contig = "U00096", start = 1970000L, end = 1985000L)
+  )
+  expect_match(p$labels$title, "U00096")
+  expect_match(p$labels$title, "1970000")
+  expect_match(p$labels$title, "1985000")
+})
+
+test_that("coordinate mode with no contig emits a notification", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+
+  local_mocked_bindings(
+    get_roi_features = function(...) make_sample_roi(),
+    .package = "micromicon"
+  )
+
+  expect_message(
+    plot_roi(entity, start = 1970000L, end = 1985000L),
+    regexp = "contig"
+  )
+})
+
+test_that("coordinate mode default flank is 0", {
+  skip_if_not_installed("ggplot2")
+  entity <- make_test_entity()
+  captured_args <- list()
+
+  local_mocked_bindings(
+    get_roi_features = function(entity, contig, start, end, ...) {
+      captured_args <<- list(start = start, end = end)
+      make_sample_roi()
+    },
+    .package = "micromicon"
+  )
+
+  suppressMessages(
+    plot_roi(entity, contig = "U00096", start = 1970000L, end = 1985000L)
+  )
+  expect_equal(captured_args$start, 1970000L)
+  expect_equal(captured_args$end,   1985000L)
+})

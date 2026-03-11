@@ -1,4 +1,4 @@
-#' Retrieve all annotated features from a genome object
+#' Retrieve annotated features from a genome object
 #'
 #' @description
 #' Returns the complete feature table of a loaded genome — every annotated
