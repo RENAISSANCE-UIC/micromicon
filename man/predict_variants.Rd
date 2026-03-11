@@ -66,8 +66,8 @@ the mutation table.  Assign the result back:
 the cached table is present.
 }
 \description{
-Parses a \code{genome_entity_gd} object — loaded from a breseq
-\code{annotated.gd} file — and returns a tidy data frame of mutations.
+Parses a \code{genome_entity_gd} object -- loaded from a breseq
+\code{annotated.gd} file -- and returns a tidy data frame of mutations.
 Annotation tags written by \code{gdtools ANNOTATE} (gene names, codon
 changes, \code{snp_type}, inactivation status) are read directly from the
 file; no genome-sequence computation is performed here.

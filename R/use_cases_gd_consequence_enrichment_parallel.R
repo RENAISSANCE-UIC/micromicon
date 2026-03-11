@@ -69,7 +69,7 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
 
   # Clean gene names for coding mutations only
   if (nrow(coding_rows) > 0) {
-    coding_rows$..gene_clean <- gsub("\\s*[→←]\\s*$", "", coding_rows$gene)
+    coding_rows$..gene_clean <- gsub("\\s*[\u2192\u2190]\\s*$", "", coding_rows$gene)
     coding_rows$..gene_clean <- trimws(coding_rows$..gene_clean)
 
     # Handle multi-gene annotations (e.g., "geneA|geneB" or "geneA / geneB")

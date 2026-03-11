@@ -131,7 +131,7 @@ get_variant_aa <- function(consequence_tbl, gene = NULL, position = NULL, na.rm 
 }
 
 
-# ── internal helper ──────────────────────────────────────────────────────────
+# -- internal helper ----------------------------------------------------------
 
 #' @keywords internal
 .get_variant_seq_col <- function(consequence_tbl, col, gene = NULL, position = NULL, na.rm = TRUE) {

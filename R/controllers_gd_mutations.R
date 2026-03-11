@@ -13,7 +13,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
 
   # Unborked scalar/tag helpers
   scalar_or <- function(a, b) {
-     # If it's a list, do NOT truncate—either return the whole list or fallback
+     # If it's a list, do NOT truncate--either return the whole list or fallback
      if (is.list(a)) return(if (is.null(a)) b else a)
      if (is.null(a) || length(a) == 0) return(b)
      if (length(a) > 1) a <- a[1]
@@ -49,7 +49,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
   fmt_pos  <- function(x) formatC(x, big.mark = ",", format = "d")
   fmt_freq <- function(x) ifelse(is.na(x), NA, sprintf("%.1f%%", 100 * as.numeric(x)))
   
-  # Phase A — RA (polymorphism) predictions
+  # Phase A -- RA (polymorphism) predictions
   ev <- gd_events_table(gd, kinds = "evidence", expand_tags = FALSE)
   ra <- subset(ev, type == "RA")
   n_ra <- nrow(ra)
@@ -72,7 +72,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
     # SNP vs non-SNP RA
     ref <- ra$ra_ref_base; alt <- ra$ra_new_base
     is_snp_vec <- mapply(function(a,b) is_base(a) && is_base(b), ref, alt)
-    snp_label  <- ifelse(is_snp_vec, paste0(ref, "→", alt), NA_character_)
+    snp_label  <- ifelse(is_snp_vec, paste0(ref, "\u2192", alt), NA_character_)
     
     # Backfill mutation label for non-SNP RA via linked mutation (parent_ids)
     # Build id -> idx map
@@ -108,7 +108,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
     amp_copies  <- vapply(seq_len(n_ra), function(i) getm(i, "amp_new_copy_number", NA_integer_), integer(1))
     inv_size    <- vapply(seq_len(n_ra), function(i) getm(i, "inv_size", NA_integer_), integer(1))
     
-    fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "Δ1 bp", paste0("Δ", format(s, big.mark=","), " bp")))
+    fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "\u03941 bp", paste0("\u0394", format(s, big.mark=","), " bp")))
     fmt_bp_ins <- function(s, seq) {
       if (!is.na(s)) {
         if (s == 1L) "+1 bp" else paste0("+", format(s, big.mark=","), " bp")
@@ -120,10 +120,10 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
     }
     fmt_sub <- function(sz, newseq) {
       if (is.na(sz)) "SUB"
-      else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp→", newseq)
+      else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp\u2192", newseq)
       else paste0("SUB(", sz, " bp)")
     }
-    fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP×", cn))
+    fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP\u00d7", cn))
     fmt_inv <- function(sz) ifelse(is.na(sz), "INV", paste0("INV(", format(sz, big.mark=","), " bp)"))
     
     mut_backfill <- vapply(seq_len(n_ra), function(i) {
@@ -149,7 +149,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
       !is.na(cod_ref_seq) & !is.na(cod_new_seq) & !is.na(cod_number)
     annotation <- ifelse(
       have_aa,
-      paste0(aa_ref_seq, cod_number, aa_new_seq, " (", cod_ref_seq, "→", cod_new_seq, ")"),
+      paste0(aa_ref_seq, cod_number, aa_new_seq, " (", cod_ref_seq, "\u2192", cod_new_seq, ")"),
       ifelse(!is.na(gene_pos) & nzchar(gene_pos), gene_pos, snp_type)
     )
     
@@ -180,7 +180,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
     )
   }
 
-  # Phase B — MC/JC structural predictions
+  # Phase B -- MC/JC structural predictions
   # (read directly from gd$events; aggregate tags from evidence parents)
   struct_out <- data.frame()
   if (isTRUE(include_structural)) {
@@ -214,7 +214,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
       }
       
       # Append arrows by strand if available (coarse, but helpful)
-      # If any strand says "-", add " ←"; if "+", add " →".
+      # If any strand says "-", add " <-"; if "+", add " ->".
       finalize_gene <- function(x, strands) {
         if (!length(x)) return(NA_character_)
         g <- paste(unique(x), collapse = " | ")
@@ -268,7 +268,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
       gene       <- character(n_s)
       description <- character(n_s)
       
-      fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "Δ1 bp", paste0("Δ", format(s, big.mark=","), " bp")))
+      fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "\u03941 bp", paste0("\u0394", format(s, big.mark=","), " bp")))
       fmt_bp_ins <- function(s, seq) {
         if (!is.na(s)) {
           if (s == 1L) "+1 bp" else paste0("+", format(s, big.mark=","), " bp")
@@ -280,10 +280,10 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
       }
       fmt_sub <- function(sz, newseq) {
         if (is.na(sz)) "SUB"
-        else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp→", newseq)
+        else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp\u2192", newseq)
         else paste0("SUB(", sz, " bp)")
       }
-      fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP×", cn))
+      fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP\u00d7", cn))
       fmt_inv <- function(sz) ifelse(is.na(sz), "INV", paste0("INV(", format(sz, big.mark=","), " bp)"))
       
       for (ii in seq_along(keep_idx)) {
@@ -336,7 +336,7 @@ predict_variants_orig <- function(gd, min_freq = 0, include_structural = TRUE,
           if (!is.na(mut_ann)  && nzchar(mut_ann))  mut_ann  else agp$annotation
         )
         
-        # For directional arrow: breseq uses ← or → based on gene_strand
+        # For directional arrow: breseq uses <- or -> based on gene_strand
         g_final <- if (!is.na(mut_gene) && nzchar(mut_gene)) mut_gene else agp$gene
         if (!is.na(mut_str) && mut_str == "<")  g_final <- paste0(g_final, " \u2190")
         if (!is.na(mut_str) && mut_str == ">")  g_final <- paste0(g_final, " \u2192")
@@ -428,7 +428,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
   fmt_pos  <- function(x) formatC(x, big.mark = ",", format = "d")
   fmt_freq <- function(x) ifelse(is.na(x), NA, sprintf("%.1f%%", 100 * as.numeric(x)))
   
-  # Phase A — RA (polymorphism) predictions
+  # Phase A -- RA (polymorphism) predictions
   ev <- gd_events_table(gd, kinds = "evidence", expand_tags = FALSE)
   ra <- subset(ev, type == "RA")
   n_ra <- nrow(ra)
@@ -451,7 +451,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
     # SNP vs non-SNP RA
     ref <- ra$ra_ref_base; alt <- ra$ra_new_base
     is_snp_vec <- mapply(function(a,b) is_base(a) && is_base(b), ref, alt)
-    snp_label  <- ifelse(is_snp_vec, paste0(ref, "→", alt), NA_character_)
+    snp_label  <- ifelse(is_snp_vec, paste0(ref, "\u2192", alt), NA_character_)
     
     # Build id -> idx map
     ev_ids   <- vapply(gd$events, function(e) scalar_or(e$id, NA_integer_), integer(1))
@@ -496,7 +496,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
     genes_inact  <- vapply(seq_len(n_ra), function(i) getm_tag(i, "genes_inactivated"), character(1))
     genes_over   <- vapply(seq_len(n_ra), function(i) getm_tag(i, "genes_overlapping"), character(1))
     
-    fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "Δ1 bp", paste0("Δ", format(s, big.mark=","), " bp")))
+    fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "\u03941 bp", paste0("\u0394", format(s, big.mark=","), " bp")))
     fmt_bp_ins <- function(s, seq) {
       if (!is.na(s)) {
         if (s == 1L) "+1 bp" else paste0("+", format(s, big.mark=","), " bp")
@@ -508,10 +508,10 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
     }
     fmt_sub <- function(sz, newseq) {
       if (is.na(sz)) "SUB"
-      else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp→", newseq)
+      else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp\u2192", newseq)
       else paste0("SUB(", sz, " bp)")
     }
-    fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP×", cn))
+    fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP\u00d7", cn))
     fmt_inv <- function(sz) ifelse(is.na(sz), "INV", paste0("INV(", format(sz, big.mark=","), " bp)"))
     
     mut_backfill <- vapply(seq_len(n_ra), function(i) {
@@ -540,7 +540,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
     
     annotation <- ifelse(
       have_aa,
-      paste0(aa_ref_seq, cod_number, aa_new_seq, " (", cod_ref_seq, "→", cod_new_seq, ")"),
+      paste0(aa_ref_seq, cod_number, aa_new_seq, " (", cod_ref_seq, "\u2192", cod_new_seq, ")"),
       ifelse(v_nzchar(gene_pos), gene_pos, snp_type)
     )
     
@@ -627,7 +627,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
     )
   }
   
-  # Phase B — MC/JC structural predictions (unchanged logic; now emit `type`)
+  # Phase B -- MC/JC structural predictions (unchanged logic; now emit `type`)
   struct_out <- data.frame()
   if (isTRUE(include_structural)) {
     ev_list <- gd$events
@@ -702,7 +702,7 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
       type_vec     <- character(n_s)
       var_type_vec <- character(n_s)
       
-      fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "Δ1 bp", paste0("Δ", format(s, big.mark=","), " bp")))
+      fmt_bp_del <- function(s) ifelse(is.na(s), "DEL", ifelse(s == 1L, "\u03941 bp", paste0("\u0394", format(s, big.mark=","), " bp")))
       fmt_bp_ins <- function(s, seq) {
         if (!is.na(s)) {
           if (s == 1L) "+1 bp" else paste0("+", format(s, big.mark=","), " bp")
@@ -714,10 +714,10 @@ predict_variants_int <- function(gd, min_freq = 0, include_structural = TRUE,
       }
       fmt_sub <- function(sz, newseq) {
         if (is.na(sz)) "SUB"
-        else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp→", newseq)
+        else if (sz == 1L && !is.na(newseq) && nzchar(newseq)) paste0("1 bp\u2192", newseq)
         else paste0("SUB(", sz, " bp)")
       }
-      fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP×", cn))
+      fmt_amp <- function(cn) ifelse(is.na(cn), "AMP", paste0("AMP\u00d7", cn))
       fmt_inv <- function(sz) ifelse(is.na(sz), "INV", paste0("INV(", format(sz, big.mark=","), " bp)"))
       
       for (ii in seq_along(keep_idx)) {
@@ -859,10 +859,10 @@ pm_fallback_enrich <- function(gd, tbl, want_distance = TRUE) {
   fallback_type <- function(mut_string) {
     if (is.na(mut_string) || !nzchar(mut_string)) return(NA_character_)
     s <- trimws(mut_string)
-    if (grepl("^Δ\\s*\\d+\\s*bp\\s*$", s)) return("DEL")
+    if (grepl("^\u0394\\s*\\d+\\s*bp\\s*$", s)) return("DEL")
     if (grepl("^\\+\\s*\\d+\\s*bp\\s*$", s)) return("INS")
-    if (grepl("→", s, fixed = TRUE)) {
-      parts <- strsplit(s, "→", fixed = TRUE)[[1]]
+    if (grepl("\u2192", s, fixed = TRUE)) {
+      parts <- strsplit(s, "\u2192", fixed = TRUE)[[1]]
       lhs <- gsub("[^ACGTN]", "", parts[1], perl = TRUE)
       rhs <- gsub("[^ACGTN\\*]", "", parts[2], perl = TRUE)
       if (nchar(lhs) == 1L && nchar(rhs) == 1L) return("SNP")
@@ -1081,7 +1081,7 @@ pm_view <- function(gd, n = 25) {
     return(invisible(tb))
   }
   
-  # Fallback: no dplyr installed — show something useful, don't crash.
+  # Fallback: no dplyr installed -- show something useful, don't crash.
   cli::cli_inform(c(
     "!" = "{.pkg dplyr} not detected; showing a base preview from {.fn predict_variants}.",
     "i" = "Install with: {.code install.packages('dplyr')} to enable tibble output and focused columns."
@@ -1099,7 +1099,7 @@ pm_focus_gene <- function(gd, gene) {
   gd_assert(gd)
   tb <- pm_tbl(gd)
   out <- tb[!is.na(tb$gene) & tb$gene == gene, , drop = FALSE]
-  cli::cli_inform(c("i" = paste0("pm_focus_gene: '", gene, "' → ", nrow(out), " row(s).")))
+  cli::cli_inform(c("i" = paste0("pm_focus_gene: '", gene, "' \u2192 ", nrow(out), " row(s).")))
   out
 }
 
@@ -1143,7 +1143,7 @@ pm_focus_roi <- function(gd, contig, start, end) {
   out <- tb[hit, , drop = FALSE]
 
   cli::cli_inform(c(
-    "i" = paste0("pm_focus_roi: contig=", target_sid, " [", start, ", ", end, "] → ",
+    "i" = paste0("pm_focus_roi: contig=", target_sid, " [", start, ", ", end, "] \u2192 ",
                  nrow(out), " row(s).")
   ))
   

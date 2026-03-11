@@ -108,7 +108,7 @@ plot_roi_impl <- function(roi,
           xb   <- min(x[b] + push, x_hi - half[b])
 
           if ((half[a] + half[b]) - (xb - xa) > 1e-9) {
-            # x exhausted — bump label with greater displacement from origin
+            # x exhausted -- bump label with greater displacement from origin
             if (abs(xb - x0[b]) >= abs(xa - x0[a])) {
               y[b] <- cur_y + y_step;  x[b] <- x0[b]
             } else {

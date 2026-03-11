@@ -26,10 +26,10 @@ inconsistencies; if \code{FALSE}, warn and continue.}
 A \code{genome_entity_gd} object. In interactive sessions, also prints a
 formatted summary to the console:
 \itemize{
-\item \strong{File} — basename of the variant file
-\item \strong{Mutations} — total count and breakdown by type
+\item \strong{File} -- basename of the variant file
+\item \strong{Mutations} -- total count and breakdown by type
 (SNP, DEL, INS, SUB, MOB, AMP, CON, INV)
-\item \strong{Next} — three suggested follow-on function calls
+\item \strong{Next} -- three suggested follow-on function calls
 }
 }
 \description{

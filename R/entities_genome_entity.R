@@ -41,7 +41,7 @@ new_genome_entity <- function(sequences_list = list(
 
   # Precompute reverse complement of each contig for fast minus-strand slicing.
   # Uses chartr() for vectorised complementation and intToUtf8/utf8ToInt for
-  # in-place reversal — much faster than strsplit+rev for multi-megabase sequences.
+  # in-place reversal -- much faster than strsplit+rev for multi-megabase sequences.
   if (is.null(sequences_list$dna_rev)) {
     if (length(sequences_list$dna_raw) > 0) {
       sequences_list$dna_rev <- vapply(

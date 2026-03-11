@@ -36,7 +36,7 @@
 
 ##' Print the micromicon function index in the console
 #'
-#' Renders a tidy, ANSI-aware, dependency-free index of the package’s
+#' Renders a tidy, ANSI-aware, dependency-free index of the package's
 #' core capabilities. Prints to stdout (no tinted message background),
 #' wraps descriptions to the current console width, and optionally
 #' uses ANSI bold and a single function name color.
@@ -59,7 +59,7 @@ micromicon_functions <- function() {
   width <- .micromicon_console_width()
   
   .micromicon_rule_title("micromicon", width)
-  cat("A concise index of the package’s core capabilities.\n\n", sep = "")
+  cat("A concise index of the package's core capabilities.\n\n", sep = "")
   
   .micromicon_section("Reading", list(
     c("read_genome()",   "import a reference genome (GenBank or GFF3 + FASTA)"),
@@ -159,7 +159,7 @@ micromicon_functions <- function() {
 
 #' @keywords internal
 #' @noRd
-.micromicon_dash <- function() "\u2500"  # ─
+.micromicon_dash <- function() "\u2500"  # -
 
 # ---- Rules (headers) ----
 
@@ -177,10 +177,10 @@ micromicon_functions <- function() {
 #' @noRd
 .micromicon_rule_section <- function(name, width = .micromicon_console_width()) {
   dash <- .micromicon_dash()
-  left <- "─  "
+  left <- "\u2500  "
   mid  <- .micromicon_bold(name)
   right_pad <- "  "
-  used <- nchar("─  ", type = "width") +
+  used <- nchar("\u2500  ", type = "width") +
     nchar(name, type = "width") +
     nchar("  ", type = "width")
   rem <- max(0L, width - used)
@@ -199,9 +199,9 @@ micromicon_functions <- function() {
 #' @keywords internal
 #' @noRd
 .micromicon_bullet <- function(fun, desc, width = .micromicon_console_width(), color_code = 39) {
-  bullet <- "\u2022 "  # •
+  bullet <- "\u2022 "  # -
   fun_col <- .micromicon_col256(fun, color_code)
-  sep <- " — "
+  sep <- " \u2014 "
   
   prefix_visible <- nchar(bullet, type = "width") +
     nchar(fun,    type = "width") +

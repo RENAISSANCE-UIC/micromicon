@@ -213,7 +213,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
   aa_seq <- tryCatch({
     aa_raw <- translate_dna(dna_seq, frame = 1, genetic_code = "11", .internal = TRUE)
 
-    # Normalize alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA → M)
+    # Normalize alternative start codons (GTG, TTG, CTG, ATT, ATC, ATA -> M)
     if (!is.na(aa_raw) && nchar(aa_raw) > 0 && nchar(dna_seq) >= 3) {
       first_codon <- toupper(substr(dna_seq, 1, 3))
       alt_start_codons <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")
@@ -542,9 +542,9 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 #' @return Cleaned gene name, or NA if not resolvable
 #' @keywords internal
 .pm_resolve_gene <- function(gd, gene_raw, seq_id, position) {
-  # Clean gene name: remove arrows (←, →, <-, ->), trim whitespace
+  # Clean gene name: remove arrows (<-, ->, <-, ->), trim whitespace
   gene_clean <- gene_raw
-  gene_clean <- gsub("←|→|<-|->", "", gene_clean)
+  gene_clean <- gsub("\u2190|\u2192|<-|->", "", gene_clean)
   gene_clean <- trimws(gene_clean)
 
   # If gene is NA or empty after cleaning, try position-based lookup
@@ -939,7 +939,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
   # Get gene name from row (clean up direction arrows)
   gene <- as.character(row$gene)
-  gene <- gsub("\\s*[→←]\\s*$", "", gene)  # Remove trailing arrows
+  gene <- gsub("\\s*[\u2192\u2190]\\s*$", "", gene)  # Remove trailing arrows
   gene <- trimws(gene)
 
   # Extract reference sequences based on region
@@ -1170,7 +1170,7 @@ pm_enrich_consequences <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) {
 
   # Try different arrow formats (including HTML-escaped)
   sep_patterns <- c(
-    "\u2192",    # → (unicode arrow)
+    "\u2192",    # -> (unicode arrow)
     "->",        # ASCII arrow
     ">",         # Simple greater-than
     "-&gt;",     # HTML-escaped arrow

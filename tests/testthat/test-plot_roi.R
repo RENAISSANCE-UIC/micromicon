@@ -287,25 +287,33 @@ test_that("gene matching 'gene'-type rows only raises zero-match error", {
   expect_error(plot_roi(entity, gene = "cheA"), class = "rlang_error")
 })
 
-test_that("multiple CDS matches raises an error listing the hits", {
+test_that("exact match on gene field resolves to single CDS and returns a plot", {
+  skip_if_not_installed("ggplot2")
   entity <- make_test_entity()
+  # "cheA" exact-matches only the CDS row; "cheA_dup" must not be a false positive
+  p <- plot_roi(entity, gene = "cheA")
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("multiple exact-name matches raise an error listing the hits", {
+  # Two CDS features with the identical Name — genuinely ambiguous
+  dup_feats <- data.frame(
+    seqname = "U00096",
+    start   = c(1973360L, 2000000L),
+    end     = c(1975324L, 2001500L),
+    strand  = c("-", "+"),
+    type    = c("CDS", "CDS"),
+    Name    = c("cheA", "cheA"),
+    ID      = c("cds-cheA-1", "cds-cheA-2"),
+    stringsAsFactors = FALSE
+  )
+  entity <- make_test_entity(dup_feats)
   err <- tryCatch(
     plot_roi(entity, gene = "cheA"),
     error = function(e) e
   )
   expect_s3_class(err, "rlang_error")
-  # Error message should mention the count of matches
   expect_match(conditionMessage(err), "2 features matched")
-  # Error message should show hit coordinates
-  expect_match(conditionMessage(err), "cheA")
-})
-
-test_that("multiple-match error shows feature type in output", {
-  entity <- make_test_entity()
-  err <- tryCatch(
-    plot_roi(entity, gene = "cheA"),
-    error = function(e) e
-  )
   expect_match(conditionMessage(err), "CDS")
 })
 

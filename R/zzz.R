@@ -1,4 +1,4 @@
-# zzz.R — package lifecycle hooks
+# zzz.R -- package lifecycle hooks
 # Sourced last (alphabetically) so all package internals are available.
 # Look, I saw that Hadley Wickham did this and I loved it in tidyverse
 
@@ -15,7 +15,7 @@
   w    <- .micromicon_console_width()
   dash <- .micromicon_dash()
 
-  # Title rule: micRomicon v0.x.x ────────
+  # Title rule: micRomicon v0.x.x --------
   title_text   <- paste0("micRomicon v", ver)
   title_styled <- .micromicon_bold(title_text)
   used <- nchar(title_text, type = "width") + 1L
@@ -50,7 +50,7 @@
 #' @keywords internal
 #' @noRd
 .onAttach <- function(libname, pkgname) {
-  # Suppress during devtools::load_all() — the package is already reachable
+  # Suppress during devtools::load_all() -- the package is already reachable
   # via :: in that context; the greeting would be noise on every reload.
   # pkgload::is_loading() is TRUE for the duration of load_all().
   if (isNamespaceLoaded("pkgload") &&

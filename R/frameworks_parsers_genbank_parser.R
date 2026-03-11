@@ -217,7 +217,7 @@ parse_single_range_token <- function(tok) {
     res$end_fuzzy   <- res$start_fuzzy
     return(res)
   }
-  # Unrecognized—return as NA; caller can fall back to location_string
+  # Unrecognized--return as NA; caller can fall back to location_string
   res$kind <- "unknown"
   res
 }

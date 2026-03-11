@@ -30,11 +30,11 @@
 #' A \code{genome_entity} object. In interactive sessions, also prints a
 #' formatted summary to the console:
 #' \itemize{
-#'   \item \strong{Organism} — scientific name (GenBank sources only)
-#'   \item \strong{Source} — file format detected or specified
-#'   \item \strong{Contigs} — count, total base pairs, and topology
-#'   \item \strong{Features} — total count and breakdown by type (CDS, rRNA, tRNA, other)
-#'   \item \strong{Next} — three suggested follow-on function calls
+#'   \item \strong{Organism} -- scientific name (GenBank sources only)
+#'   \item \strong{Source} -- file format detected or specified
+#'   \item \strong{Contigs} -- count, total base pairs, and topology
+#'   \item \strong{Features} -- total count and breakdown by type (CDS, rRNA, tRNA, other)
+#'   \item \strong{Next} -- three suggested follow-on function calls
 #' }
 #' Suppress the summary in scripts with \code{options(micromicon.quiet = TRUE)}
 #' (not yet implemented) or by running in a non-interactive session.
@@ -139,7 +139,7 @@ read_genome <- function(path = NULL, gff = NULL, fasta = NULL,
   w   <- .micromicon_console_width()
   col <- getOption("micromicon.color.code", 39L)
 
-  # ── Compute stats ────────────────────────────────────────────────────────
+  # -- Compute stats --------------------------------------------------------
 
   n_contigs <- length(entity$indices$seqnames)
   total_bp  <- sum(nchar(entity$sequences$dna_raw))
@@ -197,7 +197,7 @@ read_genome <- function(path = NULL, gff = NULL, fasta = NULL,
 
   fmt_label <- switch(format, genbank = "GenBank", gff3_fasta = "GFF3 + FASTA", format)
 
-  # ── Print ────────────────────────────────────────────────────────────────
+  # -- Print ----------------------------------------------------------------
 
   lbl <- function(x) sprintf("  %-11s", x)
 

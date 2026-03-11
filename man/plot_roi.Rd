@@ -17,11 +17,12 @@ plot_roi(roi, ...)
   head_prop = 0.35,
   neck_prop = 0.6,
   label_size = 4,
-  colors = NULL
+  colors = NULL,
+  ...
 )
 
 \method{plot_roi}{genome_entity}(
-  entity,
+  roi,
   gene = NULL,
   contig = NULL,
   start = NULL,
@@ -40,11 +41,7 @@ plot_roi(roi, ...)
 \method{plot_roi}{default}(roi, ...)
 }
 \arguments{
-\item{roi}{A \code{GRanges} or \code{data.frame} (or any object coercible to one)
-typically produced by \code{\link[=get_roi_features]{get_roi_features()}}. Required columns:
-\code{seqnames}, \code{start}, \code{end}, \code{strand}. Optional columns \code{Name}, \code{gene},
-\code{Alias}, and \code{type} are used when present to derive labels and feature
-colours.}
+\item{roi}{A \code{genome_entity} (or \code{genome_entity_gd}) object.}
 
 \item{...}{Passed to the class-specific method.}
 
@@ -69,8 +66,6 @@ body; values below \code{1} create a narrowed neck. Default \code{0.60}.}
 drawn from an evenly-spaced HCL palette matching ggplot2 defaults. Supply
 a named vector to map gene names to specific colours, or an unnamed
 vector that is recycled across genes in plotting order.}
-
-\item{entity}{A \code{genome_entity} (or \code{genome_entity_gd}) object.}
 
 \item{gene}{\code{character(1)} Gene name (or pattern) to look up. Mutually
 exclusive with \code{contig}/\code{start}/\code{end}. The search is case-insensitive

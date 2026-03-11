@@ -10,7 +10,7 @@ micromicon_functions()
 Invisibly returns \code{NULL}. Called for its side-effect of printing.
 }
 \description{
-Renders a tidy, ANSI-aware, dependency-free index of the package’s
+Renders a tidy, ANSI-aware, dependency-free index of the package's
 core capabilities. Prints to stdout (no tinted message background),
 wraps descriptions to the current console width, and optionally
 uses ANSI bold and a single function name color.

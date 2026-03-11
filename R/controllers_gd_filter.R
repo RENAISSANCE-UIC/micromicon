@@ -24,7 +24,7 @@
 #'   Errors if no matching rows are found. Supply a plain number
 #'   (e.g. \code{4438305}); the comma-formatted display value in the table
 #'   (e.g. \code{"4,438,305"}) is handled automatically.
-#' @param min_freq Numeric (0–1); retain rows whose allele frequency is at
+#' @param min_freq Numeric (0--1); retain rows whose allele frequency is at
 #'   least this value. The display string (e.g. \code{"85.1\%"}) is converted
 #'   automatically. Structural variants reported at 100\% always pass this
 #'   filter.

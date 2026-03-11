@@ -72,7 +72,7 @@ beta_cgview_from_entity <- function(entity,
 #' @description
 #' Builds a \code{beta_cgview_pair()} layout where the **left** panel shows
 #' reference genome features (CDS, tRNA, rRNA) and the **right** panel shows
-#' only the mutation overlay — same genome coordinates, no feature rings.
+#' only the mutation overlay -- same genome coordinates, no feature rings.
 #' Both panels share the same colour palette and genome length.
 #'
 #' @param entity A `genome_entity_gd` object (contains both reference

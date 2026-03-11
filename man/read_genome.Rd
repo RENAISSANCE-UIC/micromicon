@@ -32,11 +32,11 @@ read_genome(
 A \code{genome_entity} object. In interactive sessions, also prints a
 formatted summary to the console:
 \itemize{
-\item \strong{Organism} — scientific name (GenBank sources only)
-\item \strong{Source} — file format detected or specified
-\item \strong{Contigs} — count, total base pairs, and topology
-\item \strong{Features} — total count and breakdown by type (CDS, rRNA, tRNA, other)
-\item \strong{Next} — three suggested follow-on function calls
+\item \strong{Organism} -- scientific name (GenBank sources only)
+\item \strong{Source} -- file format detected or specified
+\item \strong{Contigs} -- count, total base pairs, and topology
+\item \strong{Features} -- total count and breakdown by type (CDS, rRNA, tRNA, other)
+\item \strong{Next} -- three suggested follow-on function calls
 }
 Suppress the summary in scripts with \code{options(micromicon.quiet = TRUE)}
 (not yet implemented) or by running in a non-interactive session.

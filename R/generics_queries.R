@@ -319,7 +319,7 @@ extract_by_name.genome_entity <- function(x, pattern,
     ))
   }
 
-  # Extract sequences — prefer FaFile (GFF+FASTA) over DNAStringSet (GenBank)
+  # Extract sequences -- prefer FaFile (GFF+FASTA) over DNAStringSet (GenBank)
   if (!is.null(genome_obj$fa)) {
     dna_seqs <- Biostrings::getSeq(genome_obj$fa, features)
   } else if (!is.null(genome_obj$fasta)) {
@@ -373,8 +373,8 @@ extract_sequences_by_name <- extract_by_name
 #' Predict Variants
 #'
 #' @description
-#' Parses a \code{genome_entity_gd} object — loaded from a breseq
-#' \code{annotated.gd} file — and returns a tidy data frame of mutations.
+#' Parses a \code{genome_entity_gd} object -- loaded from a breseq
+#' \code{annotated.gd} file -- and returns a tidy data frame of mutations.
 #' Annotation tags written by \code{gdtools ANNOTATE} (gene names, codon
 #' changes, \code{snp_type}, inactivation status) are read directly from the
 #' file; no genome-sequence computation is performed here.
@@ -546,7 +546,7 @@ predict_variants.default <- function(gd, ...) {
 #' flanking DNA window is extracted instead.  Structural variants (MOB, AMP,
 #' INV, CON) receive reference sequences only.
 #'
-#' Consequences (\code{consequence}) are \emph{not} recomputed here — they are
+#' Consequences (\code{consequence}) are \emph{not} recomputed here -- they are
 #' passed through verbatim from the \code{var_type} column produced by
 #' \code{\link{predict_variants}()}, which in turn reads breseq's own
 #' annotation tags.  This preserves breseq's terminology throughout (e.g.\
@@ -765,7 +765,7 @@ get_roi_features.default <- function(x, ...) {
   cli::cli_abort("get_roi_features() not implemented for class {.cls {class(x)[1]}}")
 }
 
-# ── read_variants ──────────────────────────────────────────────────────────────
+# -- read_variants --------------------------------------------------------------
 
 #' Read Variant Calls Against a Reference Genome
 #'
@@ -796,10 +796,10 @@ get_roi_features.default <- function(x, ...) {
 #' A \code{genome_entity_gd} object. In interactive sessions, also prints a
 #' formatted summary to the console:
 #' \itemize{
-#'   \item \strong{File} — basename of the variant file
-#'   \item \strong{Mutations} — total count and breakdown by type
+#'   \item \strong{File} -- basename of the variant file
+#'   \item \strong{Mutations} -- total count and breakdown by type
 #'     (SNP, DEL, INS, SUB, MOB, AMP, CON, INV)
-#'   \item \strong{Next} — three suggested follow-on function calls
+#'   \item \strong{Next} -- three suggested follow-on function calls
 #' }
 #'
 #' @seealso
@@ -859,7 +859,7 @@ read_variants.default <- function(x, ...) {
   w   <- .micromicon_console_width()
   col <- getOption("micromicon.color.code", 39L)
 
-  # ── Mutation counts ───────────────────────────────────────────────────────
+  # -- Mutation counts -------------------------------------------------------
 
   mut_idx    <- gd$provenance$by_kind$mutation_idx
   mut_events <- gd$events[mut_idx]
@@ -886,7 +886,7 @@ read_variants.default <- function(x, ...) {
     if (length(parts) > 0L) paste0("  \u2014  ", paste(parts, collapse = "  \u00b7  ")) else ""
   )
 
-  # ── Print ─────────────────────────────────────────────────────────────────
+  # -- Print -----------------------------------------------------------------
 
   lbl <- function(x) sprintf("  %-11s", x)
 

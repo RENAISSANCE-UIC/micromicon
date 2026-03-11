@@ -129,7 +129,7 @@ get_gene_aa.genome_entity <- function(x, gene, genetic_code = NULL, fix_start_co
 
   aa <- translate_dna(dna, frame = 1, genetic_code = genetic_code, .internal = TRUE)
 
-  # Fix alternative start codons (GTG, TTG, CTG → M in bacteria)
+  # Fix alternative start codons (GTG, TTG, CTG -> M in bacteria)
   if (fix_start_codon && nchar(dna) >= 3) {
     start_codon <- toupper(substr(dna, 1, 3))
     alt_starts <- c("GTG", "TTG", "CTG", "ATT", "ATC", "ATA")

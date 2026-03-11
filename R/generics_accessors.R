@@ -1,7 +1,7 @@
 #' Retrieve annotated features from a genome object
 #'
 #' @description
-#' Returns the complete feature table of a loaded genome — every annotated
+#' Returns the complete feature table of a loaded genome -- every annotated
 #' element (genes, CDS, rRNAs, tRNAs, misc features) with its coordinates,
 #' strand, type, and available identifiers.
 #'
@@ -15,7 +15,7 @@
 #' | `seqname` | character | Contig or chromosome name |
 #' | `start`, `end` | integer | 1-based, inclusive coordinates |
 #' | `strand` | character | `"+"`, `"-"`, or `"*"` |
-#' | `type` | character | Feature type (`CDS`, `gene`, `rRNA`, `tRNA`, …) |
+#' | `type` | character | Feature type (`CDS`, `gene`, `rRNA`, `tRNA`, ...) |
 #' | `gene` | character | Gene symbol, when present in the annotation |
 #' | `locus_tag` | character | Systematic locus identifier |
 #' | `product` | character | Functional description |
@@ -70,7 +70,7 @@
 #' # Strand balance
 #' table(cds$strand)
 #'
-#' # Ribosomal RNA loci — useful for coverage QC
+#' # Ribosomal RNA loci -- useful for coverage QC
 #' get_features(ref, type = "rRNA")
 #'
 #' # Filter by gene symbol

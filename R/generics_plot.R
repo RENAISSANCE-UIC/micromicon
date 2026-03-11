@@ -59,7 +59,7 @@ plot_cgview.genome_entity <- function(entity,
 #' @param left_title,right_title Panel titles for paired view. Ignored when
 #'   `paired = FALSE`.
 #' @param gap CSS gap between panels for paired view (default `"12px"`).
-#' @param min_freq Numeric (0–1) or NULL (default). When set, only variants
+#' @param min_freq Numeric (0--1) or NULL (default). When set, only variants
 #'   with allele frequency >= this value are shown. Requires
 #'   \code{gd$variants_predicted} to be populated first via
 #'   \code{\link{predict_variants}()}.
@@ -132,12 +132,12 @@ plot_cgview.default <- function(entity, ...) {
 }
 
 # =============================================================================
-# plot_roi — genome_entity method
+# plot_roi -- genome_entity method
 # =============================================================================
 
 #' @rdname plot_roi
 #'
-#' @param entity A \code{genome_entity} (or \code{genome_entity_gd}) object.
+#' @param roi A \code{genome_entity} (or \code{genome_entity_gd}) object.
 #' @param gene `character(1)` Gene name (or pattern) to look up. Mutually
 #'   exclusive with `contig`/`start`/`end`. The search is case-insensitive
 #'   and matches `ID`, `Name`, `Alias`, `gene`, `locus_tag`, and `product`
@@ -157,7 +157,7 @@ plot_cgview.default <- function(entity, ...) {
 #'   [get_roi_features()] and drawn in the plot. Default `"CDS"`.
 #'
 #' @export
-plot_roi.genome_entity <- function(entity,
+plot_roi.genome_entity <- function(roi,
                                    gene         = NULL,
                                    contig       = NULL,
                                    start        = NULL,
@@ -171,6 +171,7 @@ plot_roi.genome_entity <- function(entity,
                                    label_size   = 4.0,
                                    colors       = NULL,
                                    ...) {
+  entity <- roi
 
   using_gene   <- !is.null(gene)
   using_coords <- !is.null(start) || !is.null(end) || !is.null(contig)
@@ -204,7 +205,7 @@ plot_roi.genome_entity <- function(entity,
 
       name_fields <- intersect(c("gene", "Name", "ID", "locus_tag"), names(feats))
 
-      # Tier 1 — exact (case-insensitive)
+      # Tier 1 -- exact (case-insensitive)
       mask <- rep(FALSE, nrow(feats))
       for (f in name_fields) {
         v    <- as.character(feats[[f]])
@@ -212,7 +213,7 @@ plot_roi.genome_entity <- function(entity,
       }
       if (any(mask)) return(feats[mask, , drop = FALSE])
 
-      # Tier 2 — word-boundary
+      # Tier 2 -- word-boundary
       wb_pat  <- paste0("\\b", g, "\\b")
       wb_mask <- rep(FALSE, nrow(feats))
       for (f in intersect(c(name_fields, "product"), names(feats))) {
@@ -221,7 +222,7 @@ plot_roi.genome_entity <- function(entity,
       }
       if (any(wb_mask)) return(feats[wb_mask, , drop = FALSE])
 
-      # Tier 3 — original substring results
+      # Tier 3 -- original substring results
       feats
     }
 

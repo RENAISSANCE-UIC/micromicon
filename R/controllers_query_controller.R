@@ -7,7 +7,7 @@
 # The genome_entity method works for genome_entity_gd as well via S3 dispatch
 # inheritance (genome_entity_gd inherits from genome_entity).
 # =============================================================================
-# Query functions — moved from queries.R
+# Query functions -- moved from queries.R
 # These are Bioconductor-dependent user-facing API functions.
 # Each accepts genome_entity (converted to legacy format via entity_to_legacy_genome_obj)
 # or the legacy list from init_genome() directly.

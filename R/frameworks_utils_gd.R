@@ -262,7 +262,7 @@ gd_snp_effect_row <- function(gd, seq_id, position, gene) {
     verified = TRUE,
     consequence = r$consequence,
     aa_change   = paste0(r$aa_ref, r$aa_index, r$aa_new),
-    codon_change= paste0(r$codon_ref, "→", r$codon_alt),
+    codon_change= paste0(r$codon_ref, "\u2192", r$codon_alt),
     stringsAsFactors = FALSE
   )
 }
@@ -313,7 +313,7 @@ gd_classify_snp <- function(gd, seq_id, position, gene) {
 gd_verify_snp <- function(gd, seq_id, position, gene) {
   gd_assert(gd, "gd")
   
-  # Evidence table – we still key off RA to get ref/alt bases
+  # Evidence table -- we still key off RA to get ref/alt bases
   ev_tbl <- gd_events_table(gd, kinds = "evidence", expand_tags = FALSE)
   
   # Normalize inputs
@@ -499,8 +499,8 @@ gd_locate <- function(gd, seq_id, pos) {
   # Strand-aware sign convention:
   # If nearest gene is '+' strand and mutation is downstream of its end -> '+<dist>'
   # If nearest gene is '-' strand and mutation is downstream of its start w.r.t. transcription -> '+<dist>'
-  # For a succinct approximation, we’ll sign by *genomic* left/right, and append arrows to gene names.
-  # This keeps display consistent with what you’re already emitting (gene arrows via strand).
+  # For a succinct approximation, we'll sign by *genomic* left/right, and append arrows to gene names.
+  # This keeps display consistent with what you're already emitting (gene arrows via strand).
   
   # Helper to extract gene name from feature row (tries multiple column names)
   .get_gene_name <- function(feat_row) {
@@ -527,7 +527,7 @@ gd_locate <- function(gd, seq_id, pos) {
     if (!is.null(dn$strand[1]) && dn$strand[1] %in% c("-", -1L)) dn_gene <- paste0(dn_gene, " \u2190") else dn_gene <- paste0(dn_gene, " \u2192")
   }
   
-  # Compose breseq-like “intergenic (+a/+b)” and gene pair “Gleft / Gright”
+  # Compose breseq-like "intergenic (+a/+b)" and gene pair "Gleft / Gright"
   label <- sprintf("intergenic (%s/%s)",
                    ifelse(is.na(up_label), "NA", up_label),
                    ifelse(is.na(dn_label), "NA", dn_label))

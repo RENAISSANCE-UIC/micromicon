@@ -60,7 +60,7 @@ and the alternate CDS / protein are returned.  For intergenic mutations a
 flanking DNA window is extracted instead.  Structural variants (MOB, AMP,
 INV, CON) receive reference sequences only.
 
-Consequences (\code{consequence}) are \emph{not} recomputed here — they are
+Consequences (\code{consequence}) are \emph{not} recomputed here -- they are
 passed through verbatim from the \code{var_type} column produced by
 \code{\link{predict_variants}()}, which in turn reads breseq's own
 annotation tags.  This preserves breseq's terminology throughout (e.g.\

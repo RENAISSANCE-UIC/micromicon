@@ -137,7 +137,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
 .pf_enrich_gene_batch <- function(gd, group, flank, quiet,
                                    gene_dna_cache, gene_aa_cache, gene_meta_cache) {
   gene <- as.character(group$gene[1])
-  gene_clean <- gsub("\\s*[→←]\\s*$", "", gene)
+  gene_clean <- gsub("\\s*[\u2192\u2190]\\s*$", "", gene)
   gene_clean <- trimws(gene_clean)
 
   # Handle multi-gene annotations (e.g., "geneA|geneB" or "geneA / geneB")
@@ -234,8 +234,8 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
   pos_parsed <- as.integer(gsub(",|:.*", "", row$position))
 
   mutation_str <- as.character(row$mutation)
-  # Parse ref→alt (handle various arrow formats)
-  mut_parts <- strsplit(gsub("→|->|&gt;", "|", mutation_str), "\\|")[[1]]
+  # Parse ref->alt (handle various arrow formats)
+  mut_parts <- strsplit(gsub("\u2192|->|&gt;", "|", mutation_str), "\\|")[[1]]
   if (length(mut_parts) != 2) {
     return(row)
   }
@@ -445,7 +445,7 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
     if (mut_type == "SNP") {
       # SNP: substitute single base
       mutation_str <- as.character(row$mutation)
-      mut_parts <- strsplit(gsub("→|->|&gt;", "|", mutation_str), "\\|")[[1]]
+      mut_parts <- strsplit(gsub("\u2192|->|&gt;", "|", mutation_str), "\\|")[[1]]
       if (length(mut_parts) == 2) {
         alt_base <- mut_parts[2]
         dna_alt <- dna_window
@@ -456,13 +456,13 @@ pm_enrich_consequences_fast <- function(gd, pm_tbl, flank = 50L, quiet = FALSE) 
     } else if (mut_type == "DEL") {
       # DEL: remove bases from window
       mutation_str <- as.character(row$mutation)
-      # Parse deletion size (e.g., "Δ1 bp" or "Δ5 bp")
+      # Parse deletion size (e.g., "delta1 bp" or "delta5 bp")
       del_size <- 1L  # Default to 1
-      if (grepl("Δ(\\d+)", mutation_str)) {
-        del_match <- regexpr("Δ(\\d+)", mutation_str, perl = TRUE)
+      if (grepl("\u0394(\\d+)", mutation_str)) {
+        del_match <- regexpr("\u0394(\\d+)", mutation_str, perl = TRUE)
         del_text <- regmatches(mutation_str, del_match)
         if (length(del_text) > 0) {
-          del_size <- as.integer(gsub("Δ", "", del_text))
+          del_size <- as.integer(gsub("\u0394", "", del_text))
         }
       }
 

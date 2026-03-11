@@ -52,7 +52,7 @@ present; annotation-specific extras (\code{protein_id}, \code{note}, etc.)
 appear when the source file supplies them.
 }
 \description{
-Returns the complete feature table of a loaded genome — every annotated
+Returns the complete feature table of a loaded genome -- every annotated
 element (genes, CDS, rRNAs, tRNAs, misc features) with its coordinates,
 strand, type, and available identifiers.
 
@@ -64,7 +64,7 @@ the source format, but the following are always available:\tabular{lll}{
    \code{seqname} \tab character \tab Contig or chromosome name \cr
    \code{start}, \code{end} \tab integer \tab 1-based, inclusive coordinates \cr
    \code{strand} \tab character \tab \code{"+"}, \code{"-"}, or \code{"*"} \cr
-   \code{type} \tab character \tab Feature type (\code{CDS}, \code{gene}, \code{rRNA}, \code{tRNA}, …) \cr
+   \code{type} \tab character \tab Feature type (\code{CDS}, \code{gene}, \code{rRNA}, \code{tRNA}, ...) \cr
    \code{gene} \tab character \tab Gene symbol, when present in the annotation \cr
    \code{locus_tag} \tab character \tab Systematic locus identifier \cr
    \code{product} \tab character \tab Functional description \cr
@@ -88,7 +88,7 @@ cds[, c("gene", "locus_tag", "product")]
 # Strand balance
 table(cds$strand)
 
-# Ribosomal RNA loci — useful for coverage QC
+# Ribosomal RNA loci -- useful for coverage QC
 get_features(ref, type = "rRNA")
 
 # Filter by gene symbol

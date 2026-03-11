@@ -61,7 +61,7 @@ Default: \code{c("CDS", "tRNA", "rRNA")}.}
 RStudio Viewer pane; \code{"browser"} saves to a temporary HTML file and
 opens it in the system browser at full window width.}
 
-\item{min_freq}{Numeric (0–1) or NULL (default). When set, only variants
+\item{min_freq}{Numeric (0--1) or NULL (default). When set, only variants
 with allele frequency >= this value are shown. Requires
 \code{gd$variants_predicted} to be populated first via
 \code{\link{predict_variants}()}.}

@@ -10,10 +10,10 @@
 #     as the feature fill color when a feature's `legend` field matches.
 #
 # Track routing uses the `source` field on features:
-#   CDS features              → source = "CDS"   → "CDS" track
-#   tRNA/rRNA/tmRNA/repeat_*  → source = "ncRNA" → "ncRNA" track
-#   Other feature types       → source = type     → their own track
-#   Mutation events           → source = "mutations" → "Variants" track
+#   CDS features              -> source = "CDS"   -> "CDS" track
+#   tRNA/rRNA/tmRNA/repeat_*  -> source = "ncRNA" -> "ncRNA" track
+#   Other feature types       -> source = type     -> their own track
+#   Mutation events           -> source = "mutations" -> "Variants" track
 
 # ---- Default colour palette ------------------------------------------------
 
@@ -47,7 +47,7 @@
 #'
 #' @description
 #' Produces the R list that CGView.js expects (top-level key `cgview`).
-#' No GC tracks are emitted — sequence length only, no raw DNA string —
+#' No GC tracks are emitted -- sequence length only, no raw DNA string --
 #' so CGView will not auto-generate GC Content / GC Skew rings.
 #'
 #' **Track routing by `source` field:**
@@ -105,8 +105,8 @@ build_cgview_json <- function(genome_length,
   # tickCount: CGView uses d3.ticks(start, stop, tickCount) which produces
   # "nice" round bp values automatically.  We target one tick per
   # ruler_spacing interval; for a 4.79 Mbp genome with spacing = 1 Mbp
-  # that gives tickCount ≈ 5, and d3 places ticks at 1, 2, 3, 4 Mbp.
-  # NOTE: ruler$spacing is a *pixel* gap (default 2 px), NOT a bp interval —
+  # that gives tickCount ~= 5, and d3 places ticks at 1, 2, 3, 4 Mbp.
+  # NOTE: ruler$spacing is a *pixel* gap (default 2 px), NOT a bp interval --
   # do NOT pass ruler_sp as spacing or the ruler rings go millions of px
   # off-canvas.
   ruler_sp <- if (is.null(ruler_spacing))
@@ -151,7 +151,7 @@ build_cgview_json <- function(genome_length,
 
   # ---- Legend items ----------------------------------------------------------
   # decoration on the legend item is the primary control for glyph shape in
-  # CGView 1.8 — it overrides any feature-level decoration field.
+  # CGView 1.8 -- it overrides any feature-level decoration field.
   legend_items <- lapply(unique(legend_seen), function(nm) {
     item <- list(
       name        = nm,
@@ -168,7 +168,7 @@ build_cgview_json <- function(genome_length,
       settings = list(
         format          = "circular",
         backgroundColor = "#FFFFFF",
-        arrowHeadLength = 0.3    # controls arrowhead prominence (0–1); default is near-invisible
+        arrowHeadLength = 0.3    # controls arrowhead prominence (0--1); default is near-invisible
       ),
       sequence = list(
         length = genome_length,
@@ -180,7 +180,7 @@ build_cgview_json <- function(genome_length,
       ),
       ruler = list(
         visible    = TRUE,
-        tickCount  = tick_count,   # d3.ticks() → nice round Mbp/kbp labels
+        tickCount  = tick_count,   # d3.ticks() -> nice round Mbp/kbp labels
         color      = "#888888",
         tickLength = 10L,
         tickWidth  = 2L,
@@ -260,7 +260,7 @@ build_cgview_json <- function(genome_length,
   if (!is.null(features_df) && nrow(features_df) > 0) {
     types_present <- unique(as.character(features_df$type))
 
-    # CDS track — straddles the backbone, strand-split
+    # CDS track -- straddles the backbone, strand-split
     cds_types <- intersect(types_present, .CGVIEW_ARROW_TYPES)
     if (length(cds_types) > 0) {
       tracks <- c(tracks, list(list(
@@ -274,7 +274,7 @@ build_cgview_json <- function(genome_length,
       )))
     }
 
-    # ncRNA track — outside the CDS band
+    # ncRNA track -- outside the CDS band
     ncrna_types <- intersect(types_present, .CGVIEW_NCRNA_TYPES)
     if (length(ncrna_types) > 0) {
       tracks <- c(tracks, list(list(
@@ -303,7 +303,7 @@ build_cgview_json <- function(genome_length,
     }
   }
 
-  # Variants track — outermost ring (outside backbone)
+  # Variants track -- outermost ring (outside backbone)
   if (!is.null(mutations_df) && nrow(mutations_df) > 0) {
     tracks <- c(tracks, list(list(
       name               = "Variants",

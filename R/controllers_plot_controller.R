@@ -86,7 +86,8 @@ plot_roi.data.frame <- function(roi,
                      head_prop    = 0.35,
                      neck_prop    = 0.60,
                      label_size   = 4.0,
-                     colors       = NULL) {
+                     colors       = NULL,
+                     ...) {
 
   # ggplot2 availability check ------------------------------------------------
 
