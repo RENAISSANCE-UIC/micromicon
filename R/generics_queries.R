@@ -58,14 +58,33 @@ search_features.genome_entity <- function(x, type = NULL, pattern = NULL,
   }
 
   if (!is.null(pattern)) {
-    matches <- rep(FALSE, nrow(feats))
-    for (field in c("ID", "Name", "Alias", "gene", "locus_tag", "product")) {
-      if (field %in% names(feats)) {
-        field_matches <- grepl(pattern, feats[[field]], ignore.case = TRUE)
-        matches <- matches | field_matches
+    name_fields <- intersect(c("ID", "Name", "Alias", "gene", "locus_tag"), names(feats))
+    all_fields  <- intersect(c("ID", "Name", "Alias", "gene", "locus_tag", "product"), names(feats))
+    mask <- rep(FALSE, nrow(feats))
+
+    # Tier 1: exact match (case-insensitive) on primary name fields
+    for (f in name_fields) {
+      v    <- as.character(feats[[f]])
+      mask <- mask | (!is.na(v) & tolower(v) == tolower(pattern))
+    }
+
+    if (!any(mask)) {
+      # Tier 2: word-boundary match across all fields
+      wb_pat <- paste0("\\b", pattern, "\\b")
+      for (f in all_fields) {
+        v    <- as.character(feats[[f]])
+        mask <- mask | (!is.na(v) & grepl(wb_pat, v, ignore.case = TRUE, perl = TRUE))
       }
     }
-    feats <- feats[matches, ]
+
+    if (!any(mask)) {
+      # Tier 3: substring match (original behaviour)
+      for (f in all_fields) {
+        mask <- mask | grepl(pattern, feats[[f]], ignore.case = TRUE)
+      }
+    }
+
+    feats <- feats[mask, ]
   }
 
   if (!is.null(contig) && "seqname" %in% names(feats)) {
