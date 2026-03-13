@@ -18,7 +18,7 @@ The package supports two complementary modes:
 
 ## Why micRomicon?
 
-We wanted a free, open-source toolkit that worked naturally for R users and lowered the barrier of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After years of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so that we could reroute cognitive bandwidth toward doing the actual science. 
+We wanted a free, open-source toolkit that worked naturally for R users and lowered the barrier of moving among file formats commonly used in microbial genomics. GenBank, GFF3+FASTA, and variation/mutation-oriented outputs each bring their own structural hurdles, and the parsing logic for these is often scattered across different packages and domains. After years of doing this the old way, we wanted a dedicated system to do the parsing and formatting for us, so that we could reroute cognitive bandwidth toward doing the actual science. 
 
 `micromicon` ingests and consolidates common genomics file formats into stable representations (`genome_entity`, `genome_entity_gd`) so that import, storage, query, and export operations follow the same patterns regardless of where the data originated. What began as a collection of convenience wrappers has grown into a foundation for routine bacterial genomics analysis, with space intentionally reserved for future tooling, including expanded variant-aware workflows and functional consequence interpretation.
 
@@ -28,6 +28,10 @@ We wanted a free, open-source toolkit that worked naturally for R users and lowe
 # Install from GitHub
 if (!require(devtools)) install.packages("devtools")
 devtools::install_github("RENAISSANCE-UIC/micromicon")
+
+# Or, if the docs get borked try this:
+if (!require(devtools)) install.packages("pak")
+pak::pkg_install("RENAISSANCE-UIC/micromicon")
 
 # Or from local source
 devtools::install_local("/path/to/micromicon")
@@ -103,15 +107,22 @@ ds_pos <- map_genomic_to_cds(entity, gene = "dnaA", genomic_pos = 3176824)
 genomic_pos <- map_cds_to_genomic(entity, gene = "dnaA", cds_pos = 3)
 
 # Visualize a region of interest (**REQUIRES** ggplot2)
-motA <- get_features(entity, type = "CDS", gene = "motA")     # gene of interest
-roi <- get_roi_features(entity, contig = "1", 
-                 start = motA$start, end = motA$end, flank = 5000)     # region of interest
+# Option 1: pass entity + gene name directly (flank defaults to 5000 bp)
+plot_roi(entity, gene = "motA",
+         arrow_height = 0.10,
+         head_prop    = 0.35,
+         neck_prop    = 0.60,
+         label_size   = 5.2,
+         title        = "Region surrounding the E. coli flagellar stator operon")
+
+# Option 2: build the region table explicitly, then plot
+roi <- get_roi_features(entity, contig = "1", start = 1977266, end = 1978197, flank = 5000)
 plot_roi(roi,
-         arrow_height = 0.10,   # make arrows taller/shorter                                                             
-         head_prop    = 0.35,   # fraction of gene that is arrowhead
-         neck_prop    = 0.60,   # how "pinched" the neck is (0=very pinched, 1=no neck)                                  
-         label_size   = 5.2,    # adjust label size to suit your tastes
-         title = "Region surrounding the E. coli flagellar stator operon") 
+         arrow_height = 0.10,
+         head_prop    = 0.35,
+         neck_prop    = 0.60,
+         label_size   = 5.2,
+         title        = "Region surrounding the E. coli flagellar stator operon")
 
 # Integration with CGView.js
 plot_cgview(entity, contig = "1")            # Launches in viewer
@@ -125,18 +136,15 @@ blast_protein(protein, database = "swissprot")
 
 Implemented as `genome_entity_gd`, which inherits from the `genome_entity` object, this allows the reference to be supplemented with genomic variation events documented in the `annotated.gd` output from the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing). 
 
-By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predict_variants()` require mutation data.
+By design, all legacy `genome_entity` functions operate unchanged on `genome_entity_gd`, but the converse is not true: `genome_entity_gd`-specific functions like `predict_variants()` require variant data.
 
 ```r
 # Parse breseq output with reference genome
-gd <- parse_gd_annotated(
-  gd_path = "annotated.gd",
-  entity = entity
-)
+gd <- read_variants(entity, path = "annotated.gd")
 
 class(gd) # [1] "genome_entity_gd" "genome_entity"   
 
-# Summary of mutations
+# Summary of variants
 summary(gd)
 
 # All genome navigation functions work on gd objects
@@ -148,15 +156,15 @@ get_roi_fasta(gd, contig = "1", start = 1834322, end = 1837471)
 map_genomic_to_cds(gd, gene = "dnaA", genomic_pos = 3176824)
 map_cds_to_genomic(gd, gene = "dnaA", cds_pos = 3)
 
-# Variation-specific: predict mutations (result cached on gd object)
+# Variation-specific: predict variants (result cached on gd object)
 gd <- predict_variants(gd)              # populates gd$variants_predicted
 gd$variants_predicted             # access the table directly
 
-# Enrich mutations with molecular consequences
+# Enrich variants with molecular consequences
 consequence_table <- annotate_variants(gd)
 # Returns: DNA sequences (dna_ref, dna_alt), amino acid changes (aa_ref, aa_alt),
 #          codon changes, and consequence classification
-# Supports: SNP, DEL, INS, SUB mutation types (coding and intergenic)
+# Supports: SNP, DEL, INS, SUB variation types (coding and intergenic)
 # Consequences: synonymous, missense, nonsense, frameshift, inframe_deletion, inframe_insertion
 # Auto-detects OS: uses parallel processing on Linux/macOS, serial on Windows
 
@@ -265,7 +273,7 @@ ampC_protein <- extract_by_name(genome, "ampC",
   type = "CDS",
   translate = TRUE
 )
-acrB_protein <- get_gene_aa(genome,, gene = "acrB")
+acrB_protein <- get_gene_aa(genome, gene = "acrB")
 
 # Genomic regions with context
 roi <- roi_coords("chr1", 1000, 2000, "+")
@@ -293,22 +301,51 @@ write_fasta(genome, "output.fasta")
 # write_genbank(genome, "output.gbk")  # Does not exist
 ```
 
-### Visualization 
+### Visualization
 
-`plot_roi()` provides a static linear view of a genomic region of interest. Pass the output of `get_roi_features()` and each feature will be rendered as an arrow (direction of transcription), uniquely colored per gene, with automatic 2-D label collision avoidance. Note that currently this only pertains to regions of the reference genome, although we plan to introduce plotting of genomic variants in future updates.
+`plot_roi()` provides a static linear view of a genomic region of interest. Each feature is rendered as a directional arrow (direction of transcription), uniquely colored per gene, with automatic 2-D label collision avoidance. Note that currently this only pertains to regions of the reference genome, although we plan to introduce plotting of genomic variants in future updates.
+
+`plot_roi()` can be called in two ways:
+
+**Via `get_roi_features()` (explicit region):**
 
 ```r
-roi <- get_roi_features(genome, contig = "chr1", start = 1971030, end = 1982387)                                      
-plot_roi(roi)                                                                                                         
-                                                                                                                        
-# Add a title                                                                                                         
-plot_roi(roi, title = "che/mot/fli operon")                                                                           
-                                                                                                                        
+roi <- get_roi_features(genome, contig = "chr1", start = 1971030, end = 1982387)
+plot_roi(roi)
+
+# Add a title
+plot_roi(roi, title = "che/mot/fli operon")
+
 # Custom colors for specific genes
-plot_roi(roi, colors = c(cheA = "#E41A1C", motA = "#377EB8"))                                                         
-                  
-# Returns a ggplot object — extend as usual
+plot_roi(roi, colors = c(cheA = "#E41A1C", motA = "#377EB8"))
+
+# Returns a ggplot object -- extend as usual
 plot_roi(roi) + ggplot2::theme(plot.title = ggplot2::element_text(face = "bold"))
+```
+
+**Directly on a `genome_entity` or `genome_entity_gd` object:**
+
+```r
+# Gene name mode: finds the gene automatically, flanks by 5000 bp by default
+plot_roi(genome, gene = "motA")
+plot_roi(genome, gene = "motA", flank = 10000)
+
+# Coordinate mode: explicit region
+plot_roi(genome, contig = "chr1", start = 1971030, end = 1982387)
+
+# Works identically on genome_entity_gd (reference features are plotted)
+plot_roi(gd, gene = "motA")
+plot_roi(gd, contig = "chr1", start = 1971030, end = 1982387)
+
+# All appearance options apply in both modes
+plot_roi(genome, gene = "motA",
+         flank        = 8000,
+         title        = "Region surrounding motA",
+         arrow_height = 0.10,
+         head_prop    = 0.35,
+         neck_prop    = 0.60,
+         label_size   = 5.2,
+         colors       = c(motA = "#377EB8"))
 ```
  ![](man/figures/plot_roi_image.png)
 
@@ -335,7 +372,7 @@ protein <- ampC$translation
 # BLASTP against local SwissProt
 hits <- blast_protein(protein, database = "swissprot")
 
-ptint(hits) 
+print(hits)
 ```
 
 **Requirements**: Local BLAST+ and database. See [BLAST Setup Guide](BLAST_SETUP.md).
@@ -403,7 +440,7 @@ We have borrowed the excellent design idioms familiar in other ecosystems (clean
 The `genome_entity_gd` subclass demonstrates extensibility:
 
 ```r
-# genome_entity_gd extends genome_entity with mutation data
+# genome_entity_gd extends genome_entity with variation/mutation data
 gd <- parse_gd_annotated("annotated.gd", entity)
 
 class(gd)
@@ -429,7 +466,7 @@ genome_entity_remote <- structure(
 )
 
 # Implement methods
-features.genome_entity_remote <- function(x, ...) {
+get_features.genome_entity_remote <- function(x, ...) {
   query_database(x$connection, "SELECT * FROM features")
 }
 
@@ -440,10 +477,10 @@ get_features(remote_genome)  # Dispatches to your method
 ### Current Capabilities
 
 `micromicon` currently supports:
-- **Variant-aware workflows**: Track mutations via `genome_entity_gd`
+- **Variant-aware workflows**: Track variants and mutations via `genome_entity_gd`
 - **Visualization**: Integration with `CGView.js` via `plot_cgview()`
 - **breseq integration**: Parse `annotated.gd` files using `read_variants()`
-- **Mutation tables**: Generate predicted mutations summaries with `predict_variants()`
+- **Variation analysis tables**: Generate predicted variant summaries with `predict_variants()`
 - **Consequence enrichment**: Molecular impact analysis with `annotate_variants()` for SNP/DEL/INS/SUB
 - **Cross-platform optimization**: Auto-detects OS for parallel (Linux/macOS) or serial (Windows) processing
 - **Unified interface**: All navigation functions work on both modes
@@ -513,7 +550,7 @@ The authors gratefully acknowledge support from the University of Illinois Chica
 ## Acknowledgments
 
 `micromicon` builds on the shoulders of:
-- [breseq](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) — the wonderful (and for our group, the definitive) computational pipeline for finding variants relative to a reference sequence in short-read DNA re-sequencing data, developed by the Barrick Lab 
+- [breseq](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing) — the wonderful (and for our group, definitive) computational pipeline for finding variants relative to a reference sequence in short-read DNA re-sequencing data, developed by the Barrick Lab 
 - Bioconductor ecosystem (GenomicRanges, Biostrings, rtracklayer)
 - NCBI BLAST+ toolkit
 - Clean Architecture principles by Robert C. Martin ("Uncle Bob")
