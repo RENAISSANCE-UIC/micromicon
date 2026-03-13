@@ -30,7 +30,7 @@ if (!require(devtools)) install.packages("devtools")
 devtools::install_github("RENAISSANCE-UIC/micromicon")
 
 # Or, if the docs get borked try this:
-if (!require(devtools)) install.packages("pak")
+if (!require(pak)) install.packages("pak")
 pak::pkg_install("RENAISSANCE-UIC/micromicon")
 
 # Or from local source
