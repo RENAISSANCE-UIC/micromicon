@@ -17,7 +17,12 @@ pm_enrich_consequences_parallel <- function(gd, pm_tbl, flank = 50L, quiet = FAL
                                            use_parallel = TRUE,
                                            mc.cores = parallel::detectCores() - 1) {
   gd_assert(gd, "gd")
-  stopifnot(is.data.frame(pm_tbl))
+  if (!is.data.frame(pm_tbl)) {
+    cli::cli_abort(c(
+      "{.fn annotate_variants}: {.arg pm_tbl} must be a data frame from {.fn predict_variants}.",
+      "i" = "Did you save the result back? Try: {.code gd <- predict_variants(gd); annotate_variants(gd)}."
+    ))
+  }
 
   # Check if parallel is available
   if (!requireNamespace("parallel", quietly = TRUE)) {

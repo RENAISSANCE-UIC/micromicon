@@ -655,6 +655,22 @@ annotate_variants.genome_entity_gd <- function(gd, pm_tbl = NULL, ...) {
       ))
     }
     pm_tbl <- gd$variants_predicted
+  } else if (inherits(pm_tbl, "genome_entity_gd")) {
+    # User passed the gd object returned by predict_variants() instead of a
+    # data frame.  predict_variants() returns the updated gd invisibly, so
+    # this is a common mistake.  Recover gracefully.
+    if (is.null(pm_tbl$variants_predicted)) {
+      cli::cli_abort(c(
+        "{.fn annotate_variants}: the second argument looks like a {.cls genome_entity_gd}, not a variant table.",
+        "i" = "Run {.code gd <- predict_variants(gd)} first, then call {.code annotate_variants(gd)}."
+      ))
+    }
+    cli::cli_warn(c(
+      "!" = "{.fn annotate_variants}: second argument is a {.cls genome_entity_gd}, not a data frame.",
+      "i" = "Using {.code $variants_predicted} from that object.",
+      "i" = "Did you mean: {.code gd <- predict_variants(gd); annotate_variants(gd)}?"
+    ))
+    pm_tbl <- pm_tbl$variants_predicted
   }
   pm_enrich_consequences_parallel(gd, pm_tbl, ...)
 }
