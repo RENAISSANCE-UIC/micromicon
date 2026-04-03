@@ -461,3 +461,75 @@ test_that("pm_enrich_consequences codon_alt column exists", {
 
   expect_true("codon_alt" %in% names(result))
 })
+
+
+# --- annotate_variants() dispatch tests ---
+
+test_that("annotate_variants does not give raw is.data.frame error when passed genome_entity_gd as pm_tbl", {
+  # Reproduces Eggie's error: predict_variants() now returns a genome_entity_gd,
+  # so old code like annotate_variants(gd, predicted_variants) passes the whole
+  # gd object as pm_tbl.  The fix should give a helpful error, not the raw
+  # stopifnot "is.data.frame(pm_tbl) is not TRUE" message.
+
+  mock_gd <- structure(
+    list(variants_predicted = NULL),
+    class = c("genome_entity_gd", "genome_entity")
+  )
+
+  # Passing a genome_entity_gd (with no $variants_predicted) as pm_tbl should
+  # error with a *helpful* message, not the raw is.data.frame() assertion.
+  err_msg <- tryCatch(
+    annotate_variants(mock_gd, mock_gd),
+    error = function(e) conditionMessage(e)
+  )
+
+  expect_false(
+    grepl("is.data.frame", err_msg, fixed = TRUE),
+    info = paste("Got unhelpful raw error:", err_msg)
+  )
+  expect_true(
+    grepl("genome_entity_gd", err_msg),
+    info = paste("Expected helpful error mentioning genome_entity_gd, got:", err_msg)
+  )
+})
+
+
+test_that("annotate_variants warns and recovers when genome_entity_gd with variants_predicted is passed as pm_tbl", {
+  # When the user passes a genome_entity_gd that *does* have $variants_predicted,
+  # annotate_variants() should issue a warning and extract the table automatically.
+
+  dummy_pm_tbl <- data.frame(
+    type = "SNP", seq_id = "chr1", position = "100",
+    mutation = "A\u2192C", gene = "geneA",
+    stringsAsFactors = FALSE
+  )
+
+  mock_gd_with_pred <- structure(
+    list(variants_predicted = dummy_pm_tbl),
+    class = c("genome_entity_gd", "genome_entity")
+  )
+
+  mock_gd <- structure(
+    list(variants_predicted = NULL),
+    class = c("genome_entity_gd", "genome_entity")
+  )
+
+  # Should emit a cli warning about wrong argument type, then proceed
+  # (may error later on missing genome data - that's fine; we test dispatch only)
+  warns <- character(0)
+  tryCatch(
+    withCallingHandlers(
+      annotate_variants(mock_gd, mock_gd_with_pred),
+      warning = function(w) {
+        warns <<- c(warns, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    ),
+    error = function(e) NULL  # downstream failures are acceptable in this unit test
+  )
+
+  expect_true(
+    any(grepl("second argument", warns)),
+    info = paste("Expected warning about wrong argument type. Warnings captured:", paste(warns, collapse = "; "))
+  )
+})
