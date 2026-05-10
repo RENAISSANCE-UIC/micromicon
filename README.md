@@ -12,7 +12,7 @@ The package supports two complementary modes:
 
 * **Variation Analysis Mode** (based around the `genome_entity_gd` object) for tracking and analyzing genomic alterations derived from resequencing data processed using the [breseq pipeline](https://barricklab.org/twiki/bin/view/Lab/ToolsBacterialGenomeResequencing).
 
-[<a href="https://doi.org/10.5281/zenodo.18665300"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg)
+[<a href="https://doi.org/10.5281/zenodo.18500344"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg" alt="DOI"></a>](https://zenodo.org/badge/DOI/10.5281/zenodo.18665300.svg)
 
 <br clear="both"/>
 
