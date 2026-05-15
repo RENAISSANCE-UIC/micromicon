@@ -460,3 +460,49 @@ test_that("search_features handles missing fields gracefully", {
   expect_equal(nrow(result), 1)
   expect_equal(result$gene, "myGene")
 })
+
+test_that("extract_by_coords uses LOCUS name when LOCUS and ACCESSION differ", {
+  gbk_path <- system.file("extdata/test_ampC.gbk", package = "micromicon")
+  skip_if(gbk_path == "", "test_ampC.gbk not found in package")
+
+  # test_ampC.gbk has LOCUS = MICR_AMPC and ACCESSION = TEST000002 (they differ).
+  # The importer must use the LOCUS name as the contig key so it matches
+  # what breseq writes as seq_id in GD files.
+  genome <- read_genome(gbk_path)
+
+  contig_names <- get_contig_names(genome)
+  expect_true("MICR_AMPC" %in% contig_names)
+  expect_false("TEST000002" %in% contig_names)
+
+  # extract_by_coords must succeed with the LOCUS name
+  seq <- extract_by_coords(genome, contig = "MICR_AMPC", start = 1, end = 100)
+  expect_type(seq, "character")
+  expect_equal(unname(nchar(seq)), 100)
+
+  # Using the ACCESSION name must fail with a clear error
+  expect_error(
+    extract_by_coords(genome, contig = "TEST000002", start = 1, end = 100),
+    "not found"
+  )
+})
+
+test_that("read_variants matches GD seq_ids to LOCUS names, not ACCESSION", {
+  gbk_path <- system.file("extdata/test_ampC.gbk", package = "micromicon")
+  gd_path  <- system.file("extdata/test_ampC.gd",  package = "micromicon")
+  skip_if(gbk_path == "", "test_ampC.gbk not found in package")
+  skip_if(gd_path  == "", "test_ampC.gd not found in package")
+
+  # test_ampC.gbk: LOCUS = MICR_AMPC, ACCESSION = TEST000002
+  # test_ampC.gd:  seq_id = MICR_AMPC (breseq always uses LOCUS names)
+  # Regression: old code used ACCESSION as the contig key, so seq_id lookup failed.
+  genome <- read_genome(gbk_path)
+  gd <- read_variants(genome, gd_path)
+
+  expect_s3_class(gd, "genome_entity_gd")
+
+  gd <- predict_variants(gd)
+  pv <- get_predicted_variants_table(gd)
+  expect_equal(nrow(pv), 1L)
+  expect_equal(pv$seq_id, "MICR_AMPC")
+  expect_equal(pv$type, "SNP")
+})

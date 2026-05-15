@@ -93,7 +93,7 @@ You can also extract sequences using genomic coordinates:
 # ampC is located at positions 301-1434
 ampC_region <- extract_by_coords(
   genome,
-  contig = "TEST000002",
+  contig = "MICR_AMPC",
   start = 301,
   end = 1434
 )
@@ -135,7 +135,7 @@ Get a gene with surrounding context:
 flank_size <- 200
 ampC_with_flanks <- extract_by_coords(
   genome,
-  contig = "TEST000002",
+  contig = "MICR_AMPC",
   start = 301 - flank_size,  # 200bp upstream
   end = 1434 + flank_size    # 200bp downstream
 )
@@ -264,13 +264,13 @@ names(sequences) <- genes$gene
 # Find features in a specific region
 region_features <- search_features(
   genome,
-  contig = "TEST000002",
+  contig = "MICR_AMPC",
   start = 1,
   end = 1000
 )
 
 # Extract the region sequence
-region_seq <- extract_by_coords(genome, "TEST000002", 1, 1000)
+region_seq <- extract_by_coords(genome, "MICR_AMPC", 1, 1000)
 ```
 
 ### Batch Translation
