@@ -667,8 +667,7 @@ annotate_variants.genome_entity_gd <- function(gd, pm_tbl = NULL, ...) {
     }
     cli::cli_warn(c(
       "!" = "{.fn annotate_variants}: second argument is a {.cls genome_entity_gd}, not a data frame.",
-      "i" = "Using {.code $variants_predicted} from that object.",
-      "i" = "Did you mean: {.code gd <- predict_variants(gd); annotate_variants(gd)}?"
+      "i" = "Using {.code $variants_predicted} from that object."
     ))
     pm_tbl <- pm_tbl$variants_predicted
   }
