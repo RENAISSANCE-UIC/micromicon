@@ -59,11 +59,12 @@ execute_import_genbank <- function(gateway, file_path, options = list()) {
     rec <- gbk_list[[i]]
     meta <- rec$metadata
 
-    # Determine seqname (use accession if available, else locus, else generic name)
-    seqname <- if (!is.null(meta$accession) && !is.na(meta$accession) && nzchar(meta$accession)) {
-      meta$accession
-    } else if (!is.null(meta$locus) && !is.na(meta$locus) && nzchar(meta$locus)) {
+    # Use LOCUS as seqname: breseq writes LOCUS names as seq_id in GD files,
+    # so this must match. Fall back to accession, then a generic name.
+    seqname <- if (!is.null(meta$locus) && !is.na(meta$locus) && nzchar(meta$locus)) {
       meta$locus
+    } else if (!is.null(meta$accession) && !is.na(meta$accession) && nzchar(meta$accession)) {
+      meta$accession
     } else {
       paste0("record_", i)
     }
