@@ -1,6 +1,8 @@
 Package: micromicon
 Title: Unified Genomics Toolkit for GenBank and GFF3/FASTA Workflows
 Version: 0.4.1
+Author: William Ackerman
+Maintainer: William Ackerman <weackerm@uic.edu>
 Authors@R:
     person(
         given = "William",

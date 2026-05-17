@@ -1,0 +1,128 @@
+ℹ Updating micromicon documentation
+ℹ Loading micromicon
+ℹ Testing micromicon
+✔ | F W  S  OK | Context
+
+⠏ |          0 | accessors                                                      
+⠋ |          1 | accessors                                                      
+✔ |      1  11 | accessors [5.1s]
+
+⠏ |          0 | consequence-enrichment                                         
+⠴ |         56 | consequence-enrichment                                         
+⠇ |         59 | consequence-enrichment                                         
+⠸ |         94 | consequence-enrichment                                         
+✔ |         99 | consequence-enrichment
+
+⠏ |          0 | export-warnings                                                
+✔ |          7 | export-warnings
+
+⠏ |          0 | gene-utilities                                                 
+⠴ |      7  19 | gene-utilities                                                 
+✔ |      7  24 | gene-utilities
+
+⠏ |          0 | genome_entity                                                  genome_entity Summary
+=====================
+
+Source: NA 
+Sequences: 0 sequences, 0 bp total
+Features: 0 
+Records: 0 
+
+✔ |          9 | genome_entity
+
+⠏ |          0 | integration                                                    
+⠼ |      3  12 | integration                                                    
+⠴ |      3  43 | integration                                                    
+⠇ |      3  46 | integration                                                    # A tibble: 1 × 10
+  evidence type  seq_id    position mutation freq   annotation gene  description
+  <chr>    <chr> <chr>     <chr>    <chr>    <chr>  <chr>      <chr> <chr>      
+1 RA       SNP   MICR_AMPC 400      C→T      100.0% <NA>       <NA>  <NA>       
+# ℹ 1 more variable: var_type <chr>
+
+✔ |      3  49 | integration
+
+⠏ |          0 | plot_roi                                                       
+⠋ |          1 | plot_roi                                                       
+⠙ |          2 | plot_roi                                                       
+⠼ |          5 | plot_roi                                                       
+⠧ |          8 | plot_roi                                                       
+⠏ |         10 | plot_roi                                                       
+⠦ |         17 | plot_roi                                                       
+⠏ |         20 | plot_roi                                                       
+⠼ |         25 | plot_roi                                                       
+⠋ |         31 | plot_roi                                                       
+⠼ |         35 | plot_roi                                                       
+⠦ |         37 | plot_roi                                                       
+⠇ |         39 | plot_roi                                                       
+⠹ |         43 | plot_roi                                                       
+⠦ |         47 | plot_roi                                                       
+✔ |         49 | plot_roi [2.3s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 8.5 s
+
+── Skipped tests (11) ──────────────────────────────────────────────────────────
+• empty test (1): 'test-accessors.R:20:1'
+• Test file not found (9): 'test-gene-utilities.R:2:3',
+  'test-gene-utilities.R:37:3', 'test-gene-utilities.R:64:3',
+  'test-gene-utilities.R:118:3', 'test-gene-utilities.R:165:3',
+  'test-gene-utilities.R:202:3', 'test-gene-utilities.R:234:3',
+  'test-integration.R:2:3', 'test-integration.R:111:3'
+• Test GFF3 file not found (1): 'test-integration.R:42:3'
+
+[ FAIL 0 | WARN 0 | SKIP 11 | PASS 248 ]
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file ‘.../DESCRIPTION’ ... OK
+* preparing ‘micromicon’:
+* checking DESCRIPTION meta-information ... OK
+* installing the package to build vignettes
+* creating vignettes ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+* building ‘micromicon_0.4.1.tar.gz’
+
+── R CMD check ─────────────────────────────────────────────────────────────────
+* using log directory ‘/tmp/Rtmpsfpl2O/file3db16df8b2b9/micromicon.Rcheck’
+* using R version 4.5.2 (2025-10-31)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+    GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+* running under: Ubuntu 24.04.4 LTS
+* using session charset: UTF-8
+* using option ‘--no-manual’
+* checking for file ‘micromicon/DESCRIPTION’ ... OK
+* this is package ‘micromicon’ version ‘0.4.1’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... ERROR
+Package suggested but not available: ‘pwalign’
+The suggested packages are required for a complete check.
+Checking can be attempted without them by setting the environment
+variable _R_CHECK_FORCE_SUGGESTS_ to a false value.
+See section ‘The DESCRIPTION file’ in the ‘Writing R Extensions’
+manual.
+* DONE
+
+Status: 1 ERROR
+See
+  ‘/tmp/Rtmpsfpl2O/file3db16df8b2b9/micromicon.Rcheck/00check.log’
+for details.
+
+
+── R CMD check results ─────────────────────────────────── micromicon 0.4.1 ────
+Duration: 2.1s
+
+❯ checking package dependencies ... ERROR
+  Package suggested but not available: ‘pwalign’
+  
+  The suggested packages are required for a complete check.
+  Checking can be attempted without them by setting the environment
+  variable _R_CHECK_FORCE_SUGGESTS_ to a false value.
+  
+  See section ‘The DESCRIPTION file’ in the ‘Writing R Extensions’
+  manual.
+
+1 error ✖ | 0 warnings ✔ | 0 notes ✔
+Error: R CMD check found ERRORs
+Execution halted
